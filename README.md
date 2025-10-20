@@ -2,6 +2,8 @@
 
 Personal landing page for the `jonasjlc` GitHub profile. TEST TEST TEST
 
+> Remember this project template: [https://github.com/alshedivat/al-folio](https://github.com/alshedivat/al-folio)
+
 ## Getting started
 
 - Open `index.html` locally in a browser to preview the static page.
