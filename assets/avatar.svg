@@ -1,0 +1,34 @@
+<svg width="320" height="320" viewBox="0 0 320 320" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="glow" cx="0.5" cy="0.32" r="0.65">
+      <stop offset="0" stop-color="#8f7efb" stop-opacity="0.85"/>
+      <stop offset="1" stop-color="#8f7efb" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="body" x1="160" y1="0" x2="160" y2="320" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#f5f4ff"/>
+      <stop offset="1" stop-color="#dedefa"/>
+    </linearGradient>
+    <linearGradient id="collar" x1="160" y1="182" x2="160" y2="260" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#7c91ff"/>
+      <stop offset="1" stop-color="#5062d9"/>
+    </linearGradient>
+  </defs>
+  <rect width="320" height="320" rx="72" fill="url(#body)"/>
+  <rect x="32" y="38" width="256" height="256" rx="128" fill="url(#glow)" opacity="0.5"/>
+  <g filter="url(#softShadow)">
+    <path d="M104 250c0-37 25-66 56-66s56 29 56 66v30H104v-30z" fill="url(#collar)"/>
+  </g>
+  <circle cx="160" cy="134" r="76" fill="#fdfcff"/>
+  <path d="M214 130c0 30-24 54-54 54s-54-24-54-54 24-48 54-48 54 18 54 48z" fill="#f1efff"/>
+  <path d="M160 188c-18 0-34-9-42-23 8 4 20 7 34 7s26-3 34-7c-8 14-24 23-42 23z" fill="#d6d5f8"/>
+  <path d="M141 142c0 5-4 9-9 9s-9-4-9-9 4-8 9-8 9 3 9 8z" fill="#0b132b"/>
+  <path d="M197 142c0 5-4 9-9 9s-9-4-9-9 4-8 9-8 9 3 9 8z" fill="#0b132b"/>
+  <path d="M160 168c7 0 12-3 16-7-1 12-15 21-16 21s-15-9-16-21c4 4 9 7 16 7z" fill="#c6c3f2"/>
+  <path d="M160 92c-20 0-40 8-44 22 6-5 19-10 44-10s38 5 44 10c-4-14-24-22-44-22z" fill="#a7a0f2"/>
+  <defs>
+    <filter id="softShadow" x="90" y="174" width="140" height="120" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feGaussianBlur stdDeviation="7" flood-color="#0b132b" flood-opacity="0.15" result="shadow"/>
+      <feBlend in="SourceGraphic" in2="shadow" mode="normal"/>
+    </filter>
+  </defs>
+</svg>
