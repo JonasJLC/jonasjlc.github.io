@@ -1,0 +1,32 @@
+---
+import { site } from '../content/site';
+---
+
+<header class="hero" id="top">
+  <nav class="nav" aria-label="Primary navigation">
+    <a href="#projects">Projects</a>
+    <a href="#notes">Notes</a>
+    <a href="#contact">Contact</a>
+  </nav>
+
+  <div class="hero__grid">
+    <div class="hero__copy">
+      <p class="eyebrow">{site.location}</p>
+      <h1>{site.name}</h1>
+      <p class="role">{site.role}</p>
+      <p class="intro">{site.intro}</p>
+      <div class="actions" aria-label="Primary links">
+        <a class="button button--primary" href="#projects">View work</a>
+        <a class="button" href={site.links[0].href} target="_blank" rel="noreferrer">GitHub</a>
+      </div>
+    </div>
+
+    <aside class="portrait" aria-label={`${site.name} profile mark`}>
+      <img src="/assets/avatar.svg" alt="" width="320" height="320" />
+      <div>
+        <span>Current focus</span>
+        <strong>{site.availability}</strong>
+      </div>
+    </aside>
+  </div>
+</header>

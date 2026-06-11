@@ -5,10 +5,10 @@
   "type": "module",
   "packageManager": "pnpm@10.33.2",
   "scripts": {
-    "dev": "astro dev",
-    "build": "astro check && astro build",
-    "check": "astro check",
-    "preview": "astro preview"
+    "dev": "ASTRO_TELEMETRY_DISABLED=1 astro dev",
+    "build": "ASTRO_TELEMETRY_DISABLED=1 astro check && ASTRO_TELEMETRY_DISABLED=1 astro build",
+    "check": "ASTRO_TELEMETRY_DISABLED=1 astro check",
+    "preview": "ASTRO_TELEMETRY_DISABLED=1 astro preview"
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.4",

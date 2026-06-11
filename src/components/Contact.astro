@@ -1,0 +1,20 @@
+---
+import { site } from '../content/site';
+---
+
+<section class="contact" id="contact" aria-labelledby="contact-title">
+  <div>
+    <p class="eyebrow">Contact</p>
+    <h2 id="contact-title">Useful work starts with a direct note.</h2>
+  </div>
+
+  <div class="contact__links">
+    {
+      site.links.map((link) => (
+        <a href={link.href} target={link.href.startsWith('http') ? '_blank' : undefined} rel="noreferrer">
+          {link.label}
+        </a>
+      ))
+    }
+  </div>
+</section>

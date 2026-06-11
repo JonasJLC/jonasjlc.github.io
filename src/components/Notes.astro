@@ -1,0 +1,17 @@
+---
+import { site } from '../content/site';
+---
+
+<section class="section section--split" id="notes" aria-labelledby="notes-title">
+  <div class="section__header">
+    <p class="eyebrow">Working style</p>
+    <h2 id="notes-title">Small surface area, clear intent.</h2>
+  </div>
+
+  <div class="notes">
+    <p>{site.note}</p>
+    <ul>
+      {site.highlights.map((highlight) => <li>{highlight}</li>)}
+    </ul>
+  </div>
+</section>

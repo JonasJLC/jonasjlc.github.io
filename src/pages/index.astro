@@ -1,0 +1,23 @@
+---
+import Contact from '../components/Contact.astro';
+import Hero from '../components/Hero.astro';
+import Notes from '../components/Notes.astro';
+import ProjectList from '../components/ProjectList.astro';
+import { site } from '../content/site';
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+const description = `${site.name} is a Copenhagen-based developer building practical software, AI experiments, and static web projects.`;
+---
+
+<BaseLayout title={`${site.name} | Portfolio`} description={description}>
+  <Hero />
+  <main>
+    <ProjectList projects={site.projects} />
+    <Notes />
+    <Contact />
+  </main>
+  <footer>
+    <a href="#top">{site.name}</a>
+    <span>{new Date().getFullYear()}</span>
+  </footer>
+</BaseLayout>

@@ -1,0 +1,38 @@
+---
+import type { SiteProject } from '../content/site';
+
+interface Props {
+  projects: SiteProject[];
+}
+
+const { projects } = Astro.props;
+---
+
+<section class="section" id="projects" aria-labelledby="projects-title">
+  <div class="section__header">
+    <p class="eyebrow">Selected work</p>
+    <h2 id="projects-title">Projects worth keeping visible.</h2>
+  </div>
+
+  <div class="projects">
+    {
+      projects.map((project) => (
+        <article class:list={['project', { 'project--featured': project.featured }]}>
+          <div class="project__meta">
+            <span>{project.status}</span>
+            <span>{project.year}</span>
+          </div>
+          <h3>
+            <a href={project.href}>{project.title}</a>
+          </h3>
+          <p>{project.summary}</p>
+          <ul aria-label={`${project.title} tags`}>
+            {project.tags.map((tag) => (
+              <li>{tag}</li>
+            ))}
+          </ul>
+        </article>
+      ))
+    }
+  </div>
+</section>
