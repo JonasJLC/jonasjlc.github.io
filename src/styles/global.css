@@ -71,10 +71,9 @@ footer {
 }
 
 .hero {
-  min-height: 82vh;
-  padding: 22px 0 44px;
+  padding: 22px 0 clamp(48px, 7vw, 84px);
   display: grid;
-  grid-template-rows: auto 1fr;
+  grid-template-rows: auto auto;
   border-bottom: 1px solid var(--rule);
 }
 
@@ -109,7 +108,7 @@ footer {
   grid-template-columns: minmax(0, 1fr) 280px;
   gap: clamp(28px, 5vw, 72px);
   align-items: end;
-  padding-top: clamp(80px, 16vh, 180px);
+  padding-top: clamp(42px, 8vh, 96px);
 }
 
 .hero__copy,
@@ -381,10 +380,6 @@ footer {
     width: min(100% - 28px, var(--max));
   }
 
-  .hero {
-    min-height: auto;
-  }
-
   .nav {
     grid-template-columns: 1fr;
     gap: 10px;
@@ -399,7 +394,7 @@ footer {
 
   .hero__grid {
     gap: 32px;
-    padding-top: 56px;
+    padding-top: 42px;
   }
 
   .hero__index {
