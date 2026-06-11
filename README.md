@@ -2,19 +2,21 @@
 
 Personal portfolio and project index for `jonasjlc`, built with Astro and deployed to GitHub Pages.
 
+**Live site:** https://jonasjlc.github.io
+
 ## Updating the site
 
-Most updates should happen in one file:
+Most updates happen in one file:
 
 ```text
 src/content/site.ts
 ```
 
-Edit that file when you want to change the intro copy, links, highlights, or project cards. The page components render from that data, so adding a new project should usually mean adding one object to the `projects` array.
+Edit that file to change intro copy, links, highlights, or project cards. The page components render from that data, so adding a new project means adding one object to the `projects` array.
 
 ## Local development
 
-This project uses `pnpm`.
+**Requirements:** Node 20+, pnpm 10.33.2 (pinned via `packageManager` in `package.json`)
 
 ```bash
 pnpm install
@@ -24,25 +26,25 @@ pnpm dev
 Useful commands:
 
 ```bash
-pnpm check
-pnpm build
-pnpm preview
+pnpm check       # TypeScript + Astro type check only
+pnpm build       # Type check + build to dist/
+pnpm preview     # Serve the built dist/ locally
 ```
 
 ## Repository structure
 
 ```
 jonasjlc.github.io/
-├── src/                 - Astro source files
-│   ├── components/      - Page sections
-│   ├── content/site.ts  - Main update surface
-│   ├── layouts/
-│   ├── pages/
-│   └── styles/
-├── public/              - Static files copied into dist
-│   ├── assets/
-│   └── jeopardy/        - Built AI Jeopardy app
-├── astro.config.mjs
+├── src/
+│   ├── components/          - Page sections (Hero, ProjectList, Notes, Contact)
+│   ├── content/site.ts      - Main update surface
+│   ├── layouts/BaseLayout.astro
+│   ├── pages/index.astro
+│   └── styles/global.css
+├── public/
+│   ├── assets/avatar.svg    - Static assets
+│   └── jeopardy/            - Built AI Jeopardy app (do not edit directly)
+├── astro.config.mjs         - Sets canonical site URL for GitHub Pages
 ├── package.json
 ├── pnpm-lock.yaml
 └── README.md
@@ -50,13 +52,13 @@ jonasjlc.github.io/
 
 ## Jeopardy subproject
 
-The `public/jeopardy/` folder contains the built AI Jeopardy app and is served at:
+The `public/jeopardy/` folder contains the built AI Jeopardy app, served at:
 
 ```text
 https://jonasjlc.github.io/jeopardy/
 ```
 
-Do not edit files in `public/jeopardy/` directly if they are generated from the source project.
+Do not edit files in `public/jeopardy/` directly — they are generated from the source project.
 
 | What | Where |
 |------|-------|
@@ -73,9 +75,9 @@ Do not edit files in `public/jeopardy/` directly if they are generated from the 
    cd ..\jeopardy
    .\deploy.ps1
    ```
-3. Make sure the built files land in `public/jeopardy/`
-4. Run `pnpm build` here before committing
+3. Confirm built files land in `public/jeopardy/`
+4. Commit the updated files in this repo
 
 ## Deployment
 
-GitHub Actions builds the Astro site and deploys the `dist/` directory to GitHub Pages on pushes to `main`. Pull requests run the same build without deploying.
+GitHub Actions builds the Astro site on every push to `main` and deploys the `dist/` directory to GitHub Pages. Pull requests run the build only (no deploy) to catch type errors and build failures early.
