@@ -1,42 +1,69 @@
-# jonasjlc.github.io
+# Jonas JLC
 
-Personal landing page for the `jonasjlc` GitHub profile.
+Personal portfolio and project index for `jonasjlc`, built with Astro and deployed to GitHub Pages.
 
-> Remember this project template: [https://github.com/alshedivat/al-folio](https://github.com/alshedivat/al-folio)
+## Updating the site
 
-## 📁 Repository Structure
+Most updates should happen in one file:
+
+```text
+src/content/site.ts
+```
+
+Edit that file when you want to change the intro copy, links, highlights, or project cards. The page components render from that data, so adding a new project should usually mean adding one object to the `projects` array.
+
+## Local development
+
+This project uses `pnpm`.
+
+```bash
+pnpm install
+pnpm dev
+```
+
+Useful commands:
+
+```bash
+pnpm check
+pnpm build
+pnpm preview
+```
+
+## Repository structure
 
 ```
 jonasjlc.github.io/
-├── index.html           ← Main landing page
-├── assets/              ← Landing page styles & images
-│   ├── style.css
-│   └── avatar.svg
-├── jeopardy/            ← AI Jeopardy app (built files, DO NOT EDIT)
-│   ├── index.html
-│   └── assets/
+├── src/                 - Astro source files
+│   ├── components/      - Page sections
+│   ├── content/site.ts  - Main update surface
+│   ├── layouts/
+│   ├── pages/
+│   └── styles/
+├── public/              - Static files copied into dist
+│   ├── assets/
+│   └── jeopardy/        - Built AI Jeopardy app
+├── astro.config.mjs
+├── package.json
+├── pnpm-lock.yaml
 └── README.md
 ```
 
-## Getting started
+## Jeopardy subproject
 
-- Open `index.html` locally in a browser to preview the static page.
-- Update the hero text, project links, and contact details as needed.
-- Customize the look and feel in `assets/style.css`. Fonts are loaded from Google Fonts; swap them out in the `<head>` block if preferred.
-- Add images, icons, or downloadable assets to the `assets/` directory and reference them relative to the project root.
+The `public/jeopardy/` folder contains the built AI Jeopardy app and is served at:
 
-## 🎮 Jeopardy Subproject
+```text
+https://jonasjlc.github.io/jeopardy/
+```
 
-The `jeopardy/` folder contains the **built** AI Jeopardy app.
-
-> ⚠️ **Do NOT edit files in `jeopardy/` directly!** They are auto-generated from the source project.
-
-### Where to make changes
+Do not edit files in `public/jeopardy/` directly if they are generated from the source project.
 
 | What | Where |
 |------|-------|
-| Landing page (jonasjlc.github.io) | Edit files in this repo directly |
-| Jeopardy app (jonasjlc.github.io/jeopardy) | Edit source code in `../jeopardy/` and deploy |
+| Portfolio content | `src/content/site.ts` |
+| Portfolio layout/design | `src/components/`, `src/pages/`, `src/styles/` |
+| Jeopardy app source | `../jeopardy/` |
+| Built Jeopardy files in this repo | `public/jeopardy/` |
 
 ### How to update the Jeopardy app
 
@@ -46,27 +73,9 @@ The `jeopardy/` folder contains the **built** AI Jeopardy app.
    cd ..\jeopardy
    .\deploy.ps1
    ```
-3. Changes will be live at https://jonasjlc.github.io/jeopardy
+3. Make sure the built files land in `public/jeopardy/`
+4. Run `pnpm build` here before committing
 
-See the [jeopardy README](../jeopardy/README.md) for full documentation.
+## Deployment
 
-## Garmin redirect
-
-The optional `garmin/` folder includes a simple HTML redirect to Garmin Connect. Replace the target URL if you host a static copy instead.
-
-## 🚀 Deployment
-
-Push the contents of this repository to the `main` branch. GitHub Pages will automatically serve the static site at https://jonasjlc.github.io.
-
-```powershell
-git add .
-git commit -m "Your commit message"
-git push
-```
-
-### Live URLs
-
-| Page | URL |
-|------|-----|
-| Landing page | https://jonasjlc.github.io |
-| Jeopardy app | https://jonasjlc.github.io/jeopardy |
+GitHub Actions builds the Astro site and deploys the `dist/` directory to GitHub Pages on pushes to `main`. Pull requests run the same build without deploying.
