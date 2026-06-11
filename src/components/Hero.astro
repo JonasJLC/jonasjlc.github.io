@@ -4,28 +4,30 @@ import { site } from '../content/site';
 
 <header class="hero" id="top">
   <nav class="nav" aria-label="Primary navigation">
+    <a class="nav__mark" href="#top">{site.name}</a>
     <a href="#projects">Projects</a>
-    <a href="#notes">Notes</a>
+    <a href="#method">Method</a>
     <a href="#contact">Contact</a>
   </nav>
 
   <div class="hero__grid">
-    <div class="hero__copy">
-      <p class="eyebrow">{site.location}</p>
-      <h1>{site.name}</h1>
-      <p class="role">{site.role}</p>
-      <p class="intro">{site.intro}</p>
-      <div class="actions" aria-label="Primary links">
-        <a class="button button--primary" href="#projects">View work</a>
-        <a class="button" href={site.links[0].href} target="_blank" rel="noreferrer">GitHub</a>
-      </div>
+    <div class="hero__index" aria-label="Site index">
+      <span>01</span>
+      <span>{site.location}</span>
+      <span>{site.role}</span>
     </div>
 
-    <aside class="portrait" aria-label={`${site.name} profile mark`}>
-      <img src="/assets/avatar.svg" alt="" width="320" height="320" />
-      <div>
-        <span>Current focus</span>
-        <strong>{site.availability}</strong>
+    <div class="hero__copy">
+      <h1>{site.name}</h1>
+      <p class="intro">{site.intro}</p>
+    </div>
+
+    <aside class="hero__aside" aria-label="Current status">
+      <p class="eyebrow">Current</p>
+      <p>{site.availability}</p>
+      <div class="actions" aria-label="Primary links">
+        <a class="button button--primary" href="#projects">Work</a>
+        <a class="button" href={site.links[0].href} target="_blank" rel="noreferrer">GitHub</a>
       </div>
     </aside>
   </div>
