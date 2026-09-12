@@ -26,6 +26,10 @@ The `jeopardy/` directory contains generated build output. Do not edit files ins
 
 The agent has access to the `gh` CLI and may use it to query and work with GitHub directly when the task requires it. Use `gh` for repository, issue, pull request, workflow, and related GitHub operations instead of guessing remote state. Do not send messages, create external changes, or perform other expansive GitHub actions unless the user has requested them.
 
+The owner authorizes committing and pushing directly to `main` for requested work. Commit coherent, reviewable checkpoints as implementation progresses instead of leaving all changes until the end. Run checks appropriate to each checkpoint, then push it; do not ask again for routine commit or push permission. Branches and pull requests are optional, not required. This authorization does not permit force-pushing or overwriting unrelated work.
+
+When pausing or handing off, save completed work in a checkpoint commit and push it when possible. Update the implementation plan with completed tasks, remaining work, verification results, and any known limitations so another session can resume. Do not publish broken intermediate application states merely to create a checkpoint; report unfinished work explicitly. Stage only files belonging to the current task.
+
 Commit messages must follow this format:
 
 ```text
