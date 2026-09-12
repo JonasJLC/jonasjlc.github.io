@@ -34,7 +34,7 @@
 - Produces: `gift` configuration containing recipient, departure, booking details, copy, packing cards, clues, and accepted answer lists.
 - Produces: `normalizeAnswer(value)`, `matchesAnswer(value, accepted)`, `isValidSavedState(value, packingCount)`, and `initialState` from `gave-logic.mjs`.
 
-- [ ] **Step 1: Write failing behavior tests**
+- [x] **Step 1: Write failing behavior tests**
 
 ```js
 import test from 'node:test';
@@ -47,11 +47,11 @@ test('accepts Kerteminde despite casing, spaces, and punctuation', () => {
 });
 ```
 
-- [ ] **Step 2: Run the test and confirm it fails because the module does not exist**
+- [x] **Step 2: Run the test and confirm it fails because the module does not exist**
 
 Run: `node --test tests/gave-logic.test.mjs`
 
-- [ ] **Step 3: Implement the smallest configuration and helper contract**
+- [x] **Step 3: Implement the smallest configuration and helper contract**
 
 ```js
 export function normalizeAnswer(value) {
@@ -65,11 +65,11 @@ export function matchesAnswer(value, accepted) {
 
 Use a fixed `version: 1` and six allowed scene IDs in the saved-state validator. Give `gift` ten packing cards and explicit empty optional booking values.
 
-- [ ] **Step 4: Run focused tests and the Astro type check**
+- [x] **Step 4: Run focused tests and the Astro type check**
 
 Run: `node --test tests/gave-logic.test.mjs; $env:ASTRO_TELEMETRY_DISABLED = '1'; pnpm exec astro check`
 
-- [ ] **Step 5: Commit the tested content foundation**
+- [x] **Step 5: Commit the tested content foundation**
 
 ```powershell
 git add src/content/gift.ts src/scripts/gave-logic.mjs tests/gave-logic.test.mjs
@@ -211,4 +211,5 @@ git push origin main
 
 ## Verification
 
-- [ ] Pending implementation.
+- Task 1: `node --test tests/gave-logic.test.mjs` passed (3 tests) and `pnpm exec astro check` passed with 0 errors on 2026-09-12.
+- Remaining: Tasks 2–4.
