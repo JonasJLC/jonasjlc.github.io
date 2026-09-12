@@ -1,0 +1,43 @@
+---
+import { gift } from '../../content/gift';
+import '../../styles/gave.css';
+
+const title = 'En invitation til dig';
+const description = 'En lille personlig invitation venter.';
+const imageStyle = gift.optionalImage ? `--gave-image: url(${gift.optionalImage})` : '';
+---
+
+<!doctype html>
+<html lang="da">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content={description} />
+    <meta name="theme-color" content="#ece4d5" />
+    <link rel="canonical" href="https://jonasjlc.github.io/gave/" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://jonasjlc.github.io/gave/" />
+    <meta name="twitter:card" content="summary" />
+    <title>{title}</title>
+  </head>
+  <body style={imageStyle}>
+    <main id="gave-app" tabindex="-1" aria-describedby="gave-live">
+      <section class="gave-shell" aria-labelledby="gave-title">
+        <p class="gave-kicker">FORTROLIG</p>
+        <h1 id="gave-title">En invitation til dig</h1>
+        <p>Åbn invitationen i en browser med JavaScript slået til.</p>
+      </section>
+    </main>
+    <p id="gave-live" class="sr-only" aria-live="polite" aria-atomic="true"></p>
+    <noscript>
+      <div class="gave-noscript">
+        <p>Invitationen bliver bedst med JavaScript slået til. Prøv igen i en browser, hvor det er tilladt.</p>
+      </div>
+    </noscript>
+    <script>
+      import '../../scripts/gave';
+    </script>
+  </body>
+</html>

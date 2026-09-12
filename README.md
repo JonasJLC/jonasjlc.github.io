@@ -14,6 +14,10 @@ src/content/site.ts
 
 Edit that file to change intro copy, links, highlights, or project cards. The page components render from that data, so adding a new project means adding one object to the `projects` array.
 
+The private gift reveal is available at [`/gave/`](https://jonasjlc.github.io/gave/). Its recipient-facing copy, packing list, clues, accepted answers, optional local image path, and confirmed booking details live in `src/content/gift.ts`.
+
+Optional images belong in `public/gave/assets/` and should be optimized before being added. Set the matching local path in `gift.optionalImage`; the page keeps its gradient treatment when no image is configured or an image cannot load.
+
 ## Local development
 
 **Requirements:** Node 20+, pnpm 10.33.2 (pinned via `packageManager` in `package.json`)
@@ -38,11 +42,15 @@ jonasjlc.github.io/
 ├── src/
 │   ├── components/          - Page sections (Hero, ProjectList, Notes, Contact)
 │   ├── content/site.ts      - Main update surface
+│   ├── content/gift.ts      - Gift reveal content and booking details
 │   ├── layouts/BaseLayout.astro
 │   ├── pages/index.astro
+│   ├── pages/gave/index.astro - Private gift reveal route
+│   ├── scripts/gave.ts      - Gift reveal browser interactions
 │   └── styles/global.css
 ├── public/
 │   ├── assets/avatar.svg    - Static assets
+│   ├── gave/assets/         - Optional gift reveal images
 │   └── jeopardy/            - Built AI Jeopardy app (do not edit directly)
 ├── astro.config.mjs         - Sets canonical site URL for GitHub Pages
 ├── package.json
@@ -64,6 +72,8 @@ Do not edit files in `public/jeopardy/` directly — they are generated from the
 |------|-------|
 | Portfolio content | `src/content/site.ts` |
 | Portfolio layout/design | `src/components/`, `src/pages/`, `src/styles/` |
+| Gift reveal content | `src/content/gift.ts` |
+| Gift reveal preview | `http://localhost:4321/gave/` |
 | Jeopardy app source | `../jeopardy/` |
 | Built Jeopardy files in this repo | `public/jeopardy/` |
 

@@ -5,11 +5,13 @@ export const initialState = {
   scene: 'intro',
   packingIndex: 0,
   packingChoice: '',
+  unlockedClueIds: [],
   locationClues: 1,
   locationHint: 0,
   locationComplete: false,
   sizeHint: 0,
   sizeComplete: false,
+  nameStage: 'size',
   directionHint: 0,
   directionComplete: false,
   revealComplete: false,
@@ -34,6 +36,9 @@ export function isValidSavedState(value, packingCount) {
     integerInRange(value.locationHint, 0, 2) &&
     integerInRange(value.sizeHint, 0, 2) &&
     integerInRange(value.directionHint, 0, 2) &&
+    (value.nameStage === 'size' || value.nameStage === 'direction') &&
+    Array.isArray(value.unlockedClueIds) &&
+    value.unlockedClueIds.every((id) => /^location-[1-5]$/.test(id)) &&
     typeof value.locationComplete === 'boolean' &&
     typeof value.sizeComplete === 'boolean' &&
     typeof value.directionComplete === 'boolean' &&

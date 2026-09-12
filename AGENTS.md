@@ -1,64 +1,36 @@
-# Agent Instructions for jonasjlc.github.io – Personal GitHub Pages site
+# Agent Instructions for jonasjlc.github.io
 
-## Summary
+## Project
 
-- Read this file before making changes in the repository.
-- Read `README.md` for the public project structure and deployment context.
-- Read `.github/workflows/site-check.yml` when changing files that affect CI verification.
-- This repository is a static GitHub Pages site. Keep changes dependency free unless the task explicitly requires otherwise.
+This is a static Astro 5 site deployed to GitHub Pages from `main`. Read `README.md` before changes. Keep changes dependency free unless the task explicitly requires a dependency.
 
-## Project structure
+The public landing page is `src/pages/index.astro`; its editable content is `src/content/site.ts`. Shared components and styles are in `src/components/` and `src/styles/`. The private gift reveal is `src/pages/gave/index.astro`, with editable content in `src/content/gift.ts`, browser behavior in `src/scripts/gave.ts`, and page-specific styling in `src/styles/gave.css`.
 
-The root `index.html` is the personal landing page. Shared landing page styles and images live in `assets/`. A page-specific static site should live in its own directory, such as `gave/index.html`, and should reference shared assets with paths relative to that directory.
+`public/jeopardy/` contains generated output from the sibling Jeopardy project. Do not edit it directly. Optional gift images belong in `public/gave/assets/` and must be locally hosted and optimized.
 
-The `jeopardy/` directory contains generated build output. Do not edit files inside it directly. Changes to that app belong in the sibling source project described in `README.md`; regenerate the build through that project's deployment script.
+## Rules
 
-## Must-follow rules
+- Preserve the Astro static-hosting layout and use generated Astro asset URLs instead of hardcoded bundle names.
+- Keep HTML semantic, responsive, and accessible. Every page needs a viewport tag and descriptive metadata.
+- Do not link the public homepage to `/gave/` unless explicitly asked.
+- Do not add frameworks, client islands, runtime dependencies, secrets, private URLs, generated debug output, or unrelated assets.
+- Preserve unrelated working-tree changes. Stage only files belonging to the task.
+- Read `.github/workflows/pages.yml` when changing CI; it installs with the frozen lockfile, runs the Astro build, and verifies `dist/gave/index.html`.
 
-- Preserve the existing static hosting layout and use relative URLs that work when served from a subdirectory.
-- Keep `index.html` and other pages valid, semantic HTML with a viewport meta tag, descriptive page metadata, and accessible link text.
-- Reuse `assets/style.css` and existing visual conventions when adding pages. Add a page-specific stylesheet only when shared styles cannot express the page cleanly.
-- Do not add a framework, bundler, or package dependency for a static page change.
-- Do not commit secrets, private URLs, credentials, generated debug output, or large unrelated assets.
-- Preserve unrelated working-tree changes and keep each change narrowly scoped.
+## Git and deployment
 
-## GitHub and git operations
-
-The agent has access to the `gh` CLI and may use it to query and work with GitHub directly when the task requires it. Use `gh` for repository, issue, pull request, workflow, and related GitHub operations instead of guessing remote state. Do not send messages, create external changes, or perform other expansive GitHub actions unless the user has requested them.
-
-The owner authorizes committing and pushing directly to `main` for requested work. Commit coherent, reviewable checkpoints as implementation progresses instead of leaving all changes until the end. Run checks appropriate to each checkpoint, then push it; do not ask again for routine commit or push permission. Branches and pull requests are optional, not required. This authorization does not permit force-pushing or overwriting unrelated work.
-
-When pausing or handing off, save completed work in a checkpoint commit and push it when possible. Update the implementation plan with completed tasks, remaining work, verification results, and any known limitations so another session can resume. Do not publish broken intermediate application states merely to create a checkpoint; report unfinished work explicitly. Stage only files belonging to the current task.
-
-Commit messages must follow this format:
+The owner authorizes coherent commits and pushes directly to `main` for requested work. Verify each checkpoint before pushing it. Do not force-push or overwrite unrelated work. Commit messages use:
 
 ```text
 <type>(scope): <description>
 
-[- body1
-- body2
-- body3]
+[- body]
 ```
 
-Use a clean commit with the appropriate type, optional scope, and concise description. Never add `Co-authored-by: Claude`, `Co-authored-by: Codex`, or any similar AI co-author trailer to a commit. Commits must contain only the project's normal author information and the formatted message above.
-
-## Editing conventions
-
-Use two-space indentation in HTML and CSS. Keep content and labels consistent with the page language. Prefer clear class names, native HTML elements, and CSS media queries over JavaScript. Add JavaScript only for behavior that cannot be implemented with HTML and CSS, and keep it small and local to the page.
-
-When linking from the root page to a subpage, use a directory URL such as `gave/`. From a subpage, use `../` for the root and `../assets/...` for shared assets. Test both root and subdirectory paths after changing links.
+Do not add AI co-author trailers. GitHub Pages deploys the `dist/` artifact after a successful push to `main`; verify workflow status separately when deployment status matters.
 
 ## Verification
 
-Run the repository's static checks from the root before handing off a change:
+Use Node 20+ and pnpm 10.33.2. In native PowerShell, set `$env:ASTRO_TELEMETRY_DISABLED = '1'` and run `pnpm exec astro check`, `pnpm exec astro build`, and `pnpm exec astro preview` rather than package scripts that use POSIX environment assignments. Run `pnpm install --frozen-lockfile` before local checks when dependencies are absent.
 
-```powershell
-if (-not (Test-Path -Path index.html -PathType Leaf)) { throw 'index.html is missing' }
-if (-not (Test-Path -Path assets/style.css -PathType Leaf)) { throw 'assets/style.css is missing' }
-```
-
-For page or style changes, open the affected HTML file in a browser and check desktop and narrow mobile layouts, navigation, asset loading, focus states, and the browser console. The GitHub Actions workflow runs the equivalent existence checks on pushes to `main` and pull requests.
-
-## Deployment
-
-Deployment is handled by GitHub Pages from the `main` branch. Follow the commit and push instructions in `README.md`. Do not edit generated `jeopardy/` output as part of landing-page work.
+For `/gave/`, test the preview at `/gave/` and `/gave`; desktop and narrow layouts; keyboard focus; reduced motion; answer and hint paths; refresh recovery; restart; local-storage failure; and browser console output. Confirm `dist/gave/index.html` is nonempty after a build.

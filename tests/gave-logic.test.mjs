@@ -21,4 +21,5 @@ test('validates only supported persisted state', () => {
   assert.equal(isValidSavedState({ ...initialState, scene: 'unknown' }, 10), false);
   assert.equal(isValidSavedState({ ...initialState, packingIndex: 10 }, 10), true);
   assert.equal(isValidSavedState({ ...initialState, packingIndex: 11 }, 10), false);
+  assert.equal(isValidSavedState({ ...initialState, unlockedClueIds: ['not-a-clue'] }, 10), false);
 });

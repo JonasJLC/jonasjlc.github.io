@@ -1,0 +1,345 @@
+:root {
+  color-scheme: light;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background: #ece4d5;
+  color: #242722;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  min-width: 320px;
+  min-height: 100vh;
+  margin: 0;
+  overflow-x: hidden;
+  background:
+    linear-gradient(145deg, rgb(255 252 244 / 82%), rgb(218 228 220 / 68%)),
+    var(--gave-image, none),
+    #d6e3dc;
+}
+
+button,
+input {
+  font: inherit;
+}
+
+button {
+  min-height: 48px;
+  cursor: pointer;
+}
+
+button:focus-visible,
+input:focus-visible {
+  outline: 3px solid #b2603e;
+  outline-offset: 3px;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.gave-shell {
+  position: relative;
+  display: grid;
+  width: min(100% - 32px, 680px);
+  min-height: 100vh;
+  margin: auto;
+  padding: clamp(24px, 5vw, 56px) 0;
+  align-content: center;
+}
+
+.gave-panel {
+  position: relative;
+  overflow: hidden;
+  padding: clamp(26px, 6vw, 56px);
+  border: 1px solid rgb(36 39 34 / 30%);
+  background: rgb(255 252 246 / 78%);
+  box-shadow: 0 24px 64px rgb(31 48 43 / 15%);
+  backdrop-filter: blur(9px);
+}
+
+.gave-panel::before {
+  position: absolute;
+  inset: 11px;
+  border: 1px solid rgb(36 39 34 / 13%);
+  content: "";
+  pointer-events: none;
+}
+
+.gave-panel > * {
+  position: relative;
+}
+
+.gave-kicker,
+.gave-meta,
+.gave-progress {
+  margin: 0 0 18px;
+  color: #65695f;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+
+.gave-title {
+  margin: 0 0 20px;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(2.65rem, 10vw, 5.2rem);
+  font-weight: 500;
+  line-height: 0.95;
+  letter-spacing: -0.045em;
+}
+
+.gave-copy {
+  max-width: 38rem;
+  margin: 0 0 28px;
+  color: #4e554d;
+  font-size: clamp(1.05rem, 2.5vw, 1.22rem);
+  line-height: 1.55;
+}
+
+.gave-dossier {
+  display: grid;
+  gap: 14px;
+  margin: 30px 0;
+  padding-block: 18px;
+  border-top: 1px solid rgb(36 39 34 / 22%);
+  border-bottom: 1px solid rgb(36 39 34 / 22%);
+}
+
+.gave-dossier p {
+  display: grid;
+  gap: 3px;
+  margin: 0;
+}
+
+.gave-dossier strong {
+  font-size: 0.77rem;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+}
+
+.gave-dossier span {
+  color: #5a6158;
+}
+
+.gave-actions,
+.gave-actions--stacked {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.gave-actions--stacked {
+  display: grid;
+}
+
+.gave-button {
+  min-width: 144px;
+  padding: 12px 18px;
+  border: 1px solid #2e352f;
+  background: #2e352f;
+  color: #fcf8f0;
+  font-size: 0.77rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.gave-button:hover {
+  background: #b2603e;
+  border-color: #b2603e;
+}
+
+.gave-button--quiet {
+  background: transparent;
+  color: #2e352f;
+}
+
+.gave-button--quiet:hover {
+  color: #fcf8f0;
+}
+
+.gave-button:disabled {
+  cursor: default;
+  opacity: 0.55;
+}
+
+.gave-answer,
+.gave-form {
+  display: grid;
+  gap: 12px;
+}
+
+.gave-answer label {
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.gave-answer input {
+  width: 100%;
+  min-height: 50px;
+  padding: 10px 14px;
+  border: 1px solid #647166;
+  border-radius: 0;
+  background: rgb(255 255 255 / 70%);
+  color: #242722;
+}
+
+.gave-feedback {
+  margin: 24px 0;
+  padding: 16px;
+  border-left: 3px solid #b2603e;
+  background: rgb(178 96 62 / 10%);
+  color: #4e554d;
+  line-height: 1.45;
+}
+
+.gave-clues {
+  display: grid;
+  gap: 8px;
+  margin: 24px 0;
+  padding: 0;
+  list-style: none;
+}
+
+.gave-clues li {
+  padding: 12px 14px;
+  border-left: 2px solid #74877d;
+  background: rgb(116 135 125 / 10%);
+}
+
+.gave-compass {
+  display: grid;
+  width: min(220px, 100%);
+  aspect-ratio: 1;
+  margin: 26px auto;
+  border: 1px solid #53645b;
+  border-radius: 50%;
+  place-items: center;
+  background: conic-gradient(from 45deg, #e7dfcf, #c7dbd4, #e7dfcf);
+  color: #263b31;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 3.25rem;
+  font-weight: 700;
+}
+
+.gave-compass::after {
+  content: "N";
+  transform: translateY(-7px);
+}
+
+.gave-reveal {
+  width: 100%;
+  min-height: 100vh;
+  display: grid;
+  padding: clamp(24px, 6vw, 80px);
+  place-items: center;
+  text-align: center;
+  background:
+    radial-gradient(circle at 20% 15%, rgb(255 251 224 / 85%), transparent 35%),
+    radial-gradient(circle at 80% 82%, rgb(107 154 150 / 65%), transparent 43%),
+    linear-gradient(160deg, #58766f, #d2e0d5 52%, #f0d6a7);
+}
+
+.gave-reveal__content {
+  max-width: 900px;
+}
+
+.gave-reveal .gave-title {
+  color: #18342c;
+  font-size: clamp(3rem, 13vw, 8.5rem);
+  opacity: 0;
+  transform: translateY(16px) scale(0.98);
+  transition: opacity 900ms ease, transform 900ms ease;
+}
+
+.gave-reveal .gave-title.is-visible {
+  opacity: 1;
+  transform: none;
+}
+
+.gave-reveal .gave-kicker {
+  color: #315247;
+}
+
+.gave-details {
+  display: grid;
+  gap: 0;
+  margin: 26px 0;
+  border-top: 1px solid rgb(36 39 34 / 24%);
+}
+
+.gave-details div {
+  display: grid;
+  grid-template-columns: minmax(110px, 0.55fr) 1fr;
+  gap: 14px;
+  padding: 14px 0;
+  border-bottom: 1px solid rgb(36 39 34 / 18%);
+}
+
+.gave-details dt {
+  color: #62685f;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.gave-details dd {
+  margin: 0;
+  line-height: 1.45;
+}
+
+.gave-restart {
+  margin-top: 28px;
+}
+
+.gave-noscript {
+  position: fixed;
+  inset-inline: 16px;
+  bottom: 16px;
+  padding: 14px;
+  background: #fffaf1;
+  border: 1px solid #2e352f;
+}
+
+@media (max-width: 520px) {
+  .gave-shell {
+    width: min(100% - 20px, 680px);
+    padding: 10px 0;
+  }
+
+  .gave-panel {
+    padding: 28px 22px;
+  }
+
+  .gave-actions > * {
+    width: 100%;
+  }
+
+  .gave-details div {
+    grid-template-columns: 1fr;
+    gap: 5px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+}
