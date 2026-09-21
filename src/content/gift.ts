@@ -1,47 +1,31 @@
 export const gift = {
-  recipientName: '',
-  departure: '',
-  optionalImage: '',
-  opening: {
-    classification: 'FORTROLIG RESERVATION',
-    purpose: 'Et lille ophold for os to',
-    duration: 'En nat væk fra hverdagen',
+  nicknames: ['Mussi', 'Bubbi', 'Wong', 'Wongtong', 'Won', 'Wonton', 'CAM', 'CAMAL', 'bingbong', 'Chokoladefabrik', 'plang', 'Plingplang'],
+  gate: {
+    title: 'Hvad er dit kælenavn?',
+    copy: 'En lille gave venter på dig. Først skal jeg lige vide, at det er dig.',
+    alternatives: 'Du havde også fået adgang, hvis du havde svaret følgende:',
+    error: 'Det var ikke lige det kælenavn, jeg tænkte på. Prøv et andet ♥',
   },
-  packing: [
-    { item: 'Badetøj', pack: 'Det får en særlig god opgave.', leave: 'Modigt. Men måske lidt upraktisk.' },
-    { item: 'En blød morgenkåbe', pack: 'Det lyder som en plan med plads til ro.', leave: 'Fair nok. Der findes heldigvis varme håndklæder.' },
-    { item: 'Din yndlingsbog', pack: 'En god pause fortjener en god bog.', leave: 'Så er der mere plads til at kigge ud.' },
-    { item: 'Behagelige sko', pack: 'Klar til små ture og langsomme skridt.', leave: 'Bare rolig, vi skal ikke på vandretur.' },
-    { item: 'En varm trøje', pack: 'Den kan blive god, når luften er frisk.', leave: 'Vi finder nok et sted at varme os.' },
-    { item: 'Solbriller', pack: 'Optimistisk. Det kan jeg godt lide.', leave: 'Det danske vejr får lov at overraske os.' },
-    { item: 'Telefonopladeren', pack: 'Praktisk sans registreret.', leave: 'En lille digital detox har også sin charme.' },
-    { item: 'Et kortspil', pack: 'Måske bliver der tid til en langsom runde.', leave: 'Vi finder på noget andet hyggeligt.' },
-    { item: 'Din yndlingssnack', pack: 'Prioriteterne er helt rigtige.', leave: 'Der venter stadig noget godt.' },
-    { item: 'Nysgerrighed', pack: 'Den er den vigtigste ting på listen.', leave: 'Så låner du lidt af min undervejs.' },
+  riddle: {
+    title: 'Hvor skal vi hen?',
+    copy: 'Vi skal til et sted i Kerteminde, hvor varme bade og ro venter. Navnet består af to engelske ord: Det første betyder “stor” eller “fantastisk”, og det andet betyder “nordlig”. Hvad hedder stedet?',
+    hints: ['Det første ord er GREAT.', 'Det andet ord er NORTHERN.'],
+    answers: ['Great Northern'],
+    error: 'Ikke helt endnu. Prøv igen — eller få et lille hint.',
+  },
+  title: '1x Midday Spa Getaway',
+  destination: 'Great Northern',
+  date: '31. oktober – 1. november',
+  message: 'Tid til varme bade, god mad og en pause fra hverdagen. Kun os to.',
+  itinerary: [
+    { time: '12.00', title: 'Frokost', description: 'Frokost på Great Northern' },
+    { time: '13.00–16.00', title: 'Spa', description: 'Tre timer med ro og varme bade' },
+    { time: '19.30', title: 'Middag', description: 'Tre-retters menu' },
   ],
-  location: {
-    clues: ['Vi bliver i Danmark.', 'Vi skal til Fyn.', 'Havet er tæt på.', 'Byen begynder med K.', 'Kerte_____'],
-    hints: ['Tænk på en hyggelig kystby på det nordøstlige Fyn.', 'Byens navn slutter på “minde”.'],
-    answers: ['kerteminde', 'kerte minde'],
-  },
-  namePuzzle: {
-    sizeAnswers: ['stor', 'big', 'great'],
-    directionAnswers: ['nord', 'north'],
-    sizeHint: 'Det modsatte af lille er et dansk ord på fire bogstaver.',
-    directionHint: 'Kompasnålen peger mod toppen af kortet.',
-  },
-  details: {
-    date: '',
-    checkIn: '',
-    checkOut: '',
-    hotelStay: '',
-    dinner: '',
-    spaAccess: '',
-    treatments: '',
-    breakfast: '',
-    address: '',
-    message: '',
-  },
+  images: [
+    { src: '/gave/assets/spa-exterior.webp', alt: 'Great Northern Spa omgivet af træer og grøn natur' },
+    { src: '/gave/assets/spa-pool.webp', alt: 'Poolen under det høje træloft i Great Northern Spa' },
+  ],
 } as const;
 
 export type Gift = typeof gift;

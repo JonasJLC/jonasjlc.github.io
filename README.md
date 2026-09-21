@@ -14,9 +14,9 @@ src/content/site.ts
 
 Edit that file to change intro copy, links, highlights, or project cards. The page components render from that data, so adding a new project means adding one object to the `projects` array.
 
-The private gift reveal is available at [`/gave/`](https://jonasjlc.github.io/gave/). Its recipient-facing copy, packing list, clues, accepted answers, optional local image path, and confirmed booking details live in `src/content/gift.ts`.
+The gift reveal is available at [`/gave/`](https://jonasjlc.github.io/gave/). Its nickname gate, destination riddle, hints, local images, and booking details live in `src/content/gift.ts`. The gate is a playful browser interaction, not secure authentication; its answers and content are included in the static site.
 
-Optional images belong in `public/gave/assets/` and should be optimized before being added. Set the matching local path in `gift.optionalImage`; the page keeps its gradient treatment when no image is configured or an image cannot load.
+Images belong in `public/gave/assets/` and should be optimized before being added. Set local paths in `gift.images`; the invitation remains readable if images fail to load. Progress is saved under `gave-reveal-v2`, with an in-memory fallback when storage is unavailable. “Start forfra” returns to the nickname gate.
 
 ## Local development
 
