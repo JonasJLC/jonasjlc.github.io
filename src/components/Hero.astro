@@ -1,5 +1,7 @@
 ---
 import { site } from '../content/site';
+
+const date = new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }).format(new Date());
 ---
 
 <header class="masthead" id="top">
@@ -9,15 +11,20 @@ import { site } from '../content/site';
       <li><a href="#focus">Focus</a></li>
       <li><a href="#work">Work</a></li>
       <li><a href="#method">Method</a></li>
-      <li><a href="#contact">Contact</a></li>
+      <li><a href="#references">References</a></li>
     </ul>
   </nav>
 
   <h1>{site.name}</h1>
-  <p class="byline">
+  <p class="author">
     <span>{site.role}</span>
-    <span>{site.location}</span>
+    <span class="affiliation">{site.employer}, {site.location}</span>
   </p>
-  <p class="tagline">{site.tagline}</p>
-  <p class="current">{site.current}</p>
+  <p class="date">{date}</p>
+
+  <div class="abstract" role="group" aria-labelledby="abstract-title">
+    <h2 id="abstract-title">Abstract</h2>
+    <p>{site.tagline}</p>
+    <p>{site.current}</p>
+  </div>
 </header>

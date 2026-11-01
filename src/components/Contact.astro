@@ -1,18 +1,21 @@
 ---
 import { site } from '../content/site';
+
+const display = (href: string) => href.replace(/^mailto:/, '').replace(/^https?:\/\/(www\.)?/, '');
 ---
 
-<section class="section" id="contact" aria-labelledby="contact-title">
-  <h2 id="contact-title"><span class="section__num">5</span> Contact</h2>
-  <ul class="contact__links">
+<section class="section" id="references" aria-labelledby="references-title">
+  <h2 id="references-title"><span class="section__num">5</span> References</h2>
+  <ol class="references">
     {
       site.links.map((link) => (
         <li>
           <a href={link.href} target={link.href.startsWith('http') ? '_blank' : undefined} rel="noreferrer">
             {link.label}
           </a>
+          . <span class="references__url">{display(link.href)}</span>
         </li>
       ))
     }
-  </ul>
+  </ol>
 </section>
