@@ -44,14 +44,14 @@ export function SelectionBar({
       {ready && (
         <ul className="mt-2 flex flex-wrap gap-2 text-xs">
           {chips.map((c) => {
-            const ok = c.lowest >= -1e-9;
+            const ok = !c.short && !c.squeezes;
             return (
               <li
                 key={c.k}
                 className={`rounded-full border px-2.5 py-1 font-semibold ${ok ? 'text-ok' : 'text-warn'}`}
               >
                 <i className="mr-1.5 inline-block size-2 rounded-full" style={{ background: personColor(c.k) }} />
-                {personName(state, c.k)}: {fmtN(c.after)} efter {ok ? '✓' : '– for få dage'}
+                {personName(state, c.k)}: {fmtN(c.after)} efter {ok ? '✓' : c.short ? '– for få dage' : '– senere rejse bliver for dyr'}
               </li>
             );
           })}

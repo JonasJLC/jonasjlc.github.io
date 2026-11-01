@@ -56,13 +56,13 @@ export function TripList({
                     </span>
                     <span className="mt-1 flex flex-col gap-0.5 text-xs">
                       {own.map((s) => {
-                        const short = s.lowest < -1e-9;
-                        const when = short ? earliestAffordable(state, days, [s.k], today, t.id) : null;
+                        const when = s.short ? earliestAffordable(state, days, [s.k], today, t.id) : null;
                         return (
-                          <span key={s.k} className={short ? 'font-semibold text-warn' : 'text-muted-foreground'}>
+                          <span key={s.k} className={s.short ? 'font-semibold text-warn' : 'text-muted-foreground'}>
                             {whoKeys(t.who).length > 1 && <>{personName(state, s.k)}: </>}
                             {fmtN(s.before)} → {fmtN(s.after)}
-                            {short && (when ? ` · nok dage fra ${fmtShort(when, true)}` : ' · mangler dage')}
+                            {s.short && (when ? ` · nok dage fra ${fmtShort(when, true)}` : ' · mangler dage')}
+                            {s.squeezes && <span className="font-semibold text-warn"> · gør en senere rejse for dyr</span>}
                           </span>
                         );
                       })}

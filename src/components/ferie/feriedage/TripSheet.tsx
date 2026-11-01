@@ -85,9 +85,9 @@ function TripForm({ state, draft, onClose, onSave, onDelete }: Props & { draft: 
               <span className="inline-flex items-center gap-2 font-semibold">
                 <i className="size-2.5 rounded-full" style={{ background: personColor(s.k) }} />{personName(state, s.k)}
               </span>
-              <span className={s.lowest < -1e-9 ? 'font-bold text-warn' : ''}>
+              <span className={s.short ? 'font-bold text-warn' : s.squeezes ? 'text-warn' : ''}>
                 {fmtN(s.before)} → <b>{fmtN(s.after)}</b>
-                {s.lowest < -1e-9 ? ' · mangler dage' : ''}
+                {s.short ? ' · mangler dage' : s.squeezes ? ' · gør en senere rejse for dyr' : ''}
               </span>
             </li>
           ))}

@@ -19,7 +19,13 @@ export interface Impact {
   after: number;
   /** Lowest balance from the trip's start until the end of the horizon. */
   lowest: number;
+  /** The trip itself leaves the balance negative. */
+  short: boolean;
+  /** The trip fits, but pushes a later trip into the red that fit without it. */
+  squeezes: boolean;
 }
+
+const EPS = 1e-9;
 
 /** Balance effect of taking `days` off starting `from`, ignoring trip `excludeId`. */
 export function impact(
@@ -33,9 +39,13 @@ export function impact(
   return whoKeys(who).map((k) => {
     const before = balanceAt(state, k, from, excludeId);
     const series = balanceSeries(state, k, from, Math.max(from, horizon), excludeId);
-    let lowest = Infinity;
-    for (const v of series) lowest = Math.min(lowest, v);
-    return { k, before, after: before - days, lowest: lowest - days };
+    let without = Infinity;
+    for (const v of series) without = Math.min(without, v);
+    const after = before - days;
+    const lowest = without - days;
+    const short = after < -EPS;
+    const squeezes = !short && lowest < -EPS && without >= -EPS;
+    return { k, before, after, lowest, short, squeezes };
   });
 }
 
