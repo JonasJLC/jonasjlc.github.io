@@ -1,4 +1,5 @@
-import type { FerieState, Person, Settings } from './types';
+import { toISO, todayTime } from './dates';
+import type { FerieState, Kasse, Person, Settings } from './types';
 
 export const defaultPerson = (name: string): Person => ({
   name,
@@ -15,4 +16,21 @@ export const defaultSettings = (): Settings => ({
   people: { a: defaultPerson('Person 1'), b: defaultPerson('Person 2') },
 });
 
-export const defaultState = (): FerieState => ({ settings: defaultSettings(), trips: [] });
+export const defaultKasse = (): Kasse => ({
+  start: 0,
+  startDate: toISO(todayTime()),
+  depA: 0,
+  depB: 0,
+  depDay: 1,
+  margin: 10,
+  buffer: 0,
+  look: `${new Date().getFullYear() + 1}-10-01`,
+  steps: [],
+});
+
+export const defaultState = (): FerieState => ({
+  settings: defaultSettings(),
+  trips: [],
+  kasse: defaultKasse(),
+  money: [],
+});

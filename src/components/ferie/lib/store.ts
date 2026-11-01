@@ -1,5 +1,5 @@
-import { defaultSettings, defaultState } from './defaults';
-import type { FerieState, Trip } from './types';
+import { defaultKasse, defaultSettings, defaultState } from './defaults';
+import type { FerieState, Kasse, MoneyItem, Trip } from './types';
 
 /** Persistence boundary. A Supabase implementation can replace the local one later. */
 export interface FerieStore {
@@ -12,7 +12,7 @@ const KEY = 'ferie-v1';
 export function normalize(raw: unknown): FerieState {
   const d = defaultState();
   if (!raw || typeof raw !== 'object') return d;
-  const r = raw as { settings?: Partial<FerieState['settings']>; trips?: unknown };
+  const r = raw as { settings?: Partial<FerieState['settings']>; trips?: unknown; kasse?: Partial<Kasse>; money?: unknown };
   const s = r.settings ?? {};
   const people = (s.people ?? {}) as Partial<FerieState['settings']['people']>;
   const base = defaultSettings();
@@ -29,7 +29,37 @@ export function normalize(raw: unknown): FerieState {
           created: Number(t.created) || 0,
         }))
     : [];
+  const numOrNull = (v: unknown): number | null =>
+    v === null || v === undefined || v === '' || Number.isNaN(+(v as number)) ? null : +(v as number);
+  const kb = defaultKasse();
+  const k = (r.kasse ?? {}) as Partial<Kasse>;
+  const kasse: Kasse = {
+    ...kb,
+    ...k,
+    steps: Array.isArray(k.steps)
+      ? k.steps.filter((x) => x && typeof x.from === 'string').map((x) => ({ from: x.from, total: +x.total || 0 }))
+      : [],
+  };
+  const money: MoneyItem[] = Array.isArray(r.money)
+    ? (r.money as Partial<MoneyItem>[])
+        .filter((it) => it && typeof it === 'object')
+        .map((it, i) => ({
+          id: String(it.id ?? `m${i}`),
+          kind: it.kind === 'deposit' ? 'deposit' : 'expense',
+          tripId: it.tripId ? String(it.tripId) : null,
+          cat: String(it.cat ?? 'Andet'),
+          label: String(it.label ?? ''),
+          est: numOrNull(it.est),
+          act: numOrNull(it.act),
+          date: String(it.date ?? ''),
+          payer: it.payer === 'a' || it.payer === 'b' ? it.payer : 'acc',
+          created: Number(it.created) || 0,
+          fromPlan: it.fromPlan ? true : undefined,
+        }))
+    : [];
   return {
+    kasse,
+    money,
     settings: {
       year: +(s.year as number) || base.year,
       extraOff: !!s.extraOff,

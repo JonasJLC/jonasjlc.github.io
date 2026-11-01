@@ -3,6 +3,7 @@ import { Tabs } from 'radix-ui';
 import { useEffect, useState } from 'react';
 import { Toaster } from 'sonner';
 import { Feriedage } from './feriedage/Feriedage';
+import { Kassen } from './kassen/Kassen';
 import { useFerie } from './lib/use-ferie';
 import { Button } from './ui/button';
 import { cn } from './lib/utils';
@@ -31,7 +32,7 @@ function useTheme(): [Theme, () => void] {
 
 const TABS = [
   { value: 'feriedage', label: 'Feriedage', icon: Plane, ready: true },
-  { value: 'rejsekassen', label: 'Rejsekassen', icon: Wallet, ready: false },
+  { value: 'rejsekassen', label: 'Rejsekassen', icon: Wallet, ready: true },
   { value: 'rejseplan', label: 'Rejseplan', icon: Map, ready: false },
 ];
 
@@ -91,6 +92,9 @@ export default function FerieApp() {
         <main>
           <Tabs.Content value="feriedage" className="outline-none">
             <Feriedage state={state} dispatch={dispatch} settingsOpen={settingsOpen} setSettingsOpen={setSettingsOpen} />
+          </Tabs.Content>
+          <Tabs.Content value="rejsekassen" className="outline-none">
+            <Kassen state={state} dispatch={dispatch} />
           </Tabs.Content>
         </main>
       </div>

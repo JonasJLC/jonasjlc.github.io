@@ -4,7 +4,15 @@ import { fmtN } from '../lib/dates';
 import { prefersReducedMotion } from '../lib/use-media-query';
 
 /** Counts smoothly to its value (skipped with reduced motion). */
-export function AnimatedNumber({ value, className }: { value: number; className?: string }) {
+export function AnimatedNumber({
+  value,
+  className,
+  format = fmtN,
+}: {
+  value: number;
+  className?: string;
+  format?: (v: number) => string;
+}) {
   const [shown, setShown] = useState(value);
   const from = useRef(value);
   useEffect(() => {
@@ -23,5 +31,5 @@ export function AnimatedNumber({ value, className }: { value: number; className?
     });
     return () => c.stop();
   }, [value]);
-  return <span className={className} style={{ fontVariantNumeric: 'tabular-nums' }}>{fmtN(shown)}</span>;
+  return <span className={className} style={{ fontVariantNumeric: 'tabular-nums' }}>{format(shown)}</span>;
 }

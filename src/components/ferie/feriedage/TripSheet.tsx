@@ -52,7 +52,7 @@ function TripForm({ state, draft, onClose, onSave, onDelete }: Props & { draft: 
   const days = ov !== null && !Number.isNaN(ov) && ov >= 0 ? ov : auto;
   const shown = valid ? impact(state, f.who, a, days, f.id) : [];
 
-  const submit = (e: React.FormEvent) => {
+  const submit = (e: React.SyntheticEvent) => {
     e.preventDefault();
     if (!valid) return;
     onSave({ ...f, name: f.name.trim(), days: ov !== null && !Number.isNaN(ov) && ov >= 0 ? ov : null });

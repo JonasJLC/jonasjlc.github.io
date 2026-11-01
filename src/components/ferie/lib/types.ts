@@ -40,4 +40,57 @@ export interface Trip {
 export interface FerieState {
   settings: Settings;
   trips: Trip[];
+  kasse: Kasse;
+  money: MoneyItem[];
+}
+
+export type Payer = 'acc' | PersonKey;
+
+export const CATEGORIES = [
+  'Fly',
+  'Overnatning',
+  'Transport',
+  'Mad og drikke',
+  'Oplevelser',
+  'Forsikring',
+  'Andet',
+] as const;
+
+export interface Step {
+  /** `YYYY-MM` the amount starts. */
+  from: string;
+  total: number;
+}
+
+/** Travel-fund account settings. Amounts are DKK. */
+export interface Kasse {
+  start: number;
+  /** `YYYY-MM-DD` the starting balance is from. */
+  startDate: string;
+  depA: number;
+  depB: number;
+  /** 1-28, or 31 for the last day of the month. */
+  depDay: number;
+  /** Safety margin (%) on estimates that are not yet paid. */
+  margin: number;
+  /** The account must never go below this. */
+  buffer: number;
+  /** Date to show the balance for, `YYYY-MM-DD`. */
+  look: string;
+  steps: Step[];
+}
+
+export interface MoneyItem {
+  id: string;
+  kind: 'expense' | 'deposit';
+  tripId: string | null;
+  cat: string;
+  label: string;
+  est: number | null;
+  act: number | null;
+  /** `YYYY-MM-DD` */
+  date: string;
+  payer: Payer;
+  created: number;
+  fromPlan?: boolean;
 }
