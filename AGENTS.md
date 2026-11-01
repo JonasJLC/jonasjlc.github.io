@@ -31,6 +31,6 @@ Do not add AI co-author trailers. GitHub Pages deploys the `dist/` artifact afte
 
 ## Verification
 
-Use Node 20+ and pnpm 10.33.2. In native PowerShell, set `$env:ASTRO_TELEMETRY_DISABLED = '1'` and run `pnpm exec astro check`, `pnpm exec astro build`, and `pnpm exec astro preview` rather than package scripts that use POSIX environment assignments. Run `pnpm install --frozen-lockfile` before local checks when dependencies are absent.
+Use Node 22.23.4+ and pnpm 10.33.2. In native PowerShell, set `$env:ASTRO_TELEMETRY_DISABLED = '1'` and run `pnpm exec astro check`, `pnpm exec astro build`, and `pnpm exec astro preview` rather than package scripts that use POSIX environment assignments. Run `pnpm install --frozen-lockfile` before local checks when dependencies are absent.
 
 For `/gave/`, test the preview at `/gave/` and `/gave`; desktop and narrow layouts; keyboard focus; reduced motion; answer and hint paths; refresh recovery; restart; local-storage failure; and browser console output. Confirm `dist/gave/index.html` is nonempty after a build.
