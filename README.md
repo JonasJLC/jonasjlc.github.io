@@ -20,11 +20,12 @@ Images belong in `public/gave/assets/` and should be optimized before being adde
 
 The holiday planner is available at `/ferie/` (unlisted, noindex). It is a React + Tailwind + shadcn/ui island under `src/components/ferie/` with three tabs: **Feriedage** (balances, calendar, trips), **Rejsekassen** (travel fund, recommendation, budgets) and **Rejseplan** (day-by-day itinerary, bookings, packing list). Data is stored in the browser (`ferie-v1`) behind the `FerieStore` interface in `lib/store.ts`, so a Supabase store can replace it later. **Shared storage (Supabase).** `/ferie/` asks for a Google sign-in and only shows the app to invited accounts. Signed-in users share one JSON document per household (`ferie_state`), protected by row-level security; the sign-in screen is a convenience, the database rules are the security boundary. Setup lives in `supabase/migrations/`; the client is `lib/remote.ts`, `lib/use-sync.ts` and `AuthGate.tsx`. Build with `PUBLIC_SUPABASE_URL= PUBLIC_SUPABASE_KEY=` (empty) to run without sync and without the gate for local UI testing.
 
-One-time setup:
-1. Google Cloud Console → APIs & Services → Credentials → OAuth client ID (Web application). Authorized JavaScript origin `https://jonasjlc.github.io`; authorized redirect URI `https://kmytekaexgfqhwxapwbw.supabase.co/auth/v1/callback`.
-2. Supabase dashboard → Authentication → Sign In / Providers → Google: enable and paste the client ID and secret (the secret never goes in the repo).
-3. Supabase dashboard → Authentication → URL Configuration: Site URL `https://jonasjlc.github.io/ferie/`, redirect URLs `https://jonasjlc.github.io/ferie/` and `http://localhost:4321/ferie/`.
-4. Invite each Google email: `select private.invite('<household id>', 'name@gmail.com');` (the household id is in `public.households`; run it with `supabase db query --linked` or the SQL editor).
+One-time setup (everything except step 1 is scripted):
+1. **Google Cloud Console** (browser, no CLI exists for this client type). Create a project, then in Google Auth Platform: set up the consent screen (External, keep publishing status *Testing* and add both Gmail addresses as test users), add the scopes `openid`, `userinfo.email` and `userinfo.profile`, and create an OAuth client of type *Web application* with authorized JavaScript origins `https://jonasjlc.github.io` and `http://localhost:4321` and authorized redirect URI `https://kmytekaexgfqhwxapwbw.supabase.co/auth/v1/callback`.
+2. `cp .env.example .env` and fill in the client ID and secret (`.env` is git-ignored; never paste the secret into chat or commit it).
+3. `supabase login`, then preview and push the auth settings (Site URL, redirect URLs, Google provider, email signup off): `supabase config diff --project-ref kmytekaexgfqhwxapwbw` and `supabase config push --project-ref kmytekaexgfqhwxapwbw`.
+4. Apply database changes with `supabase db query --linked -f supabase/migrations/<file>.sql` (Management API, no database password needed) and check them with the files in `supabase/tests/`.
+5. Invite each Google email: `supabase db query --linked "select private.invite('f8ea36f6-2ce9-4b26-994a-0858c948c9f1', 'name@gmail.com');"`.
 
 On first sign-in the data already on the device is imported; if the shared copy already exists it wins and the local copy is kept under `ferie-v1-backup`.
 

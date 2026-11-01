@@ -1,0 +1,22 @@
+# Declares only the hosted-project settings this app needs. `supabase config push` leaves
+# everything not declared here unchanged and shows a diff before it writes.
+# Secrets are read from .env (git-ignored) via env(); never write them in this file.
+project_id = "jonasjlc-ferie"
+
+[auth]
+site_url = "https://jonasjlc.github.io/ferie/"
+additional_redirect_urls = [
+  "https://jonasjlc.github.io/ferie/",
+  "http://localhost:4321/ferie/",
+]
+
+# The app signs in with Google only; closing email signup stops anyone creating
+# email/password or magic-link accounts through the public API.
+[auth.email]
+enable_signup = false
+
+[auth.external.google]
+enabled = true
+client_id = "env(SUPABASE_AUTH_EXTERNAL_GOOGLE_CLIENT_ID)"
+secret = "env(SUPABASE_AUTH_EXTERNAL_GOOGLE_CLIENT_SECRET)"
+skip_nonce_check = false
