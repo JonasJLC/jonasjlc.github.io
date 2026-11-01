@@ -12,7 +12,7 @@ Most updates happen in one file:
 src/content/site.ts
 ```
 
-Edit that file to change intro copy, links, highlights, or project cards. The page components render from that data, so adding a new project means adding one object to the `projects` array.
+Edit that file to change the intro, about text, focus items, method principles, links, or project cards. The page components render from that data, so adding a new project means adding one object to the `projects` array.
 
 The gift reveal is available at [`/gave/`](https://jonasjlc.github.io/gave/). Its nickname gate, destination riddle, hints, local images, and booking details live in `src/content/gift.ts`. The gate is a playful browser interaction, not secure authentication; its answers and content are included in the static site.
 
@@ -53,7 +53,8 @@ pnpm preview     # Serve the built dist/ locally
 ```
 jonasjlc.github.io/
 ├── src/
-│   ├── components/          - Page sections (Hero, ProjectList, Notes, Contact)
+│   ├── assets/fonts/        - Self-hosted Latin Modern subsets (woff2) and licence
+│   ├── components/          - Page sections (Hero, About, Focus, ProjectList, Notes, Contact)
 │   ├── content/site.ts      - Main update surface
 │   ├── content/gift.ts      - Gift reveal content and booking details
 │   ├── layouts/BaseLayout.astro

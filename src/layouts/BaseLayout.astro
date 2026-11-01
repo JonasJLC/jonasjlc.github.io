@@ -1,4 +1,5 @@
 ---
+import romanFont from '../assets/fonts/lm-roman.woff2?url';
 import '../styles/global.css';
 
 interface Props {
@@ -7,6 +8,7 @@ interface Props {
 }
 
 const { title, description } = Astro.props;
+const canonical = new URL(Astro.url.pathname, Astro.site ?? 'https://jonasjlc.github.io').toString();
 ---
 
 <!doctype html>
@@ -14,16 +16,24 @@ const { title, description } = Astro.props;
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
     <meta name="description" content={description} />
-    <meta name="theme-color" content="#f6f2ea" />
+    <link rel="canonical" href={canonical} />
+    <meta name="theme-color" content="#f4f1e8" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#15140f" media="(prefers-color-scheme: dark)" />
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
     <meta property="og:type" content="website" />
-    <meta property="og:url" content={Astro.site?.toString() ?? 'https://jonasjlc.github.io'} />
-    <title>{title}</title>
-    <link rel="icon" href="/assets/avatar.svg" type="image/svg+xml" />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:site_name" content="Jonas JLC" />
+    <meta property="og:locale" content="en_GB" />
+    <meta name="twitter:card" content="summary" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="sitemap" href="/sitemap-index.xml" />
+    <link rel="preload" href={romanFont} as="font" type="font/woff2" crossorigin />
   </head>
   <body>
+    <a class="skip-link" href="#main">Skip to content</a>
     <slot />
   </body>
 </html>

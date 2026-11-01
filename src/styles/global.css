@@ -76,7 +76,7 @@
   --font-caps: "Site Caps", "Site Fallback", "Times New Roman", Times, serif;
   --font-mono: "Site Mono", "Site Fallback Mono", "Courier New", monospace;
 
-  --measure: 65ch;
+  --measure: 32.5rem; /* about 65ch at body size */
   --step: 1.6;
 }
 
@@ -274,8 +274,7 @@ h1 {
   color: var(--muted);
   font-size: 0.92rem;
   line-height: 1.5;
-  text-align: justify;
-  text-align-last: center;
+  text-align: center;
 }
 
 main {
@@ -304,8 +303,10 @@ main {
   color: var(--accent);
 }
 
-#about p {
-  text-align: justify;
+@media (min-width: 40rem) {
+  #about p {
+    text-align: justify;
+  }
 }
 
 .focus,
@@ -368,8 +369,8 @@ main {
 .layers__label text {
   fill: var(--ink);
   font-family: var(--font-caps);
-  font-size: 19px;
-  letter-spacing: 0.06em;
+  font-size: 24px;
+  letter-spacing: 0.05em;
 }
 
 .layers figcaption {
