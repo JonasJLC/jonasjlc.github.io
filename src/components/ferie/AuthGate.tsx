@@ -4,6 +4,7 @@ import { signInWithGoogle, signOut } from './lib/remote';
 import type { SyncStatus } from './lib/use-sync';
 import { Button } from './ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from './ui/card';
+import { Mark } from './Mark';
 
 function GoogleMark() {
   return (
@@ -18,10 +19,14 @@ function GoogleMark() {
 
 function Shell({ children }: { children: React.ReactNode }) {
   return (
-    <main className="mx-auto flex min-h-dvh max-w-md flex-col justify-center px-5 py-10">
-      <h1 className="mb-6 font-display text-5xl font-extrabold leading-none tracking-tight">Ferieplan</h1>
-      {children}
-    </main>
+    <div className="min-h-dvh bg-frame">
+      <main className="mx-auto flex min-h-dvh max-w-sm flex-col justify-center px-5 py-10">
+        <Mark className="mb-5 size-10 text-foreground" />
+        <h1 className="title-serif mb-1 text-[40px]">Ferieplan</h1>
+        <p className="mb-8 text-sm text-muted-foreground">Feriedage, rejsekasse og rejseplan for jer to.</p>
+        {children}
+      </main>
+    </div>
   );
 }
 
@@ -66,11 +71,11 @@ export function AuthGate({
       <Shell>
         <Card>
           <CardHeader>
-            <CardTitle className="font-display text-xl">Log ind</CardTitle>
+            <CardTitle>Log ind</CardTitle>
             <CardDescription>Feriedage, rejsekasse og rejseplan er kun for inviterede.</CardDescription>
           </CardHeader>
           <CardContent>
-            <Button className="w-full" size="lg" onClick={go} disabled={busy}>
+            <Button className="w-full" variant="outline" size="lg" onClick={go} disabled={busy}>
               <GoogleMark />
               {busy ? 'Åbner Google …' : 'Fortsæt med Google'}
             </Button>
@@ -86,7 +91,7 @@ export function AuthGate({
       <Shell>
         <Card>
           <CardHeader>
-            <CardTitle className="font-display text-xl">Ikke inviteret</CardTitle>
+            <CardTitle>Ikke inviteret</CardTitle>
             <CardDescription>
               {email ? <><b>{email}</b> har</> : 'Denne konto har'} ikke adgang til Ferieplan. Log ind med en anden Google-konto, eller bed om en invitation.
             </CardDescription>

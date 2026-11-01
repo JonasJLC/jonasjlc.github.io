@@ -23,8 +23,8 @@ export function SettingsSheet({
   return (
     <ResponsiveSheet open={open} onOpenChange={onOpenChange} title="Indstillinger" description="Feriesaldo, optjening og faste fridage for hver person.">
       <div className="flex flex-col gap-5">
-        <div className="flex flex-col gap-3 rounded-xl border p-4">
-          <span className="text-sm font-semibold">Indtast ferie i</span>
+        <div className="flex flex-col gap-3 rounded-2xl bg-panel p-4">
+          <span className="text-sm font-medium">Indtast ferie i</span>
           <UnitToggle unit={state.settings.unit} onChange={(unit) => dispatch({ type: 'settings', patch: { unit } })} />
           <Field label="Timer pr. feriedag" hint="2,08 feriedage svarer til 15,41 ferietimer.">
             <Input
@@ -41,11 +41,15 @@ export function SettingsSheet({
           const asY = Number.isNaN(asOf) ? state.settings.year : new Date(asOf).getUTCFullYear();
           const fy = Number.isNaN(asOf) ? asY : new Date(asOf).getUTCMonth() >= 8 ? asY : asY - 1;
           return (
-            <fieldset key={k} className="rounded-xl border p-4">
-              <legend className="flex items-center gap-2 px-1 font-display text-lg font-bold">
-                <i className="size-3 rounded-full" style={{ background: personColor(k) }} />{personName(state, k)}
-              </legend>
+            <fieldset key={k} className="rounded-2xl bg-panel p-4">
+              <legend className="sr-only">{personName(state, k)}</legend>
+              <p aria-hidden className="mb-3 flex items-center gap-2 text-[15px] font-semibold">
+                <span className="flex size-6 items-center justify-center rounded-full text-xs" style={{ background: `var(--person-${k}-tint)`, color: personColor(k) }}>{personName(state, k).charAt(0)}</span>{personName(state, k)}
+              </p>
               <div className="grid grid-cols-2 gap-3">
+                <Field label="Navn" className="col-span-2">
+                  <Input value={p.name} maxLength={30} placeholder={personName(state, k)} onChange={(e) => set(k, { name: e.target.value })} />
+                </Field>
                 <Field label="Saldo gælder pr." hint="Datoen på lønsedlen, tallene er fra." className="col-span-2">
                   <Input type="date" value={p.asOf} onChange={(e) => e.target.value && set(k, { asOf: e.target.value })} />
                 </Field>
@@ -56,7 +60,7 @@ export function SettingsSheet({
                 <DaysHoursField label={`Feriefridage tilbage i ${asY}`} days={p.ffOpen} settings={state.settings} onDays={(d) => set(k, { ffOpen: d })} className="col-span-2" />
               </div>
               <div className="mt-4 flex flex-col gap-2">
-                <span className="text-sm font-semibold">Faste fridage ud over helligdage</span>
+                <span className="text-sm font-medium">Faste fridage ud over helligdage</span>
                 <div className="grid grid-cols-2 gap-2">
                   {DAYS_OFF.map((d) => (
                     <label key={d.md} className="flex items-center gap-2 text-sm">

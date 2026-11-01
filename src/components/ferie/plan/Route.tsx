@@ -1,12 +1,14 @@
-import { Fragment } from 'react';
 import { fmtShort, toISO } from '../lib/dates';
 import { sortPlan, tripDates } from '../lib/plan';
 import type { PlanItem, Trip, TripDay } from '../lib/types';
 import { cn } from '../lib/utils';
-import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 
 interface Group { base: string; from: number; n: number }
 
+/**
+ * The route as a strip: each stay is as long as its nights, with the transport that takes
+ * you there. Tapping a stay jumps to its first day.
+ */
 export function Route({
   trip, items, tdays, onGoto,
 }: {
@@ -24,44 +26,54 @@ export function Route({
   }
   const legs = (t: number) =>
     items.filter((x) => x.type === 'transport' && x.day === toISO(t)).sort(sortPlan).map((x) => x.title || 'Transport');
-  const Leg = ({ t }: { t: number }) => {
-    const l = legs(t);
-    return <li className="flex min-w-16 flex-1 items-end justify-center border-b-2 border-dashed px-1 pb-1 text-center text-[11px] text-muted-foreground" aria-hidden={!l.length}>{l.join(', ')}</li>;
-  };
-  const Stop = ({ title, sub, onClick, none }: { title: string; sub: string; onClick?: () => void; none?: boolean }) => {
-    const body = (
-      <>
-        <span className={cn('size-3 rounded-full border-2 border-foreground', none ? 'bg-card' : 'bg-foreground')} />
-        <b className={cn('max-w-28 truncate text-sm', none && 'font-medium text-muted-foreground')}>{title}</b>
-        <span className="text-xs text-muted-foreground">{sub}</span>
-      </>
-    );
-    return (
-      <li className="flex shrink-0 flex-col items-center gap-1">
-        {onClick ? <button type="button" onClick={onClick} className="flex min-h-11 flex-col items-center gap-1 rounded-lg px-2 hover:bg-muted">{body}</button> : <div className="flex min-h-11 flex-col items-center gap-1 px-2">{body}</div>}
-      </li>
-    );
-  };
   const last = dates[dates.length - 1];
+  const home = legs(last);
+  const none = groups.every((g) => !g.base);
+  const places = new Set(groups.filter((g) => g.base).map((g) => g.base.toLowerCase())).size;
+
   return (
-    <Card>
-      <CardHeader><CardTitle className="font-display text-lg">Ruten</CardTitle></CardHeader>
-      <CardContent>
-        <ol className="-mx-2 flex items-end overflow-x-auto pb-2" aria-label="Rute">
-          <Stop title="Hjemme" sub={fmtShort(dates[0])} />
-          {groups.map((g) => (
-            <Fragment key={g.from}>
-              <Leg t={g.from} />
-              <Stop title={g.base || 'Ikke valgt'} sub={`${g.n} ${g.n === 1 ? 'nat' : 'nætter'}`} none={!g.base} onClick={() => onGoto(toISO(g.from))} />
-            </Fragment>
-          ))}
-          <Leg t={last} />
-          <Stop title="Hjem" sub={fmtShort(last)} />
+    <section aria-labelledby="route-h" className="rounded-panel bg-panel p-5">
+      <div className="mb-4 flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+        <h2 id="route-h" className="text-[15px] leading-6 font-semibold">Ruten</h2>
+        <p className="text-xs text-muted-foreground">{nights.length} {nights.length === 1 ? 'nat' : 'nætter'} · {places} {places === 1 ? 'sted' : 'steder'}</p>
+      </div>
+      <div className="-mx-5 overflow-x-auto px-5">
+        <ol className="flex min-w-[560px] items-stretch gap-1" aria-label="Rute">
+          <li className="w-24 shrink-0 pr-2">
+            <span className="block h-1.5 w-full rounded-full bg-foreground" aria-hidden />
+            <span className="mt-2.5 block text-sm font-medium">Hjemme</span>
+            <span className="block text-xs text-muted-foreground">Afrejse {fmtShort(dates[0])}</span>
+          </li>
+          {groups.map((g) => {
+            const via = legs(g.from);
+            return (
+              <li key={g.from} className="min-w-0 basis-0" style={{ flexGrow: g.n }}>
+                <button
+                  type="button"
+                  onClick={() => onGoto(toISO(g.from))}
+                  className="group -mx-1 -my-1 block w-[calc(100%+0.5rem)] rounded-lg px-1 py-1 text-left transition-colors hover:bg-accent"
+                >
+                  <span className={cn('block h-1.5 w-full rounded-full', g.base ? 'bg-data' : 'hatch bg-muted')} aria-hidden />
+                  <span className={cn('mt-2.5 block truncate text-sm', g.base ? 'font-medium' : 'text-muted-foreground')}>{g.base || 'Ikke valgt'}</span>
+                  <span className="block truncate text-xs text-muted-foreground">
+                    {g.n} {g.n === 1 ? 'nat' : 'nætter'} fra {fmtShort(g.from)}
+                  </span>
+                  {via.length > 0 && <span className="block truncate text-xs text-muted-foreground">Med {via.join(', ').replace(/^./, (c) => c.toLowerCase())}</span>}
+                </button>
+              </li>
+            );
+          })}
+          <li className="w-24 shrink-0 pl-2">
+            <span className="block h-1.5 w-full rounded-full bg-foreground" aria-hidden />
+            <span className="mt-2.5 block text-sm font-medium">Hjem</span>
+            <span className="block text-xs text-muted-foreground">{fmtShort(last)}</span>
+            {home.length > 0 && <span className="block truncate text-xs text-muted-foreground">Med {home.join(', ').replace(/^./, (c) => c.toLowerCase())}</span>}
+          </li>
         </ol>
-        {groups.every((g) => !g.base) && (
-          <p className="mt-2 text-xs text-muted-foreground">Skriv, hvor I sover hver nat, så tegnes jeres rute her. Transport på de dage, hvor I skifter sted, vises på strækningen.</p>
-        )}
-      </CardContent>
-    </Card>
+      </div>
+      {none && (
+        <p className="mt-4 text-sm text-muted-foreground">Skriv, hvor I sover hver nat under Dag for dag, så tegnes jeres rute her. Transport på de dage, hvor I skifter sted, vises på strækningen.</p>
+      )}
+    </section>
   );
 }

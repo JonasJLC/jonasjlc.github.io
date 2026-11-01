@@ -1,33 +1,29 @@
-import { ChevronRight, Plus } from 'lucide-react';
 import { sortedTrips, whoKeys } from '../lib/balance';
 import { fmtN, fmtRange, fmtShort, toTime, todayTime } from '../lib/dates';
 import { earliestAffordable } from '../lib/finder';
 import type { FerieState, Trip } from '../lib/types';
-import { Button } from '../ui/button';
+import { PersonDots } from '../page';
 import { fmtHours } from '../lib/units';
-import { fmtDaysRange, impact, personColor, personName } from './helpers';
+import { fmtDaysRange, impact, personName } from './helpers';
 
 export function TripList({
-  state, onEdit, onNew,
+  state, onEdit,
 }: {
-  state: FerieState; onEdit: (t: Trip) => void; onNew: () => void;
+  state: FerieState; onEdit: (t: Trip) => void;
 }) {
   const trips = sortedTrips(state.trips);
   const today = todayTime();
   const { year } = state.settings;
 
   return (
-    <section aria-label="Rejser" className="rounded-2xl border bg-card p-4 shadow-sm sm:p-5">
-      <div className="mb-2 flex items-center justify-between gap-3">
-        <h2 className="font-display text-xl font-bold tracking-tight">Rejser</h2>
-        <Button size="sm" variant="outline" onClick={onNew}><Plus />Ny rejse</Button>
-      </div>
+    <section aria-labelledby="trips-h" className="rounded-panel bg-panel p-5">
+      <h2 id="trips-h" className="mb-2 text-[15px] leading-6 font-semibold">
+        Rejser{trips.length > 0 && <span className="ml-1.5 font-normal text-muted-foreground">{trips.length}</span>}
+      </h2>
       {trips.length === 0 ? (
-        <p className="py-6 text-center text-sm text-muted-foreground">
-          Ingen rejser endnu. Vælg datoer i kalenderen, eller tryk på “Ny rejse”.
-        </p>
+        <p className="text-sm text-muted-foreground">Ingen rejser endnu. Tryk på første og sidste dag i kalenderen, eller på “Ny rejse”.</p>
       ) : (
-        <ul className="-mx-2 flex flex-col">
+        <ul className="flex flex-col">
           {trips.map((t) => {
             const from = toTime(t.from);
             const past = toTime(t.to) < today;
@@ -35,45 +31,34 @@ export function TripList({
             const own = impact(state, t.who, t, t.id);
             const maxDays = Math.max(0, ...own.map((s) => s.days));
             return (
-              <li key={t.id} className="border-b last:border-0">
+              <li key={t.id} className="border-t border-rule first:border-t-0">
                 <button
                   type="button"
                   onClick={() => onEdit(t)}
-                  className={`flex w-full items-stretch gap-3 rounded-xl px-2 py-3 text-left transition-colors hover:bg-muted ${past ? 'opacity-60' : ''}`}
+                  className={`-mx-2 flex w-[calc(100%+1rem)] items-start gap-3 rounded-lg px-2 py-3 text-left transition-colors hover:bg-accent ${past ? 'opacity-60' : ''}`}
                 >
-                  <span
-                    className="w-1.5 shrink-0 rounded-full"
-                    style={{
-                      background: t.who === 'both'
-                        ? `linear-gradient(${personColor('a')} 50%, ${personColor('b')} 50%)`
-                        : personColor(t.who),
-                    }}
-                    aria-hidden
-                  />
                   <span className="min-w-0 flex-1">
-                    <b className="block truncate font-display text-base">{t.name || 'Rejse'}</b>
-                    <span className="block text-sm text-muted-foreground">
+                    <span className="flex items-center gap-2 text-sm font-medium"><PersonDots who={t.who} /><span className="truncate">{t.name || 'Rejse'}</span></span>
+                    <span className="block text-xs text-muted-foreground">
                       {fmtRange(from, toTime(t.to), year)} · {t.who === 'both' ? 'Begge' : personName(state, t.who)}
                     </span>
-                    <span className="mt-1 flex flex-col gap-0.5 text-xs">
+                    <span className="mt-1 flex flex-col text-xs tabular-nums">
                       {own.map((s) => {
                         const when = s.short ? earliestAffordable(state, s.days, [s.k], today, t.id) : null;
                         return (
-                          <span key={s.k} className={s.short ? 'font-semibold text-warn' : 'text-muted-foreground'}>
-                            {whoKeys(t.who).length > 1 && <>{personName(state, s.k)}: </>}
-                            {fmtN(s.before)} → {fmtN(s.after)} ({fmtHours(s.after, state.settings)})
+                          <span key={s.k} className={s.short ? 'font-medium text-warn' : 'text-muted-foreground'}>
+                            {whoKeys(t.who).length > 1 && <>{personName(state, s.k)} </>}
+                            {fmtN(s.before)} → <span className={s.short ? undefined : 'text-foreground'}>{fmtN(s.after)}</span>
                             {s.short && (when ? ` · nok dage fra ${fmtShort(when, true)}` : ' · mangler dage')}
-                            {s.squeezes && <span className="font-semibold text-warn"> · gør en senere rejse for dyr</span>}
+                            {s.squeezes && <span className="text-caution"> · gør en senere rejse for dyr</span>}
                           </span>
                         );
                       })}
                     </span>
                   </span>
-                  <span className="flex shrink-0 flex-col items-end justify-between">
-                    <b className="font-display text-xl leading-none">{fmtDaysRange(own.map((s) => s.days))}</b>
-                    <span className="text-[11px] text-muted-foreground">feriedage</span>
-                    <span className="text-[11px] text-muted-foreground">{fmtHours(maxDays, state.settings)}</span>
-                    <ChevronRight className="size-4 text-muted-foreground" aria-hidden />
+                  <span className="flex shrink-0 flex-col items-end">
+                    <span className="text-lg leading-6 tabular-nums">{fmtDaysRange(own.map((s) => s.days))}</span>
+                    <span className="text-xs text-muted-foreground">dage · {fmtHours(maxDays, state.settings)}</span>
                   </span>
                 </button>
               </li>

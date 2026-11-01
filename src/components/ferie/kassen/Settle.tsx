@@ -1,15 +1,18 @@
-import { kr, settlement } from '../lib/kasse';
+import { settlement } from '../lib/kasse';
 import type { FerieState } from '../lib/types';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
+import { Money } from '../page';
+import { Card, CardDescription, CardHeader, CardTitle } from '../ui/card';
 import { personName } from './helpers';
 
+/** Who owes whom for what one of them paid with their own card. */
 export function Settle({ state }: { state: FerieState }) {
   const { net, rows } = settlement(state);
-  const text = Math.abs(net) < 1 ? 'I er kvit' : net > 0 ? `${personName(state, 'b')} skylder ${personName(state, 'a')} ${kr(net)}` : `${personName(state, 'a')} skylder ${personName(state, 'b')} ${kr(-net)}`;
+  const even = Math.abs(net) < 1;
+  const [from, to] = net > 0 ? ['b', 'a'] as const : ['a', 'b'] as const;
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="font-display text-lg">Hvem har lagt ud?</CardTitle>
+        <CardTitle>Hvem har lagt ud?</CardTitle>
         {rows.length === 0 && (
           <CardDescription>
             Betaler en af jer noget med sit eget kort, så vælg det under “Betales af”. Så holder planen styr på, hvem der skylder hvem.
@@ -17,13 +20,20 @@ export function Settle({ state }: { state: FerieState }) {
         )}
       </CardHeader>
       {rows.length > 0 && (
-        <CardContent className="flex flex-col gap-3">
-          <b className="font-display text-xl">{text}</b>
-          <ul className="flex flex-col gap-1 text-sm text-muted-foreground">
-            {rows.map((r) => <li key={r.id}>{personName(state, r.payer)} betalte {r.text}: {kr(r.amount)}</li>)}
+        <>
+          <p className="text-lg leading-7">
+            {even ? 'I er kvit' : <>{personName(state, from)} skylder {personName(state, to)} <Money value={Math.abs(net)} /></>}
+          </p>
+          <ul className="flex flex-col text-sm">
+            {rows.map((r) => (
+              <li key={r.id} className="flex min-h-8 items-baseline justify-between gap-3 border-t border-rule py-1.5">
+                <span className="min-w-0 text-muted-foreground"><span className="text-foreground">{personName(state, r.payer)}</span> betalte {r.text}</span>
+                <Money value={r.amount} />
+              </li>
+            ))}
           </ul>
           <p className="text-xs text-muted-foreground">Udgifter til fælles rejser deles 50/50.</p>
-        </CardContent>
+        </>
       )}
     </Card>
   );

@@ -78,11 +78,11 @@ function TripForm({ state, dispatch, draft, onClose, onSave, onDelete }: Props &
         <Field label="Til"><Input type="date" required min={f.from} value={f.to} onChange={(e) => setF({ ...f, to: e.target.value })} /></Field>
       </div>
       <div className="flex flex-col gap-1.5">
-        <span className="text-sm font-semibold">Hvem tager med?</span>
+        <span className="text-sm font-medium">Hvem tager med?</span>
         <Segmented label="Hvem tager med" value={f.who} onValueChange={(who) => setF({ ...f, who })} options={whoOptions(state)} />
       </div>
       <div className="flex flex-col gap-1.5">
-        <span className="text-sm font-semibold">Ferie angives i</span>
+        <span className="text-sm font-medium">Ferie angives i</span>
         <UnitToggle
           unit={unit}
           onChange={(u) => {
@@ -100,14 +100,14 @@ function TripForm({ state, dispatch, draft, onClose, onSave, onDelete }: Props &
         <Input inputMode="decimal" placeholder={String(toInput(auto, unit, state.settings)).replace('.', ',')} value={override} onChange={(e) => setOverride(e.target.value)} />
       </Field>
       {valid && (
-        <ul className="grid gap-2 rounded-xl border bg-muted p-3 text-sm" aria-label="Saldo før og efter">
+        <ul className="grid gap-2 rounded-2xl bg-panel p-4 text-sm" aria-label="Saldo før og efter">
           {shown.map((s) => (
             <li key={s.k} className="flex items-center justify-between gap-3">
-              <span className="inline-flex items-center gap-2 font-semibold">
+              <span className="inline-flex items-center gap-2 font-medium">
                 <i className="size-2.5 rounded-full" style={{ background: personColor(s.k) }} />{personName(state, s.k)}
               </span>
-              <span className={s.short ? 'font-bold text-warn' : s.squeezes ? 'text-warn' : ''}>
-                {fmtN(s.before)} → <b>{fmtN(s.after)}</b> dage ({fmtHours(s.after, state.settings)})
+              <span className={`tabular-nums ${s.short ? 'font-medium text-warn' : s.squeezes ? 'text-caution' : ''}`}>
+                {fmtN(s.before)} → <span className="font-medium">{fmtN(s.after)}</span> dage ({fmtHours(s.after, state.settings)})
                 {s.short ? ' · mangler dage' : s.squeezes ? ' · gør en senere rejse for dyr' : ''}
               </span>
             </li>

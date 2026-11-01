@@ -1,66 +1,84 @@
-import { SettingsIcon } from 'lucide-react';
-import { useState } from 'react';
 import { LabeledField } from '../labeled-field';
-import { monthOf, kr, hasSteps } from '../lib/kasse';
-import { toTime } from '../lib/dates';
+import { monthOf, hasSteps } from '../lib/kasse';
+import { fmtShort, toTime } from '../lib/dates';
 import type { Action } from '../lib/use-ferie';
 import type { FerieState } from '../lib/types';
 import { Button } from '../ui/button';
-import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
+import { Card, CardAction, CardHeader, CardTitle } from '../ui/card';
+import { Money } from '../page';
 import { Field, FieldGroup, FieldLabel } from '../ui/field';
 import { Input } from '../ui/input';
 import { ResponsiveSheet } from '../ui/sheet';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { parseNum, personName } from './helpers';
 
+/** The account's settings at a glance, and the saved staircase plan. */
 export function AccountCard({
-  state, dispatch, onChange,
+  state, dispatch, onChange, onEdit,
 }: {
-  state: FerieState; dispatch: React.Dispatch<Action>; onChange: () => void;
+  state: FerieState; dispatch: React.Dispatch<Action>; onChange: () => void; onEdit: () => void;
 }) {
-  const [open, setOpen] = useState(false);
+  const k = state.kasse;
+  const day = +k.depDay === 31 ? 'Sidste dag i måneden' : `D. ${+k.depDay || 1}. i måneden`;
+  const rows: [string, React.ReactNode][] = [
+    [`Saldo d. ${fmtShort(toTime(k.startDate), true)}`, <Money value={+k.start || 0} />],
+    [`${personName(state, 'a')} pr. md.`, <Money value={+k.depA || 0} />],
+    [`${personName(state, 'b')} pr. md.`, <Money value={+k.depB || 0} />],
+    ['Indskuddet kommer', day],
+    ['Margin på estimater', `${+k.margin || 0} %`],
+    ['Mindstebeløb', <Money value={+k.buffer || 0} />],
+  ];
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Kontoen</CardTitle>
+        <CardAction><Button variant="ghost" size="sm" className="-mt-1 -mr-2" onClick={onEdit}>Ret</Button></CardAction>
+      </CardHeader>
+      <dl className="flex flex-col text-sm">
+        {rows.map(([l, v]) => (
+          <div key={l} className="flex min-h-8 items-center justify-between gap-3">
+            <dt className="text-muted-foreground">{l}</dt>
+            <dd className="text-right tabular-nums">{v}</dd>
+          </div>
+        ))}
+      </dl>
+      {hasSteps(state) && (
+        <div className="flex flex-col gap-2 border-t border-rule pt-4">
+          <h3 className="text-sm font-semibold">Trappeplan</h3>
+          <ul className="flex flex-col text-sm">
+            {k.steps.map((x) => (
+              <li key={x.from} className="flex min-h-8 items-center justify-between">
+                <span className="text-muted-foreground">Fra {monthOf(state, toTime(`${x.from}-01`))}</span>
+                <Money value={x.total} />
+              </li>
+            ))}
+          </ul>
+          <p className="text-xs text-muted-foreground">
+            Planen bestemmer det samlede beløb. Indstillingerne bestemmer, hvordan det fordeles mellem jer.
+          </p>
+          <Button
+            variant="outline"
+            size="sm"
+            className="self-start"
+            onClick={() => { dispatch({ type: 'kasse', patch: { steps: [] } }); onChange(); }}
+          >
+            Fjern trappeplanen
+          </Button>
+        </div>
+      )}
+    </Card>
+  );
+}
+
+/** Balance, monthly deposits, deposit day, margin and minimum. */
+export function AccountSheet({
+  state, dispatch, onChange, open, onOpenChange,
+}: {
+  state: FerieState; dispatch: React.Dispatch<Action>; onChange: () => void; open: boolean; onOpenChange: (o: boolean) => void;
+}) {
   const k = state.kasse;
   return (
-    <>
-      <Card>
-        <CardHeader>
-          <CardTitle className="font-display text-xl">Kontoen</CardTitle>
-          <CardDescription>
-            Start: {kr(+k.start || 0)} · Margin {+k.margin || 0} % · Mindst {kr(+k.buffer || 0)}
-          </CardDescription>
-          <CardAction>
-            <Button variant="outline" size="sm" onClick={() => setOpen(true)}>
-              <SettingsIcon data-icon="inline-start" />
-              Indstillinger
-            </Button>
-          </CardAction>
-        </CardHeader>
-        {hasSteps(state) && (
-          <CardContent className="flex flex-col gap-2">
-            <b className="text-sm">Trappeplan</b>
-            <ul className="flex flex-col divide-y rounded-xl border">
-              {k.steps.map((x) => (
-                <li key={x.from} className="flex items-center justify-between px-3 py-2 text-sm">
-                  <span>Fra {monthOf(state, toTime(`${x.from}-01`))}</span>
-                  <b className="tabular-nums">{kr(x.total)}</b>
-                </li>
-              ))}
-            </ul>
-            <p className="text-xs text-muted-foreground">
-              Planen bestemmer det samlede beløb. Indstillingerne bestemmer, hvordan det fordeles mellem jer.
-            </p>
-            <Button
-              variant="outline"
-              size="sm"
-              className="self-start"
-              onClick={() => { dispatch({ type: 'kasse', patch: { steps: [] } }); onChange(); }}
-            >
-              Fjern trappeplanen
-            </Button>
-          </CardContent>
-        )}
-      </Card>
-      <ResponsiveSheet open={open} onOpenChange={setOpen} title="Kontoindstillinger" description="Saldo, månedligt indskud og sikkerhedsmargin.">
+      <ResponsiveSheet open={open} onOpenChange={onOpenChange} title="Kontoindstillinger" description="Saldo, månedligt indskud og sikkerhedsmargin.">
         <FieldGroup>
           <div className="grid grid-cols-2 gap-3">
             <LabeledField label="Saldo (kr.)">
@@ -98,6 +116,5 @@ export function AccountCard({
           </div>
         </FieldGroup>
       </ResponsiveSheet>
-    </>
   );
 }

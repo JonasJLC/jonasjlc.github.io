@@ -30,7 +30,7 @@ export function ResponsiveSheet({ open, onOpenChange, title, description, childr
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className="max-h-[90dvh] overflow-y-auto sm:max-w-lg">
           <DialogHeader>
-            <DialogTitle className="font-display text-2xl font-bold tracking-tight">{title}</DialogTitle>
+            <DialogTitle className="text-xl leading-7 font-semibold">{title}</DialogTitle>
             <DialogDescription className={description ? undefined : "sr-only"}>{description ?? title}</DialogDescription>
           </DialogHeader>
           {children}
@@ -42,7 +42,7 @@ export function ResponsiveSheet({ open, onOpenChange, title, description, childr
     <Drawer open={open} onOpenChange={onOpenChange} repositionInputs={false}>
       <DrawerContent className="max-h-[90svh] bg-card">
         <DrawerHeader className="text-left!">
-          <DrawerTitle className="font-display text-2xl font-bold tracking-tight">{title}</DrawerTitle>
+          <DrawerTitle className="text-xl leading-7 font-semibold">{title}</DrawerTitle>
           <DrawerDescription className={description ? undefined : "sr-only"}>{description ?? title}</DrawerDescription>
         </DrawerHeader>
         <div className="overflow-y-auto px-4 pb-[calc(1.5rem+env(safe-area-inset-bottom))]">{children}</div>

@@ -5,7 +5,8 @@ import { useWidth } from '../lib/use-width';
 import type { FerieState } from '../lib/types';
 import type { Action } from '../lib/use-ferie';
 import { Button } from '../ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
+import { Card, CardHeader, CardTitle } from '../ui/card';
+import { Money } from '../page';
 import { Slider } from '../ui/slider';
 import { hasSteps } from '../lib/kasse';
 
@@ -24,7 +25,7 @@ export function AccountChart({
   const sc = useMemo(() => (useScen ? moneyModel(state, today, scen) : null), [state, today, scen, useScen]);
 
   const mobile = W < 560;
-  const H = mobile ? 250 : 310;
+  const H = mobile ? 220 : 280;
   const { st, n } = cur;
   const buf = +state.kasse.buffer || 0;
   let lo = Math.min(0, buf);
@@ -36,7 +37,7 @@ export function AccountChart({
   const stp = [1, 2, 2.5, 5, 10].map((x) => x * mag).find((x) => x >= raw) ?? mag * 10;
   lo = Math.floor(lo / stp) * stp;
   hi = Math.ceil((hi * 1.04) / stp) * stp;
-  const L = mobile ? 50 : 62, R = 12, T = 14, B = 28;
+  const L = mobile ? 46 : 56, R = 8, T = 22, B = 26;
   const pw = W - L - R, ph = H - T - B;
   const x = (i: number) => L + (i / n) * pw;
   const yv = (v: number) => T + ((hi - v) / (hi - lo)) * ph;
@@ -78,112 +79,104 @@ export function AccountChart({
   const sliderMax = Math.max(5000, Math.ceil((Math.max(D, req, scen ?? 0) * 2) / 500) * 500);
   const val = scen ?? D;
 
+  const dip = sc ? sc.min : cur.min;
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="font-display text-xl">Kontoen over tid</CardTitle>
-        <ul className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-muted-foreground">
-          <li className="inline-flex items-center gap-1.5"><i className="h-[3px] w-5 rounded bg-cash" />{hasSteps(state) ? 'Med jeres trappeplan' : `Med ${kr(D)} om måneden`}</li>
-          {sc && <li className="inline-flex items-center gap-1.5"><i className="h-[3px] w-5 rounded bg-holiday" />Med {kr(scen ?? 0)} om måneden</li>}
-          <li className="inline-flex items-center gap-1.5"><i className="size-2.5 rounded-full border-2 border-cash" />Betaling fra kontoen</li>
+    <Card variant="sheet" className="gap-3">
+      <CardHeader className="sm:grid-cols-[1fr_auto]">
+        <CardTitle>Kontoen over tid</CardTitle>
+        <ul className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground sm:justify-end">
+          <li className="inline-flex items-center gap-1.5"><i className="h-0.5 w-4 rounded bg-data" />{hasSteps(state) ? 'Med jeres trappeplan' : `Med ${kr(D)} om måneden`}</li>
+          {sc && <li className="inline-flex items-center gap-1.5"><i className="w-4 border-t-2 border-dashed border-foreground" />Med {kr(scen ?? 0)} om måneden</li>}
+          <li className="inline-flex items-center gap-1.5"><i className="size-2 rounded-full border-[1.5px] border-foreground bg-card" />Betaling fra kontoen</li>
         </ul>
       </CardHeader>
-      <CardContent className="flex flex-col gap-5">
-        <div ref={ref} className="relative w-full">
-          <svg viewBox={`0 0 ${W} ${H}`} width={W} height={H} role="img" aria-label="Rejsekassens saldo over tid" className="block h-auto w-full touch-pan-y select-none overflow-visible">
-            <defs>
-              <linearGradient id="g-cash" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0" stopColor="var(--cash)" stopOpacity=".25" /><stop offset="1" stopColor="var(--cash)" stopOpacity="0" />
-              </linearGradient>
-              <clipPath id="cash-clip"><rect x={L} y={T - 6} width={pw} height={ph + 12} /></clipPath>
-            </defs>
-            {lo < Math.max(0, buf) && <rect x={L} y={yv(Math.max(0, buf))} width={pw} height={yv(lo) - yv(Math.max(0, buf))} fill="var(--warn)" opacity=".07" />}
-            {grid.map((v) => (
-              <g key={v}>
-                <line x1={L} x2={W - R} y1={yv(v)} y2={yv(v)} stroke={Math.abs(v) < 1e-6 ? 'var(--muted-foreground)' : 'var(--border)'} />
-                <text x={L - 6} y={yv(v) + 4} textAnchor="end" fontSize="11" fill="var(--muted-foreground)">{krAxis(v)}</text>
-              </g>
-            ))}
-            {buf > 0 && (
-              <g>
-                <line x1={L} x2={W - R} y1={yv(buf)} y2={yv(buf)} stroke="var(--warn)" strokeDasharray="4 4" opacity=".7" />
-                <text x={W - R} y={yv(buf) - 5} textAnchor="end" fontSize="11" fill="var(--warn)">Mindst {kr(buf)}</text>
-              </g>
-            )}
-            {months.map((t, k) => {
-              const i = (t - st) / DAY;
-              const M = new Date(t).getUTCMonth();
-              return (
-                <g key={t}>
-                  <line x1={x(i)} x2={x(i)} y1={T} y2={T + ph} stroke="var(--border)" opacity={M === 0 ? 1 : 0.5} />
-                  {(k % every === 0 || M === 0) && (
-                    <text x={x(i) + 4} y={T + ph + 16} fontSize="11" fontWeight={M === 0 ? 700 : 400} fill={M === 0 ? 'var(--foreground)' : 'var(--muted-foreground)'}>
-                      {M === 0 ? new Date(t).getUTCFullYear() : mobile ? MONTHS_SHORT[M].charAt(0).toUpperCase() : cap(MONTHS_SHORT[M])}
-                    </text>
-                  )}
-                </g>
-              );
-            })}
-            <g clipPath="url(#cash-clip)">
-              <path d={pa + `V${yv(Math.max(lo, 0))}H${x(0)}Z`} fill="url(#g-cash)" />
-              <path d={pa} fill="none" stroke="var(--cash)" strokeWidth="3" strokeLinejoin="round" />
-              {sc && <path d={path(sc.bal)} fill="none" stroke="var(--holiday)" strokeWidth="2.5" strokeDasharray="7 6" strokeLinejoin="round" />}
+      <div ref={ref} className="relative w-full">
+        <svg viewBox={`0 0 ${W} ${H}`} width={W} height={H} role="img" aria-label={`Rejsekassens saldo over tid. Laveste saldo ${kr(cur.min)} d. ${fmtShort(cur.minT, true)}.`} className="block h-auto w-full touch-pan-y select-none overflow-visible">
+          <defs>
+            <clipPath id="cash-clip"><rect x={L} y={T - 6} width={pw} height={ph + 12} /></clipPath>
+          </defs>
+          {dip < buf - 0.5 && <rect x={L} y={yv(buf)} width={pw} height={Math.max(0, yv(lo) - yv(buf))} fill="var(--warn)" opacity=".06" />}
+          {grid.map((v) => (
+            <g key={v}>
+              <line x1={L} x2={W - R} y1={yv(v)} y2={yv(v)} stroke={Math.abs(v) < 1e-6 ? 'var(--muted-foreground)' : 'var(--grid)'} />
+              <text x={L - 8} y={yv(v) + 4} textAnchor="end" fontSize="11" fill="var(--muted-foreground)">{krAxis(v)}</text>
             </g>
-            {lookI !== null && (
-              <g>
-                <line x1={x(lookI)} x2={x(lookI)} y1={T} y2={T + ph} stroke="var(--foreground)" strokeWidth="1.5" strokeDasharray="3 3" />
-                <text x={x(lookI) + 5} y={T + 10} fontSize="11" fontWeight="700" fill="var(--foreground)">{fmtShort(lk)}</text>
-              </g>
-            )}
-            {cur.ev.filter((e) => e.amt < 0).map((e) => {
-              const i = idxOf(cur, e.t);
-              return <circle key={e.it.id} cx={x(i)} cy={yv(cur.bal[i])} r="3.5" fill="var(--card)" stroke="var(--cash)" strokeWidth="2"><title>{eventLabel(state, e)}: {kr(-e.amt)}</title></circle>;
-            })}
-            {hover !== null && (
-              <g pointerEvents="none">
-                <line x1={x(hover + 0.5)} x2={x(hover + 0.5)} y1={T} y2={T + ph} stroke="var(--foreground)" opacity=".35" />
-                <circle cx={x(hover + 0.5)} cy={yv(cur.bal[hover])} r="5" fill="var(--cash)" stroke="var(--card)" strokeWidth="2" />
-              </g>
-            )}
-            <rect x={L} y={T} width={pw} height={ph} fill="transparent" onPointerMove={onMove} onPointerDown={onMove} onPointerLeave={() => setHover(null)} />
-          </svg>
-          {hover !== null && hoverT !== null && (
-            <div className="pointer-events-none absolute top-1 z-10 -translate-x-1/2 rounded-xl bg-foreground px-3 py-2 text-xs leading-snug text-background shadow-lg" style={{ left: tipLeft }}>
-              <b className="block">{fmtShort(hoverT, true)}</b>
-              Kontoen: <b>{kr(cur.bal[hover])}</b>
-              {sc && <span className="block">Med {kr(scen ?? 0)}/md.: <b>{kr(sc.bal[hover])}</b></span>}
-              {todays.map((t) => <span key={t} className="block opacity-80">{t}</span>)}
-            </div>
+          ))}
+          {buf > 0 && (
+            <g>
+              <line x1={L} x2={W - R} y1={yv(buf)} y2={yv(buf)} stroke={dip < buf - 0.5 ? 'var(--warn)' : 'var(--muted-foreground)'} strokeDasharray="4 4" />
+              <text x={W - R} y={yv(buf) - 5} textAnchor="end" fontSize="11" fill={dip < buf - 0.5 ? 'var(--warn)' : 'var(--muted-foreground)'}>Mindst {kr(buf)}</text>
+            </g>
           )}
-        </div>
-        <div className="rounded-xl border bg-muted p-4">
-          <div className="flex items-baseline justify-between gap-3">
-            <b className="text-sm">Hvad hvis I satte et andet beløb ind?</b>
-            <output className="font-display text-lg font-bold tabular-nums">{kr(val)} / md.</output>
+          {months.map((t, k) => {
+            const i = (t - st) / DAY;
+            const M = new Date(t).getUTCMonth();
+            if (every > 1 ? M % 3 !== 0 : !(k % every === 0 || M === 0)) return null;
+            return (
+              <text key={t} x={x(i) + 3} y={T + ph + 17} fontSize="11" fontWeight={M === 0 ? 600 : 400} fill={M === 0 ? 'var(--foreground)' : 'var(--muted-foreground)'}>
+                {M === 0 ? new Date(t).getUTCFullYear() : mobile ? MONTHS_SHORT[M].charAt(0).toUpperCase() : cap(MONTHS_SHORT[M])}
+              </text>
+            );
+          })}
+          <g clipPath="url(#cash-clip)">
+            <path d={pa + `V${yv(Math.max(lo, 0))}H${x(0)}Z`} fill="var(--data)" opacity=".1" />
+            <path d={pa} fill="none" stroke="var(--data)" strokeWidth="2" strokeLinejoin="round" />
+            {sc && <path d={path(sc.bal)} fill="none" stroke="var(--foreground)" strokeWidth="1.5" strokeDasharray="5 4" strokeLinejoin="round" />}
+          </g>
+          {lookI !== null && (
+            <g>
+              <line x1={x(lookI)} x2={x(lookI)} y1={T - 6} y2={T + ph} stroke="var(--foreground)" strokeDasharray="2 3" />
+              <text x={x(lookI)} y={T - 10} textAnchor={x(lookI) > W - 80 ? 'end' : 'middle'} fontSize="11" fontWeight="600" fill="var(--foreground)">{fmtShort(lk)}</text>
+            </g>
+          )}
+          {cur.ev.filter((e) => e.amt < 0).map((e) => {
+            const i = idxOf(cur, e.t);
+            return <circle key={e.it.id} cx={x(i)} cy={yv(cur.bal[i])} r="3" fill="var(--card)" stroke="var(--foreground)" strokeWidth="1.5"><title>{eventLabel(state, e)}: {kr(-e.amt)}</title></circle>;
+          })}
+          {hover !== null && (
+            <g pointerEvents="none">
+              <line x1={x(hover + 0.5)} x2={x(hover + 0.5)} y1={T} y2={T + ph} stroke="var(--foreground)" opacity=".3" />
+              <circle cx={x(hover + 0.5)} cy={yv(cur.bal[hover])} r="4" fill="var(--data)" stroke="var(--card)" strokeWidth="2" />
+            </g>
+          )}
+          <rect x={L} y={T} width={pw} height={ph} fill="transparent" onPointerMove={onMove} onPointerDown={onMove} onPointerLeave={() => setHover(null)} />
+        </svg>
+        {hover !== null && hoverT !== null && (
+          <div className="pointer-events-none absolute top-0 z-10 -translate-x-1/2 rounded-lg border bg-card px-3 py-2 text-xs leading-5 shadow-[0_8px_24px_rgba(0,0,0,.12)]" style={{ left: tipLeft }}>
+            <span className="block font-medium">{fmtShort(hoverT, true)}</span>
+            <span className="block">Kontoen <span className="tabular-nums">{kr(cur.bal[hover])}</span></span>
+            {sc && <span className="block text-muted-foreground">Med {kr(scen ?? 0)}/md. <span className="text-foreground tabular-nums">{kr(sc.bal[hover])}</span></span>}
+            {todays.map((t) => <span key={t} className="block text-muted-foreground">{t}</span>)}
           </div>
-          <Slider
-            className="my-4"
-            aria-label="Månedligt indskud, scenarie"
-            min={0}
-            max={sliderMax}
-            step={50}
-            value={[val]}
-            onValueChange={([v]) => setScen(v)}
-          />
-          {sc ? (
-            <div className="flex flex-wrap items-center gap-2">
-              <p className="mr-auto text-sm text-muted-foreground">
-                Laveste saldo bliver {kr(sc.min)} d. {fmtShort(sc.minT, true)}
-                {lookI !== null ? `, og d. ${fmtShort(lk, true)} står der ${kr(sc.bal[idxOf(sc, lk)])}` : '.'}
-              </p>
-              <Button size="sm" onClick={() => onUse(scen ?? 0)}>Brug {kr(scen ?? 0)}</Button>
-              <Button size="sm" variant="outline" onClick={() => setScen(null)}>Nulstil</Button>
-            </div>
-          ) : (
-            <p className="text-sm text-muted-foreground">Træk i skyderen for at se, hvad et andet beløb betyder for kontoen.</p>
-          )}
+        )}
+      </div>
+      <div className="mt-1 border-t border-rule pt-4">
+        <div className="flex items-baseline justify-between gap-3">
+          <p className="text-sm font-medium">Hvad hvis I satte et andet beløb ind?</p>
+          <output className="shrink-0 text-lg"><Money value={val} /><span className="text-sm text-muted-foreground"> / md.</span></output>
         </div>
-      </CardContent>
+        <Slider
+          className="my-4"
+          aria-label="Månedligt indskud, scenarie"
+          min={0}
+          max={sliderMax}
+          step={50}
+          value={[val]}
+          onValueChange={([v]) => setScen(v)}
+        />
+        {sc ? (
+          <div className="flex flex-wrap items-center gap-2">
+            <p className="mr-auto text-sm text-muted-foreground">
+              Laveste saldo bliver <span className={sc.min < buf - 0.5 ? 'font-medium text-warn' : 'text-foreground'}>{kr(sc.min)}</span> d. {fmtShort(sc.minT, true)}
+              {lookI !== null ? <>, og d. {fmtShort(lk, true)} står der <span className="text-foreground">{kr(sc.bal[idxOf(sc, lk)])}</span></> : '.'}
+            </p>
+            <Button size="sm" variant="outline" onClick={() => setScen(null)}>Nulstil</Button>
+            <Button size="sm" variant="outline" onClick={() => onUse(scen ?? 0)}>Brug {kr(scen ?? 0)}</Button>
+          </div>
+        ) : (
+          <p className="text-sm text-muted-foreground">Træk i skyderen for at se, hvad et andet beløb betyder for kontoen.</p>
+        )}
+      </div>
     </Card>
   );
 }

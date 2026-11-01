@@ -4,12 +4,12 @@ import {
 import { arrayMove, sortableKeyboardCoordinates } from '@dnd-kit/sortable';
 import { Fragment, useMemo, useState } from 'react';
 import { toast } from 'sonner';
-import { sortedTrips } from '../lib/balance';
+import { commonDaysOff, sortedTrips } from '../lib/balance';
 import { fmtShort, toISO, toTime, todayTime } from '../lib/dates';
 import { dayKey, nextStatus, sortPlan, tripDates } from '../lib/plan';
 import { newId, type Action } from '../lib/use-ferie';
 import type { CheckItem, FerieState, PlanItem, PlanType } from '../lib/types';
-import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from '../ui/empty';
+import { PageTitle, SectionTitle } from '../page';
 import { DayCard } from './DayCard';
 import { PlanItemSheet, draftFromPlan, newPlanDraft, type PlanDraft } from './PlanItemSheet';
 import { PlanRow } from './PlanRow';
@@ -40,16 +40,17 @@ export function Plan({ state, dispatch }: { state: FerieState; dispatch: React.D
 
   if (!trip) {
     return (
-      <Empty className="border">
-        <EmptyHeader>
-          <EmptyTitle>Ingen rejser endnu</EmptyTitle>
-          <EmptyDescription>Læg en rejse ind under Feriedage, så kan I planlægge dagene her.</EmptyDescription>
-        </EmptyHeader>
-      </Empty>
+      <div>
+        <PageTitle title="Rejseplan">Ingen rejser endnu.</PageTitle>
+        <div className="rounded-panel bg-panel p-5 text-sm text-muted-foreground">
+          Læg en rejse ind under <a href="#feriedage" className="font-medium text-foreground underline underline-offset-4">Feriedage</a>, så kan I planlægge dagene her.
+        </div>
+      </div>
     );
   }
 
   const dates = tripDates(trip);
+  const daysOff = commonDaysOff(state, trip.who);
   const byDay = (ds: string | null) => items.filter((x) => (x.day ?? null) === ds);
 
   const goto = (ds: string) => {
@@ -123,33 +124,37 @@ export function Plan({ state, dispatch }: { state: FerieState; dispatch: React.D
   const openNew = (day: string | null, type: PlanType) => setDraft(newPlanDraft(day, type));
 
   return (
-    <div className="flex flex-col gap-5">
-      <TripPicker trips={trips} selectedId={trip.id} items={state.itin} today={today} onSelect={select} />
-      <TripHeader state={state} trip={trip} items={items} checks={state.checks} today={today} />
-      <Route trip={trip} items={items} tdays={state.tdays} onGoto={goto} />
+    <div>
+      <TripPicker trips={trips} selectedId={trip.id} today={today} onSelect={select} />
+      <TripHeader state={state} trip={trip} items={items} checks={state.checks} today={today} onNew={() => openNew(null, 'oplevelse')} />
+      <div className="mt-4">
+        <Route trip={trip} items={items} tdays={state.tdays} onGoto={goto} />
+      </div>
       <DndContext sensors={sensors} collisionDetection={closestCorners} onDragEnd={onDragEnd}>
-        <div className="grid items-start gap-5 xl:grid-cols-[minmax(0,1fr)_24rem]">
-          <section aria-label="Dag for dag" className="flex min-w-0 flex-col gap-4">
-            <h2 className="font-display text-xl font-bold tracking-tight">Dag for dag</h2>
-            {dates.map((t, i) => {
-              const ds = toISO(t);
-              return (
-                <DayCard
-                  key={ds}
-                  t={t}
-                  index={i}
-                  total={dates.length}
-                  items={byDay(ds)}
-                  base={state.tdays.find((d) => d.id === dayKey(trip.id, t))?.base ?? ''}
-                  extraOff={state.settings.extraOff}
-                  onBase={(base) => dispatch({ type: 'saveTday', tday: { id: dayKey(trip.id, t), tripId: trip.id, date: ds, base } })}
-                  onAdd={(type) => openNew(ds, type)}
-                  renderRow={(it) => <Fragment key={it.id}>{row(it)}</Fragment>}
-                />
-              );
-            })}
+        <div className="mt-10 grid items-start gap-4 lg:grid-cols-12">
+          <section aria-labelledby="days-h" className="min-w-0 lg:col-span-8">
+            <SectionTitle><span id="days-h">Dag for dag</span></SectionTitle>
+            <ol className="rounded-panel bg-panel px-5 py-4">
+              {dates.map((t, i) => {
+                const ds = toISO(t);
+                return (
+                  <DayCard
+                    key={ds}
+                    t={t}
+                    index={i}
+                    total={dates.length}
+                    items={byDay(ds)}
+                    base={state.tdays.find((d) => d.id === dayKey(trip.id, t))?.base ?? ''}
+                    daysOff={daysOff}
+                    onBase={(base) => dispatch({ type: 'saveTday', tday: { id: dayKey(trip.id, t), tripId: trip.id, date: ds, base } })}
+                    onAdd={(type) => openNew(ds, type)}
+                    renderRow={(it) => <Fragment key={it.id}>{row(it)}</Fragment>}
+                  />
+                );
+              })}
+            </ol>
           </section>
-          <aside className="flex min-w-0 flex-col gap-5 xl:sticky xl:top-5">
+          <aside aria-label="Bookinger, idéer og huskeliste" className="flex min-w-0 flex-col gap-4 lg:sticky lg:top-6 lg:col-span-4 lg:mt-9">
             <ToBook items={items} today={today} onEdit={(it) => setDraft(draftFromPlan(it))} />
             <IdeaBank items={byDay(null)} onAdd={() => openNew(null, 'oplevelse')} renderRow={(it) => <Fragment key={it.id}>{row(it)}</Fragment>} />
             <Checklist
@@ -166,4 +171,3 @@ export function Plan({ state, dispatch }: { state: FerieState; dispatch: React.D
     </div>
   );
 }
-

@@ -4,7 +4,10 @@ import { toISO, todayTime } from '../lib/dates';
 import { analyze, depShare, moneyModel, stepsFromSegments, kr } from '../lib/kasse';
 import { newId, type Action } from '../lib/use-ferie';
 import type { FerieState, MoneyItem } from '../lib/types';
-import { AccountCard } from './AccountCard';
+import { PlusIcon } from 'lucide-react';
+import { PageTitle } from '../page';
+import { Button } from '../ui/button';
+import { AccountCard, AccountSheet } from './AccountCard';
 import { AccountChart } from './AccountChart';
 import { Budgets } from './Budgets';
 import { ItemSheet, draftFromItem, type ItemDraft } from './ItemSheet';
@@ -71,21 +74,32 @@ export function Kassen({ state, dispatch }: { state: FerieState; dispatch: React
     toast('Slettet', item ? { action: { label: 'Fortryd', onClick: () => dispatch({ type: 'saveItem', item }) } } : undefined);
   };
 
+  const [accountOpen, setAccountOpen] = useState(false);
+
   return (
-    <div className="flex flex-col gap-5">
-      <Overview state={state} dispatch={dispatch} />
-      <VerdictCard verdict={verdict} onApply={apply} />
-      <div className="grid items-start gap-5 xl:grid-cols-[minmax(0,1fr)_26rem]">
-        <div className="flex min-w-0 flex-col gap-5">
-          <MonthlyChart state={state} m={m} rec={verdict.rec} />
-          <AccountChart state={state} today={today} scen={scen} setScen={setScen} onUse={(total) => apply({ kind: 'usedep', total, label: '' })} />
-          <Budgets state={state} m={m} onAdd={openNew} onEdit={(it) => setDraft(draftFromItem(it))} />
-          <Settle state={state} />
+    <div>
+      <PageTitle
+        title="Rejsekassen"
+        actions={<Button onClick={() => openNew({ kind: 'expense' })}><PlusIcon aria-hidden />Ny udgift</Button>}
+      >
+        <span className={verdict.bad ? 'font-medium text-warn' : 'text-foreground'}>{verdict.title}</span>
+      </PageTitle>
+      <div className="flex flex-col gap-4">
+        <Overview state={state} dispatch={dispatch} />
+        <VerdictCard verdict={verdict} onApply={apply} />
+        <div className="grid gap-4 lg:grid-cols-12">
+          <div className="min-w-0 lg:col-span-8">
+            <AccountChart state={state} today={today} scen={scen} setScen={setScen} onUse={(total) => apply({ kind: 'usedep', total, label: '' })} />
+          </div>
+          <div className="flex min-w-0 flex-col gap-4 lg:col-span-4">
+            <AccountCard state={state} dispatch={dispatch} onChange={() => setScen(null)} onEdit={() => setAccountOpen(true)} />
+            <Settle state={state} />
+          </div>
         </div>
-        <div className="order-first flex min-w-0 flex-col gap-5 xl:sticky xl:top-5 xl:order-none">
-          <AccountCard state={state} dispatch={dispatch} onChange={() => setScen(null)} />
-        </div>
+        <MonthlyChart state={state} m={m} rec={verdict.rec} />
       </div>
+      <Budgets state={state} m={m} onAdd={openNew} onEdit={(it) => setDraft(draftFromItem(it))} />
+      <AccountSheet state={state} dispatch={dispatch} onChange={() => setScen(null)} open={accountOpen} onOpenChange={setAccountOpen} />
       <ItemSheet state={state} draft={draft} onClose={() => setDraft(null)} onSave={save} onDelete={remove} />
     </div>
   );

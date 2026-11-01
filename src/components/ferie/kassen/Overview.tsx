@@ -3,8 +3,7 @@ import { depShare, hasSteps, idxOf, kr, kStart, moneyModel, nextChangeText } fro
 import type { Action } from '../lib/use-ferie';
 import type { FerieState } from '../lib/types';
 import { toTime } from '../lib/dates';
-import { AnimatedNumber } from '../ui/animated-number';
-import { Card, CardContent, CardDescription, CardHeader } from '../ui/card';
+import { Money } from '../page';
 import { Input } from '../ui/input';
 import { personName } from './helpers';
 
@@ -29,49 +28,47 @@ export function Overview({ state, dispatch }: { state: FerieState; dispatch: Rea
   }
   const a = Math.round(m.D * depShare(state));
   const day = +state.kasse.depDay === 31 ? 'sidste dag i måneden' : `d. ${+state.kasse.depDay || 1}.`;
-  let depSub = m.D > 0 ? `${personName(state, 'a')} ${kr(a)}, ${personName(state, 'b')} ${kr(m.D - a)}, ${day}` : 'Skriv jeres faste beløb under Kontoen';
   const nx = nextChangeText(state, today);
-  if (nx) depSub += `. ${nx}`;
 
+  const cell = 'flex min-w-0 flex-col gap-1 px-5 py-4 md:py-0 first:md:pl-0 last:md:pr-0';
   return (
-    <section aria-label="Overblik" className="grid gap-3 md:grid-cols-3 md:gap-4">
-      <Card className="gap-2 py-5">
-        <CardHeader><CardDescription>På kontoen i dag</CardDescription></CardHeader>
-        <CardContent>
-          <AnimatedNumber value={now} format={kr} className={`font-display text-4xl font-bold ${now < -0.5 ? 'text-warn' : ''}`} />
-          <p className="mt-1 text-xs text-muted-foreground">
+    <section aria-label="Overblik" className="rounded-panel bg-panel p-1 md:px-5 md:py-5">
+      <div className="grid divide-y divide-rule md:grid-cols-3 md:divide-x md:divide-y-0">
+        <div className={cell}>
+          <h2 className="text-[13px] text-muted-foreground">På kontoen i dag</h2>
+          <Money value={now} className={`text-[36px] leading-[44px] ${now < -0.5 ? 'text-warn' : ''}`} />
+          <p className="text-xs text-muted-foreground">
             {m.st === today ? 'Ud fra saldoen i dag' : `Ud fra saldoen d. ${fmtShort(m.st, true)} og det, der er sket siden`}
           </p>
-        </CardContent>
-      </Card>
-      <Card className="gap-2 py-5">
-        <CardHeader>
-          <CardDescription>Saldo på en dato</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <AnimatedNumber value={lookOk ? lookBal : 0} format={(v) => (lookOk ? kr(v) : '–')} className={`font-display text-4xl font-bold ${lookOk && lookBal < -0.5 ? 'text-warn' : ''}`} />
-          <p className="mt-1 text-xs text-muted-foreground">
-            {lookOk ? `Frem til da: ${kr(ins)} ind og ${kr(out)} ud` : `Vælg en dato efter ${fmtShort(kStart(state, today), true)}`}
+        </div>
+        <div className={cell}>
+          <div className="flex items-center justify-between gap-2">
+            <h2 className="text-[13px] text-muted-foreground"><label htmlFor="kasse-look">Saldo d.</label></h2>
+            <Input
+              id="kasse-look"
+              type="date"
+              className="h-9 w-auto px-2 text-sm md:h-8"
+              value={state.kasse.look}
+              onChange={(e) => dispatch({ type: 'kasse', patch: { look: e.target.value } })}
+            />
+          </div>
+          {lookOk
+            ? <Money value={lookBal} className={`text-2xl leading-[44px] ${lookBal < -0.5 ? 'text-warn' : ''}`} />
+            : <span className="text-2xl leading-[44px] text-muted-foreground">–</span>}
+          <p className="text-xs text-muted-foreground">
+            {lookOk ? <>Frem til da <span className="text-foreground">{kr(ins)}</span> ind og <span className="text-foreground">{kr(out)}</span> ud</> : `Vælg en dato efter ${fmtShort(kStart(state, today), true)}`}
           </p>
-          <Input
-            type="date"
-            aria-label="Vælg dato for saldo"
-            className="mt-3"
-            value={state.kasse.look}
-            onChange={(e) => dispatch({ type: 'kasse', patch: { look: e.target.value } })}
-          />
-        </CardContent>
-      </Card>
-      <Card className="gap-2 py-5">
-        <CardHeader>
-          <CardDescription>{hasSteps(state) ? 'Indskud pr. måned lige nu' : 'Fast indskud pr. måned'}</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <AnimatedNumber value={m.D} format={kr} className="font-display text-4xl font-bold" />
-          <p className="mt-1 text-xs text-muted-foreground">{depSub}</p>
-        </CardContent>
-      </Card>
+        </div>
+        <div className={cell}>
+          <h2 className="text-[13px] text-muted-foreground">{hasSteps(state) ? 'Indskud pr. måned lige nu' : 'Fast indskud pr. måned'}</h2>
+          <Money value={m.D} className="text-2xl leading-[44px]" />
+          <p className="text-xs text-muted-foreground">
+            {m.D > 0
+              ? <>{personName(state, 'a')} <span className="text-foreground">{kr(a)}</span> · {personName(state, 'b')} <span className="text-foreground">{kr(m.D - a)}</span> · {day}{nx ? `. ${nx}` : ''}</>
+              : 'Skriv jeres faste beløb under Kontoen'}
+          </p>
+        </div>
+      </div>
     </section>
   );
 }
-

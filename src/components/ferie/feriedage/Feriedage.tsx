@@ -1,23 +1,28 @@
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { addWorkDays } from '../lib/holidays';
-import { commonDaysOff } from '../lib/balance';
-import { toISO, toTime } from '../lib/dates';
+import { PlusIcon } from 'lucide-react';
+import { commonDaysOff, lostInYear, sortedTrips } from '../lib/balance';
+import { fmtN, fmtShort, toISO, toTime, todayTime } from '../lib/dates';
+import { earliestAffordable } from '../lib/finder';
+import { PERSON_KEYS } from '../lib/types';
+import { PageTitle } from '../page';
+import { Button } from '../ui/button';
 import { newId, type Action } from '../lib/use-ferie';
 import type { FerieState, Trip, Who } from '../lib/types';
 import { BalanceChart } from './BalanceChart';
 import { Finder } from './Finder';
 import { PeopleSummary } from './PeopleSummary';
 import { SelectionBar } from './SelectionBar';
-import { SettingsSheet } from './SettingsSheet';
 import { TripList } from './TripList';
+import { impact, personName } from './helpers';
 import { TripSheet, draftFromTrip, type Draft } from './TripSheet';
 import { YearCalendar, type Selection } from './YearCalendar';
 
 export function Feriedage({
-  state, dispatch, settingsOpen, setSettingsOpen,
+  state, dispatch,
 }: {
-  state: FerieState; dispatch: React.Dispatch<Action>; settingsOpen: boolean; setSettingsOpen: (o: boolean) => void;
+  state: FerieState; dispatch: React.Dispatch<Action>;
 }) {
   const [sel, setSel] = useState<Selection>({ from: null, to: null });
   const [draft, setDraft] = useState<Draft | null>(null);
@@ -64,20 +69,30 @@ export function Feriedage({
   const start = Date.UTC(today.getFullYear(), today.getMonth(), today.getDate());
 
   return (
-    <div className="flex flex-col gap-5">
-      <PeopleSummary state={state} dispatch={dispatch} />
-      <div className="grid items-start gap-5 xl:grid-cols-[minmax(0,1fr)_24rem]">
-        <div className="flex min-w-0 flex-col gap-5">
-          <BalanceChart state={state} />
-          <YearCalendar state={state} selection={sel} onPick={onPick} />
+    <div>
+      <PageTitle
+        title={`Feriedage ${state.settings.year}`}
+        actions={<Button onClick={() => openNew(start, start)}><PlusIcon aria-hidden />Ny rejse</Button>}
+      >
+        <Finding state={state} />
+      </PageTitle>
+      <div className="flex flex-col gap-4">
+        <div className="grid gap-4 md:grid-cols-2">
+          <PeopleSummary state={state} />
         </div>
-        <div className="flex min-w-0 flex-col gap-5 xl:sticky xl:top-5">
-          <TripList state={state} onEdit={(t) => setDraft(draftFromTrip(t))} onNew={() => openNew(start, start)} />
-          <Finder
-            state={state}
-            dispatch={dispatch}
-            onCreate={(from, days, who) => openNew(from, Math.max(from, addWorkDays(from, days, commonDaysOff(state, who))), who)}
-          />
+        <BalanceChart state={state} />
+        <div className="grid items-start gap-4 lg:grid-cols-12">
+          <div className="min-w-0 lg:col-span-8">
+            <YearCalendar state={state} selection={sel} onPick={onPick} />
+          </div>
+          <div className="order-first flex min-w-0 flex-col gap-4 lg:sticky lg:top-6 lg:order-none lg:col-span-4">
+            <TripList state={state} onEdit={(t) => setDraft(draftFromTrip(t))} />
+            <Finder
+              state={state}
+              dispatch={dispatch}
+              onCreate={(from, days, who) => openNew(from, Math.max(from, addWorkDays(from, days, commonDaysOff(state, who))), who)}
+            />
+          </div>
         </div>
       </div>
       <SelectionBar
@@ -89,7 +104,34 @@ export function Feriedage({
         }}
       />
       <TripSheet state={state} dispatch={dispatch} draft={draft} onClose={() => setDraft(null)} onSave={save} onDelete={remove} />
-      <SettingsSheet open={settingsOpen} onOpenChange={setSettingsOpen} state={state} dispatch={dispatch} />
     </div>
   );
+}
+
+/** The one thing to know about this year's days: a trip you can't afford yet, days about to be lost, or all clear. */
+function Finding({ state }: { state: FerieState }) {
+  const today = todayTime();
+  const Y = state.settings.year;
+  const upcoming = sortedTrips(state.trips).filter((t) => toTime(t.to) >= today);
+  for (const t of upcoming) {
+    const short = impact(state, t.who, t, t.id).find((s) => s.short);
+    if (!short) continue;
+    const when = earliestAffordable(state, short.days, [short.k], today, t.id);
+    return (
+      <span className="font-medium text-warn">
+        {personName(state, short.k)} har ikke dage nok til {t.name || 'rejsen'} {fmtShort(toTime(t.from))}
+        {when ? `. Der er nok fra ${fmtShort(when, true)}.` : '.'}
+      </span>
+    );
+  }
+  const lost = PERSON_KEYS.map((k) => ({ k, v: lostInYear(state, k, Y) })).filter((x) => x.v > 1e-9);
+  if (lost.length) {
+    return (
+      <span className="text-caution">
+        {lost.map((x) => `${personName(state, x.k)} mister ${fmtN(x.v)} ${x.v === 1 ? 'dag' : 'dage'}`).join(' og ')} 31. dec. {Y}, hvis de ikke bliver holdt.
+      </span>
+    );
+  }
+  if (!upcoming.length) return <>Ingen rejser planlagt endnu. Vælg datoer i kalenderen for at lægge den første ind.</>;
+  return <span className="text-foreground">I har dage nok til {upcoming.length === 1 ? 'rejsen' : `alle ${upcoming.length} rejser`}.</span>;
 }

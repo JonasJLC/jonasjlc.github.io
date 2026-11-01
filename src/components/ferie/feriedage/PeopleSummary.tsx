@@ -1,30 +1,30 @@
 import { balanceAt, balanceSeries, lostInYear, usedInYear } from '../lib/balance';
 import { fmtN, todayTime } from '../lib/dates';
-import type { Action } from '../lib/use-ferie';
 import { PERSON_KEYS, type FerieState, type PersonKey } from '../lib/types';
-import { AnimatedNumber } from '../ui/animated-number';
 import { fmtHours } from '../lib/units';
-import { personColor, personName } from './helpers';
+import { cn } from '../lib/utils';
+import { AnimatedNumber } from '../ui/animated-number';
+import { personName } from './helpers';
 
-export function PeopleSummary({ state, dispatch }: { state: FerieState; dispatch: React.Dispatch<Action> }) {
+/** One panel per person: today's balance leads, then the year in three figures and a plan track. */
+export function PeopleSummary({ state }: { state: FerieState }) {
   const Y = state.settings.year;
   const st = Date.UTC(Y, 0, 1);
   const en = Date.UTC(Y, 11, 31);
   const today = todayTime();
-
   return (
-    <section aria-label="Feriedage pr. person" className="grid gap-3 sm:grid-cols-2 sm:gap-4">
+    <>
       {PERSON_KEYS.map((k) => (
-        <PersonCard key={k} k={k} state={state} dispatch={dispatch} Y={Y} st={st} en={en} today={today} />
+        <PersonCard key={k} k={k} state={state} Y={Y} st={st} en={en} today={today} />
       ))}
-    </section>
+    </>
   );
 }
 
 function PersonCard({
-  k, state, dispatch, Y, st, en, today,
+  k, state, Y, st, en, today,
 }: {
-  k: PersonKey; state: FerieState; dispatch: React.Dispatch<Action>; Y: number; st: number; en: number; today: number;
+  k: PersonKey; state: FerieState; Y: number; st: number; en: number; today: number;
 }) {
   const now = balanceAt(state, k, today);
   const yearEnd = balanceAt(state, k, en);
@@ -36,54 +36,51 @@ function PersonCard({
   const avail = used + yearEnd + lost;
   const pct = over ? 100 : avail > 0 ? Math.min(100, (used / avail) * 100) : 0;
   const caption = over
-    ? `${fmtN(-yearEnd)} dage (${fmtHours(-yearEnd, state.settings)}) for meget planlagt i ${Y}`
-    : `${fmtN(used)} af ${fmtN(avail)} optjente dage (${fmtHours(used, state.settings)} af ${fmtHours(avail, state.settings)}) er planlagt i ${Y}`;
+    ? `${fmtN(-yearEnd)} dage for meget planlagt i ${Y}`
+    : `${fmtN(used)} af ${fmtN(avail)} dage planlagt i ${Y}`;
+  const h = (v: number) => fmtHours(v, state.settings);
 
-  const stats: { label: string; v: number; neg?: boolean }[] = [
-    { label: 'Saldo i dag', v: now, neg: now < -1e-9 },
+  const stats: { label: string; v: number; neg?: boolean; warn?: boolean }[] = [
     { label: `Planlagt i ${Y}`, v: used },
     { label: 'Tilbage 31. dec.', v: yearEnd, neg: over },
+    lost > 1e-9
+      ? { label: 'Går tabt 31. dec.', v: lost, warn: true }
+      : { label: `Laveste i ${Y}`, v: min, neg: min < -1e-9 },
   ];
-  if (lost > 1e-9) stats.push({ label: 'Går tabt 31. dec.', v: lost, neg: true });
-  if (min < -1e-9) stats.push({ label: `Laveste i ${Y}`, v: min, neg: true });
 
   return (
-    <article
-      className="relative overflow-hidden rounded-2xl border bg-card p-4 shadow-sm sm:p-5"
-      style={{ ['--c' as string]: personColor(k) }}
-    >
-      <div className="absolute inset-x-0 top-0 h-1" style={{ background: 'var(--c)' }} aria-hidden />
-      <input
-        aria-label={`Navn på person ${k === 'a' ? 1 : 2}`}
-        value={state.settings.people[k].name}
-        maxLength={30}
-        placeholder={personName(state, k)}
-        onChange={(e) => dispatch({ type: 'person', k, patch: { name: e.target.value } })}
-        className="w-full rounded-lg bg-transparent font-display text-2xl font-bold tracking-tight outline-none focus-visible:ring-2 focus-visible:ring-ring/40"
-        style={{ color: 'var(--c)' }}
-      />
-      <dl className="mt-3 grid grid-cols-3 gap-x-3 gap-y-3 sm:grid-cols-4 lg:grid-cols-3 xl:grid-cols-4">
+    <article aria-labelledby={`p-${k}`} className="grid min-w-0 gap-4 rounded-panel bg-panel p-5 lg:grid-cols-[minmax(0,4fr)_minmax(0,8fr)] lg:gap-x-8">
+      <header className="flex items-center gap-2 lg:col-span-2">
+        <span className={cn('flex size-6 items-center justify-center rounded-full text-xs font-semibold', k === 'a' ? 'bg-person-a-tint text-person-a' : 'bg-person-b-tint text-person-b')} aria-hidden>
+          {personName(state, k).charAt(0)}
+        </span>
+        <h2 id={`p-${k}`} className="text-[15px] leading-6 font-semibold">{personName(state, k)}</h2>
+      </header>
+      <div>
+        <p className="text-[13px] text-muted-foreground">Saldo i dag</p>
+        <p className={cn('text-[32px] leading-10', now < -1e-9 && 'text-warn')}>
+          <AnimatedNumber value={now} /><span className="ml-1.5 text-sm text-muted-foreground">dage</span>
+        </p>
+        <p className="text-xs text-muted-foreground tabular-nums">{h(now)}</p>
+      </div>
+      <dl className="grid grid-cols-3 gap-3 border-t border-rule pt-3 lg:border-t-0 lg:border-l lg:pt-0 lg:pl-6">
         {stats.map((s) => (
-          <div key={s.label}>
-            <dd className={`font-display text-2xl font-bold leading-none sm:text-3xl ${s.neg ? 'text-warn' : ''}`}>
-              <AnimatedNumber value={s.v} />
-            </dd>
-            <dd className="mt-1 text-xs tabular-nums text-muted-foreground">{fmtHours(s.v, state.settings)}</dd>
+          <div key={s.label} className="min-w-0">
             <dt className="text-xs text-muted-foreground">{s.label}</dt>
+            <dd className={cn('text-lg leading-7 tabular-nums', s.neg && 'text-warn', s.warn && 'text-caution')}><AnimatedNumber value={s.v} /></dd>
+            <dd className="text-xs text-muted-foreground tabular-nums">{h(s.v)}</dd>
           </div>
         ))}
       </dl>
-      <div
-        role="img"
-        aria-label={caption}
-        className="mt-4 h-2 overflow-hidden rounded-full bg-muted"
-      >
-        <div
-          className="h-full rounded-full transition-[width] duration-700 ease-out"
-          style={{ width: `${pct}%`, background: over ? 'var(--warn)' : 'var(--c)' }}
-        />
+      <div className="lg:col-span-2">
+        <div role="img" aria-label={caption} className="h-1.5 overflow-hidden rounded-full bg-muted">
+          <div
+            className={cn('h-full rounded-full transition-[width] duration-500', k === 'a' ? 'bg-person-a' : 'bg-person-b', over && 'bg-warn')}
+            style={{ width: `${pct}%` }}
+          />
+        </div>
+        <p className={cn('mt-1.5 text-xs', over ? 'text-warn' : 'text-muted-foreground')}>{caption}</p>
       </div>
-      <p className={`mt-2 text-xs ${over ? 'text-warn' : 'text-muted-foreground'}`}>{caption}</p>
     </article>
   );
 }

@@ -1,46 +1,51 @@
-import { fmtRange, toTime } from '../lib/dates';
-import { kr } from '../lib/kasse';
-import { bookStats, countdown, tripDates } from '../lib/plan';
+import { PlusIcon } from 'lucide-react';
+import { fmtRange, fmtShort, toTime } from '../lib/dates';
+import { bookByLabel, bookStats, countdown, tripDates, typeInfo } from '../lib/plan';
 import type { CheckItem, FerieState, PlanItem, Trip } from '../lib/types';
 import { cn } from '../lib/utils';
-import { Card } from '../ui/card';
+import { Money, PageTitle, PersonDots } from '../page';
+import { Button } from '../ui/button';
+import { Progress } from '../ui/progress';
 import { personName } from '../kassen/helpers';
 
+/** The trips as underline tabs; scrolls sideways on a phone. */
 export function TripPicker({
-  trips, selectedId, items, today, onSelect,
+  trips, selectedId, today, onSelect,
 }: {
-  trips: Trip[]; selectedId: string | null; items: PlanItem[]; today: number; onSelect: (id: string) => void;
+  trips: Trip[]; selectedId: string | null; today: number; onSelect: (id: string) => void;
 }) {
   return (
-    <nav aria-label="Vælg rejse" className="-mx-4 flex snap-x gap-3 overflow-x-auto px-4 pb-1 sm:mx-0 sm:px-0">
-      {trips.map((t) => {
-        const st = bookStats(items.filter((x) => x.tripId === t.id));
-        const pct = st.need ? (st.booked / st.need) * 100 : 0;
-        const on = t.id === selectedId;
-        return (
-          <button
-            key={t.id}
-            type="button"
-            aria-pressed={on}
-            onClick={() => onSelect(t.id)}
-            className={cn('flex min-w-48 shrink-0 snap-start flex-col gap-1 rounded-2xl border bg-card p-3.5 text-left shadow-sm transition-colors', on && 'border-foreground ring-2 ring-foreground/10')}
-          >
-            <b className="truncate font-display text-base">{t.name || 'Rejse'}</b>
-            <span className="text-xs text-muted-foreground">{fmtRange(toTime(t.from), toTime(t.to), new Date(toTime(t.from)).getUTCFullYear())}, {countdown(t, today).toLowerCase()}</span>
-            <span className="mt-1 h-1.5 overflow-hidden rounded-full bg-muted" aria-hidden>
-              <i className="block h-full rounded-full bg-ok transition-[width]" style={{ width: `${pct}%` }} />
-            </span>
-          </button>
-        );
-      })}
+    <nav aria-label="Vælg rejse" className="-mx-4 mb-6 overflow-x-auto px-4 sm:-mx-6 sm:px-6 lg:mb-8">
+      <div className="flex min-w-max gap-7 border-b border-rule pr-4 sm:pr-0">
+        {trips.map((t) => {
+          const on = t.id === selectedId;
+          return (
+            <button
+              key={t.id}
+              type="button"
+              aria-current={on ? 'true' : undefined}
+              onClick={() => onSelect(t.id)}
+              className={cn(
+                'relative flex items-baseline gap-2 pt-1 pb-3 text-sm whitespace-nowrap transition-colors',
+                on ? 'font-medium text-foreground after:absolute after:inset-x-0 after:-bottom-px after:h-0.5 after:rounded-full after:bg-foreground' : 'text-muted-foreground hover:text-foreground',
+              )}
+            >
+              <PersonDots who={t.who} className="self-center" />
+              {t.name || 'Rejse'}
+              <span className="hidden text-xs font-normal text-muted-foreground sm:inline">{countdown(t, today).toLowerCase()}</span>
+            </button>
+          );
+        })}
+      </div>
     </nav>
   );
 }
 
+/** The trip's title row (dates, people, the next booking deadline) and its numbers. */
 export function TripHeader({
-  state, trip, items, checks, today,
+  state, trip, items, checks, today, onNew,
 }: {
-  state: FerieState; trip: Trip; items: PlanItem[]; checks: CheckItem[]; today: number;
+  state: FerieState; trip: Trip; items: PlanItem[]; checks: CheckItem[]; today: number; onNew: () => void;
 }) {
   const dates = tripDates(trip);
   const st = bookStats(items);
@@ -50,41 +55,56 @@ export function TripHeader({
   const chk = checks.filter((c) => c.tripId === trip.id);
   const done = chk.filter((c) => c.done).length;
   const who = trip.who === 'both' ? `${personName(state, 'a')} og ${personName(state, 'b')}` : personName(state, trip.who);
-  const pct = st.need ? st.booked / st.need : 0;
-  const C = 2 * Math.PI * 34;
-  const stats = [
-    { v: String(planned), l: 'planer' },
-    { v: String(ideas), l: 'i idébanken' },
-    { v: kr(price), l: 'planlagte udgifter' },
-    ...(chk.length ? [{ v: `${done}/${chk.length}`, l: 'på huskelisten' }] : []),
+  const next = items
+    .filter((x) => x.status === 'tobook' && x.bookBy)
+    .sort((a, b) => a.bookBy.localeCompare(b.bookBy))[0];
+  const nb = next ? bookByLabel(next, today) : null;
+  const left = st.need - st.booked;
+
+  const cells: { label: string; value: React.ReactNode; sub?: React.ReactNode }[] = [
+    {
+      label: 'Booket',
+      value: st.need ? <>{st.booked}<span className="text-base text-muted-foreground"> af {st.need}</span></> : <span className="text-muted-foreground">–</span>,
+      sub: st.need ? <Progress className="mt-2" value={(st.booked / st.need) * 100} aria-label={`${st.booked} af ${st.need} er booket`} /> : <span>Intet skal bookes endnu</span>,
+    },
+    { label: 'Planer på dagene', value: planned },
+    { label: 'I idébanken', value: ideas },
+    { label: 'Planlagte udgifter', value: <Money value={price} /> },
+    {
+      label: 'Huskeliste',
+      value: chk.length ? <>{done}<span className="text-base text-muted-foreground"> af {chk.length}</span></> : <span className="text-muted-foreground">–</span>,
+    },
   ];
+
   return (
-    <Card className="flex-row items-center justify-between gap-4 p-5">
-      <div className="min-w-0">
-        <p className="text-sm font-semibold text-ok">{countdown(trip, today)}</p>
-        <h2 className="truncate font-display text-3xl font-extrabold tracking-tight">{trip.name || 'Rejse'}</h2>
-        <p className="text-sm text-muted-foreground">
-          {fmtRange(toTime(trip.from), toTime(trip.to), state.settings.year)}, {dates.length} {dates.length === 1 ? 'dag' : 'dage'}, {who}
-        </p>
-        <dl className="mt-3 flex flex-wrap gap-x-6 gap-y-2">
-          {stats.map((s) => (
-            <div key={s.l}>
-              <dd className="font-display text-xl font-bold leading-none tabular-nums">{s.v}</dd>
-              <dt className="mt-0.5 text-xs text-muted-foreground">{s.l}</dt>
+    <>
+      <PageTitle
+        title={trip.name || 'Rejse'}
+        actions={<Button onClick={onNew}><PlusIcon aria-hidden />Ny plan</Button>}
+      >
+        <span className="text-foreground">{fmtRange(toTime(trip.from), toTime(trip.to), state.settings.year)}</span>
+        {' · '}{dates.length} {dates.length === 1 ? 'dag' : 'dage'} · {who} · {countdown(trip, today).toLowerCase()}
+        <br />
+        {next && nb ? (
+          <span className={nb.over ? 'font-medium text-warn' : nb.soon ? 'text-caution' : undefined}>
+            {next.title || typeInfo(next.type).label} {nb.over ? `skulle have været booket ${fmtShort(toTime(next.bookBy))}` : `skal bookes senest ${fmtShort(toTime(next.bookBy))}`}
+            {left > 1 ? `, og ${left - 1} mere venter.` : '.'}
+          </span>
+        ) : left > 0 ? (
+          `${left} ${left === 1 ? 'ting mangler' : 'ting mangler'} at blive booket.`
+        ) : st.need > 0 ? 'Alt, der skal bookes, er booket.' : 'Ingen bookinger endnu.'}
+      </PageTitle>
+      <section aria-label="Rejsen i tal" className="rounded-panel bg-panel px-5 py-4">
+        <dl className="grid grid-cols-2 gap-x-5 gap-y-4 md:grid-cols-5 md:gap-0 md:divide-x md:divide-rule">
+          {cells.map((c, i) => (
+            <div key={c.label} className={cn('min-w-0 md:px-5 md:first:pl-0 md:last:pr-0', i === 0 && 'col-span-2 md:col-span-1')}>
+              <dt className="text-[13px] text-muted-foreground">{c.label}</dt>
+              <dd className="text-2xl leading-9 tabular-nums">{c.value}</dd>
+              {c.sub && <dd className="text-xs text-muted-foreground">{c.sub}</dd>}
             </div>
           ))}
         </dl>
-      </div>
-      <div className="relative shrink-0" role="img" aria-label={st.need ? `${st.booked} af ${st.need} er booket` : 'Intet skal bookes endnu'}>
-        <svg viewBox="0 0 84 84" width="96" height="96" aria-hidden>
-          <circle cx="42" cy="42" r="34" fill="none" stroke="var(--muted)" strokeWidth="9" />
-          <circle cx="42" cy="42" r="34" transform="rotate(-90 42 42)" fill="none" stroke="var(--ok)" strokeWidth="9" strokeLinecap="round" strokeDasharray={C} strokeDashoffset={C * (1 - pct)} opacity={pct > 0 ? 1 : 0} style={{ transition: 'stroke-dashoffset .7s ease-out' }} />
-        </svg>
-        <span className="absolute inset-0 flex flex-col items-center justify-center font-display leading-tight">
-          <b className="text-lg tabular-nums">{st.booked}/{st.need}</b>
-          <small className="text-[10px] text-muted-foreground">booket</small>
-        </span>
-      </div>
-    </Card>
+      </section>
+    </>
   );
 }

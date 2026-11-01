@@ -1,19 +1,16 @@
-import { Moon, Plane, Settings, Sun, Wallet, Map } from 'lucide-react';
-import { Tabs } from 'radix-ui';
 import { useEffect, useState } from 'react';
 import { Toaster } from 'sonner';
-import { AccountButton } from './AccountButton';
 import { AuthGate } from './AuthGate';
 import { Feriedage } from './feriedage/Feriedage';
+import { SettingsSheet } from './feriedage/SettingsSheet';
 import { Kassen } from './kassen/Kassen';
 import { Plan } from './plan/Plan';
 import { useFerie } from './lib/use-ferie';
 import { useSync } from './lib/use-sync';
-import { Button } from './ui/button';
-import { cn } from './lib/utils';
+import { Sidebar, TopBar, VIEWS, type Theme, type View } from './Sidebar';
 
-type Theme = 'light' | 'dark';
 const THEME_KEY = 'ferie-theme';
+const FRAME = { light: '#eef2f1', dark: '#0c0d0d' };
 
 function useTheme(): [Theme, () => void] {
   const [theme, setTheme] = useState<Theme>(() => {
@@ -25,7 +22,7 @@ function useTheme(): [Theme, () => void] {
   });
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
-    document.querySelector('meta[name="theme-color"]')?.setAttribute('content', theme === 'dark' ? '#0e171b' : '#eaf0ef');
+    document.querySelector('meta[name="theme-color"]')?.setAttribute('content', FRAME[theme]);
   }, [theme]);
   return [theme, () => setTheme((t) => {
     const next = t === 'dark' ? 'light' : 'dark';
@@ -34,82 +31,68 @@ function useTheme(): [Theme, () => void] {
   })];
 }
 
-const TABS = [
-  { value: 'feriedage', label: 'Feriedage', icon: Plane, ready: true },
-  { value: 'rejsekassen', label: 'Rejsekassen', icon: Wallet, ready: true },
-  { value: 'rejseplan', label: 'Rejseplan', icon: Map, ready: true },
-];
+const readView = (): View => {
+  const h = location.hash.slice(1);
+  return (VIEWS.find((v) => v.value === h)?.value ?? 'feriedage') as View;
+};
+
+/** The current screen lives in the URL hash, so a refresh or a shared link opens the same screen. */
+function useView(): View {
+  const [view, setView] = useState<View>(readView);
+  useEffect(() => {
+    const on = () => {
+      setView(readView());
+      window.scrollTo({ top: 0 });
+    };
+    window.addEventListener('hashchange', on);
+    return () => window.removeEventListener('hashchange', on);
+  }, []);
+  return view;
+}
 
 export default function FerieApp() {
   const [state, dispatch] = useFerie();
   const sync = useSync(state, dispatch);
   const [theme, toggleTheme] = useTheme();
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const [tab, setTab] = useState('feriedage');
+  const view = useView();
   const Y = state.settings.year;
+
+  const shell = {
+    state, view, year: Y, onYear: (year: number) => dispatch({ type: 'year', year }),
+    sync, theme, onTheme: toggleTheme, onSettings: () => setSettingsOpen(true),
+  };
 
   return (
     <AuthGate status={sync.status} email={sync.email}>
-      <Tabs.Root value={tab} onValueChange={setTab} className="min-h-dvh">
-        <div className="mx-auto max-w-[1180px] px-4 pb-44 pt-6 sm:px-6 md:pb-16 md:pt-10">
-          <header className="mb-6 flex flex-wrap items-end justify-between gap-x-6 gap-y-4">
-            <div>
-              <h1 className="font-display text-5xl font-extrabold leading-none tracking-tight sm:text-6xl">Ferieplan</h1>
-              <p className="mt-2 max-w-prose text-muted-foreground">Feriedage, rejser og rejsekasse – samlet for jer to.</p>
-            </div>
-            <div className="flex items-center gap-2">
-              <div role="group" aria-label="Vælg år" className="inline-flex rounded-full border bg-card p-1">
-                {[Y - 1, Y, Y + 1].map((v) => (
-                  <button
-                    key={v}
-                    type="button"
-                    aria-pressed={v === Y}
-                    onClick={() => dispatch({ type: 'year', year: v })}
-                    className={cn('h-9 rounded-full px-3.5 text-sm font-semibold tabular-nums text-muted-foreground transition-colors', v === Y && 'bg-primary text-primary-foreground')}
-                  >
-                    {v}
-                  </button>
-                ))}
-              </div>
-              <AccountButton {...sync} />
-              <Button variant="outline" size="icon" aria-label="Indstillinger" onClick={() => setSettingsOpen(true)}><Settings className="size-5" /></Button>
-              <Button variant="outline" size="icon" aria-label={theme === 'dark' ? 'Skift til lyst tema' : 'Skift til mørkt tema'} onClick={toggleTheme}>
-                {theme === 'dark' ? <Sun className="size-5" /> : <Moon className="size-5" />}
-              </Button>
-            </div>
-          </header>
-
-          <Tabs.List
-            aria-label="Visning"
-            className="fixed inset-x-0 bottom-0 z-20 grid grid-cols-3 border-t bg-card/95 px-2 pb-[env(safe-area-inset-bottom)] backdrop-blur md:static md:mb-6 md:inline-flex md:rounded-full md:border md:p-1 md:pb-1"
-          >
-            {TABS.map(({ value, label, icon: Icon, ready }) => (
-              <Tabs.Trigger
-                key={value}
-                value={value}
-                disabled={!ready}
-                className="flex h-16 flex-col items-center justify-center gap-1 rounded-xl text-xs font-semibold text-muted-foreground transition-colors disabled:opacity-45 data-[state=active]:text-foreground md:h-10 md:flex-row md:gap-2 md:rounded-full md:px-4 md:text-sm md:data-[state=active]:bg-primary md:data-[state=active]:text-primary-foreground"
-              >
-                <Icon className="size-5 md:size-4" aria-hidden />
-                <span>{label}{!ready && <small className="ml-1 hidden font-normal md:inline">· snart</small>}</span>
-              </Tabs.Trigger>
-            ))}
-          </Tabs.List>
-
-          <main>
-            <Tabs.Content value="feriedage" className="outline-none">
-              <Feriedage state={state} dispatch={dispatch} settingsOpen={settingsOpen} setSettingsOpen={setSettingsOpen} />
-            </Tabs.Content>
-            <Tabs.Content value="rejsekassen" className="outline-none">
-              <Kassen state={state} dispatch={dispatch} />
-            </Tabs.Content>
-            <Tabs.Content value="rejseplan" className="outline-none">
-              <Plan state={state} dispatch={dispatch} />
-            </Tabs.Content>
-          </main>
+      <div className="min-h-dvh lg:flex">
+        <Sidebar {...shell} />
+        <TopBar {...shell} />
+        <div className="min-w-0 flex-1 bg-background lg:bg-frame lg:py-2 lg:pr-2">
+          <div className="min-h-[calc(100dvh-3.5rem)] bg-background lg:min-h-[calc(100dvh-1rem)] lg:rounded-2xl lg:border">
+            <main className="mx-auto w-full max-w-[1148px] px-4 pt-6 pb-28 sm:px-6 lg:pt-10 lg:pb-16">
+              {view === 'feriedage' && (
+                <Feriedage state={state} dispatch={dispatch} />
+              )}
+              {view === 'rejsekassen' && <Kassen state={state} dispatch={dispatch} />}
+              {view === 'rejseplan' && <Plan state={state} dispatch={dispatch} />}
+            </main>
+          </div>
         </div>
-        <Toaster position="top-center" richColors closeButton />
-      </Tabs.Root>
+      </div>
+      <SettingsSheet open={settingsOpen} onOpenChange={setSettingsOpen} state={state} dispatch={dispatch} />
+      <Toaster
+        position="top-center"
+        closeButton
+        toastOptions={{
+          classNames: {
+            toast: 'bg-card! text-foreground! border-border! rounded-2xl! font-sans! shadow-[0_12px_32px_rgba(0,0,0,.14)]!',
+            description: 'text-muted-foreground!',
+            actionButton: 'bg-primary! text-primary-foreground! rounded-full!',
+            closeButton: 'bg-card! border-border! text-muted-foreground!',
+          },
+        }}
+      />
     </AuthGate>
   );
 }

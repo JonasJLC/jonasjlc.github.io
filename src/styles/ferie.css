@@ -1,66 +1,118 @@
-@import '@fontsource-variable/figtree';
-@import '@fontsource-variable/bricolage-grotesque';
+@import '@fontsource-variable/instrument-sans';
+@import '@fontsource/instrument-serif/400.css';
 @import 'tailwindcss';
 
 @custom-variant dark (&:is([data-theme='dark'] *));
 
+/*
+ * Ferieplan tokens.
+ * A sea-mist frame around a white sheet; tonal panels one step off white, no borders and no
+ * shadows at rest. Colour lives on data: the teal is the one data hue, each person keeps a
+ * stable hue (full on their own series, pale as identity), red only marks a failing fact.
+ */
 :root {
-  --background: #eaf0ef;
-  --foreground: #15232b;
+  --frame: #eef2f1;
+  --background: #ffffff;
+  --foreground: #1f201d;
   --card: #ffffff;
-  --muted: #f5f8f7;
-  --muted-foreground: #5a6a72;
-  --border: #d3dddc;
-  --primary: #15232b;
-  --primary-foreground: #eaf0ef;
-  --person-a: #2867b0;
-  --person-b: #b8457f;
-  --warn: #c23d2a;
-  --ok: #2c7d53;
-  --holiday: #c98a12;
-  --cash: #17796a;
-  --ring: #2867b0;
-  --accent: #e3ebea;
-  --input: #b9c7c6;
+  --panel: #f6f8f7;
+  --muted: #e9edec;
+  --muted-foreground: #5c605d;
+  --border: #e3e7e6;
+  --rule: #e8ecea;
+  --input: #cfd6d4;
+  --primary: #1f201d;
+  --primary-foreground: #ffffff;
+  --accent: #eaeeed;
+  --nav-active: #dfe5e3;
+
+  --data: #1b6e66;
+  --data-tint: #e1efed;
+  --person-a: #2f66ad;
+  --person-a-tint: #e4edf8;
+  --person-b: #b2457b;
+  --person-b-tint: #f6e6ee;
+
+  --warn: #b42318;
+  --warn-tint: #fdecea;
+  --warn-ink: #7a1d14;
+  --caution: #92400e;
+  --caution-tint: #fdf3dc;
+  --ok: #2e7d32;
+  --ok-tint: #e2f3e4;
+  --ok-ink: #14451a;
+  --holiday: #b45309;
+  --grid: #e6e9e8;
+  --ring: #1b6e66;
   color-scheme: light;
 }
 
 :root[data-theme='dark'] {
-  --background: #0e171b;
-  --foreground: #e4edef;
-  --card: #152127;
-  --muted: #1a2930;
-  --muted-foreground: #94a6ad;
-  --border: #283a41;
-  --primary: #e4edef;
-  --primary-foreground: #0e171b;
-  --person-a: #6ea6ea;
-  --person-b: #e57db0;
-  --warn: #f07a63;
-  --ok: #5dc08b;
-  --holiday: #e9b547;
-  --cash: #57c7b0;
-  --ring: #6ea6ea;
-  --accent: #21343c;
-  --input: #3a5059;
+  --frame: #0c0d0d;
+  --background: #141515;
+  --foreground: #f1f2f0;
+  --card: #141515;
+  --panel: #1c1e1d;
+  --muted: #262928;
+  --muted-foreground: #a9adab;
+  --border: #2a2d2c;
+  --rule: #252827;
+  --input: #3d4241;
+  --primary: #f1f2f0;
+  --primary-foreground: #141515;
+  --accent: #262928;
+  --nav-active: #232625;
+
+  --data: #4fb5a9;
+  --data-tint: #183330;
+  --person-a: #7eaae6;
+  --person-a-tint: #1d2a3b;
+  --person-b: #e58ab6;
+  --person-b-tint: #3a2230;
+
+  --warn: #f2786a;
+  --warn-tint: #36201d;
+  --warn-ink: #f6a59b;
+  --caution: #e9b25a;
+  --caution-tint: #33291a;
+  --ok: #67c27a;
+  --ok-tint: #1b2e1f;
+  --ok-ink: #9ad9a6;
+  --holiday: #e2a447;
+  --grid: #2a2d2c;
+  --ring: #4fb5a9;
   color-scheme: dark;
 }
 
 @theme inline {
+  --color-frame: var(--frame);
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
+  --color-panel: var(--panel);
   --color-muted: var(--muted);
   --color-muted-foreground: var(--muted-foreground);
   --color-border: var(--border);
+  --color-rule: var(--rule);
   --color-primary: var(--primary);
   --color-primary-foreground: var(--primary-foreground);
+  --color-nav-active: var(--nav-active);
+  --color-data: var(--data);
+  --color-data-tint: var(--data-tint);
   --color-person-a: var(--person-a);
+  --color-person-a-tint: var(--person-a-tint);
   --color-person-b: var(--person-b);
+  --color-person-b-tint: var(--person-b-tint);
   --color-warn: var(--warn);
+  --color-warn-tint: var(--warn-tint);
+  --color-warn-ink: var(--warn-ink);
+  --color-caution: var(--caution);
+  --color-caution-tint: var(--caution-tint);
   --color-ok: var(--ok);
+  --color-ok-tint: var(--ok-tint);
+  --color-ok-ink: var(--ok-ink);
   --color-holiday: var(--holiday);
-  --color-cash: var(--cash);
+  --color-cash: var(--data);
   --color-ring: var(--ring);
   --color-accent: var(--accent);
   --color-accent-foreground: var(--foreground);
@@ -72,9 +124,10 @@
   --color-card-foreground: var(--foreground);
   --color-destructive: var(--warn);
   --color-destructive-foreground: #ffffff;
-  --font-sans: 'Figtree Variable', system-ui, sans-serif;
-  --font-display: 'Bricolage Grotesque Variable', 'Figtree Variable', system-ui, sans-serif;
-  --radius-xl: 1.25rem;
+  --font-sans: 'Instrument Sans Variable', system-ui, sans-serif;
+  --font-display: 'Instrument Serif', Georgia, serif;
+  --radius-panel: 22px;
+  --radius-xl: 0.875rem;
 }
 
 @layer base {
@@ -86,9 +139,12 @@
   }
   body {
     margin: 0;
-    background: var(--background);
+    background: var(--frame);
     color: var(--foreground);
     font-family: var(--font-sans);
+    font-size: 14px;
+    line-height: 20px;
+    font-variant-numeric: tabular-nums;
     -webkit-font-smoothing: antialiased;
     padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom)
       env(safe-area-inset-left);
@@ -96,6 +152,23 @@
   :focus-visible {
     outline: 2px solid var(--ring);
     outline-offset: 2px;
+  }
+}
+
+@layer components {
+  /* The one display face, for each screen's title. */
+  .title-serif {
+    font-family: var(--font-display);
+    font-weight: 400;
+    letter-spacing: -0.01em;
+    line-height: 1.05;
+  }
+  /* Free days inside a trip: a light hatch, so "costs no vacation" reads without colour. */
+  .hatch {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='6' height='6'%3E%3Cpath d='M-1 7L7-1M5 7l2-2M-1 1l2-2' stroke='%231f201d' stroke-opacity='.16'/%3E%3C/svg%3E");
+  }
+  :root[data-theme='dark'] .hatch {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='6' height='6'%3E%3Cpath d='M-1 7L7-1M5 7l2-2M-1 1l2-2' stroke='%23ffffff' stroke-opacity='.16'/%3E%3C/svg%3E");
   }
 }
 

@@ -1,35 +1,38 @@
+import { useDndContext, useDroppable } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
-import { useDroppable } from '@dnd-kit/core';
-import { PlusIcon } from 'lucide-react';
-import { MONTHS, WEEKDAYS, toISO } from '../lib/dates';
+import { BedDoubleIcon } from 'lucide-react';
+import { MONTHS_SHORT, WEEKDAYS, toISO } from '../lib/dates';
 import { holidayName } from '../lib/holidays';
-import { PLAN_TYPES, dayLoad, sortPlan } from '../lib/plan';
-import type { PlanItem, PlanType } from '../lib/types';
+import { dayLoad, sortPlan } from '../lib/plan';
+import type { DayOff, PlanItem, PlanType } from '../lib/types';
 import { cn } from '../lib/utils';
-import { Badge } from '../ui/badge';
-import { Button } from '../ui/button';
-import { Card, CardContent, CardFooter, CardHeader } from '../ui/card';
-import { Input } from '../ui/input';
+import { AddPlan } from './AddPlan';
 
-export function DropList({ id, items, children, empty }: { id: string; items: PlanItem[]; children: (it: PlanItem) => React.ReactNode; empty: string }) {
+/** A sortable drop target. Its empty slot only shows while something is being dragged. */
+export function DropList({ id, items, children, empty, always = false }: {
+  id: string; items: PlanItem[]; children: (it: PlanItem) => React.ReactNode; empty: string; always?: boolean;
+}) {
   const { setNodeRef, isOver } = useDroppable({ id: `list:${id}` });
+  const { active } = useDndContext();
   const sorted = [...items].sort(sortPlan);
+  const showEmpty = sorted.length === 0 && (always || active !== null);
   return (
     <SortableContext items={sorted.map((x) => x.id)} strategy={verticalListSortingStrategy}>
-      <ul ref={setNodeRef} className={cn('flex min-h-14 flex-col gap-1.5 rounded-xl', isOver && 'bg-accent/60 ring-2 ring-ring/30')}>
+      <ul ref={setNodeRef} className={cn('flex min-h-2 flex-col gap-1.5 rounded-xl transition-colors', isOver && 'bg-data-tint')}>
         {sorted.map((it) => children(it))}
-        {sorted.length === 0 && <li className="flex min-h-14 items-center justify-center rounded-xl border border-dashed text-xs text-muted-foreground">{empty}</li>}
+        {showEmpty && <li className="flex h-11 items-center justify-center rounded-xl border border-dashed border-input text-xs text-muted-foreground">{empty}</li>}
       </ul>
     </SortableContext>
   );
 }
 
-const LOAD_STYLE = { free: 'secondary', calm: 'secondary', mid: 'default', busy: 'destructive' } as const;
+const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 
+/** One day of the trip: the date, where you sleep, and the day's plans in time order. */
 export function DayCard({
-  t, index, total, items, base, extraOff, onBase, onAdd, renderRow,
+  t, index, total, items, base, daysOff, onBase, onAdd, renderRow,
 }: {
-  t: number; index: number; total: number; items: PlanItem[]; base: string; extraOff: boolean;
+  t: number; index: number; total: number; items: PlanItem[]; base: string; daysOff: readonly DayOff[];
   onBase: (v: string) => void; onAdd: (type: PlanType) => void; renderRow: (it: PlanItem) => React.ReactNode;
 }) {
   const ds = toISO(t);
@@ -39,39 +42,36 @@ export function DayCard({
   if (index === 0) tags.push('Afrejse');
   const last = index === total - 1 && total > 1;
   if (last) tags.push('Hjemrejse');
-  const hn = holidayName(t, extraOff);
+  const hn = holidayName(t, daysOff);
   if (hn) tags.push(hn);
-  const wd = WEEKDAYS[d.getUTCDay()];
+  const wd = WEEKDAYS[d.getUTCDay()].slice(0, 3);
   return (
-    <Card id={`pday-${ds}`} className="scroll-mt-4 gap-3 py-4">
-      <CardHeader className="grid-cols-[auto_1fr_auto] items-center gap-3">
-        <div className="flex size-12 flex-col items-center justify-center rounded-xl bg-muted font-display leading-none">
-          <small className="text-[10px] font-medium text-muted-foreground">Dag</small>
-          <b className="text-xl">{index + 1}</b>
-        </div>
-        <div className="min-w-0">
-          <h3 className="font-display text-base font-bold">
-            {wd.charAt(0).toUpperCase() + wd.slice(1)} {d.getUTCDate()}. {MONTHS[d.getUTCMonth()]}
-          </h3>
-          {tags.length > 0 && <span className="text-xs font-semibold text-holiday">{tags.join(', ')}</span>}
-        </div>
-        <Badge variant={LOAD_STYLE[load.key]}>{load.label}</Badge>
-      </CardHeader>
-      <CardContent className="flex flex-col gap-3">
+    <li id={`pday-${ds}`} className="grid scroll-mt-20 gap-x-6 gap-y-2 border-t border-rule py-4 first:border-t-0 first:pt-1 sm:grid-cols-[120px_minmax(0,1fr)]">
+      <div className="flex items-baseline gap-2 sm:flex-col sm:gap-0.5">
+        <h3 className="text-sm font-semibold">Dag {index + 1}</h3>
+        <p className="text-sm text-muted-foreground">{cap(wd)}. {d.getUTCDate()}. {MONTHS_SHORT[d.getUTCMonth()]}</p>
+        {tags.length > 0 && <p className="text-xs text-caution">{tags.join(' · ')}</p>}
+        <p className={cn('ml-auto text-xs sm:ml-0', load.key === 'busy' ? 'text-caution' : 'text-muted-foreground')}>{load.label}</p>
+      </div>
+      <div className="flex min-w-0 flex-col gap-2">
         {last ? (
-          <p className="text-sm text-muted-foreground">Hjem i dag</p>
+          <p className="flex h-9 items-center gap-2 text-sm text-muted-foreground"><BedDoubleIcon className="size-3.5" aria-hidden />Hjem i dag</p>
         ) : (
-          <Input aria-label={`Hvor sover I natten efter dag ${index + 1}?`} placeholder="Hvor sover I?" value={base} maxLength={60} onChange={(e) => onBase(e.target.value)} />
+          <label className="-mx-2 flex h-9 items-center gap-2 rounded-lg border border-transparent px-2 text-sm transition-colors focus-within:border-ring focus-within:bg-card hover:border-input">
+            <BedDoubleIcon className="size-3.5 shrink-0 text-muted-foreground" aria-hidden />
+            <span className="sr-only">Hvor sover I natten efter dag {index + 1}?</span>
+            <input
+              className="h-full min-w-0 flex-1 bg-transparent text-base outline-none placeholder:text-muted-foreground md:text-sm"
+              placeholder="Hvor sover I?"
+              value={base}
+              maxLength={60}
+              onChange={(e) => onBase(e.target.value)}
+            />
+          </label>
         )}
-        <DropList id={ds} items={items} empty="Træk en plan hertil">{renderRow}</DropList>
-      </CardContent>
-      <CardFooter className="flex-wrap gap-1.5">
-        {PLAN_TYPES.filter((x) => x.value !== 'overnatning').map((x) => (
-          <Button key={x.value} variant="outline" size="sm" onClick={() => onAdd(x.value)}>
-            <PlusIcon data-icon="inline-start" />{x.label}
-          </Button>
-        ))}
-      </CardFooter>
-    </Card>
+        <DropList id={ds} items={items} empty="Slip planen her">{renderRow}</DropList>
+        <AddPlan onAdd={onAdd} label="Tilføj plan" types={['oplevelse', 'mad', 'transport', 'andet']} />
+      </div>
+    </li>
   );
 }
