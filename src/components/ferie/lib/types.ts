@@ -147,6 +147,9 @@ export interface TripDay {
   tripId: string;
   date: string;
   base: string;
+  /** Set when the place was picked from the map suggestions. */
+  lat?: number;
+  lng?: number;
 }
 
 export interface CheckItem {

@@ -87,7 +87,8 @@ export function normalize(raw: unknown): FerieState {
     }));
   const tdays: TripDay[] = list<TripDay>(r.tdays)
     .filter((x) => typeof x.tripId === 'string' && typeof x.date === 'string')
-    .map((x) => ({ id: String(x.id), tripId: x.tripId as string, date: x.date as string, base: String(x.base ?? '') }));
+    .map((x) => ({ id: String(x.id), tripId: x.tripId as string, date: x.date as string, base: String(x.base ?? ''),
+      ...(Number.isFinite(x.lat) && Number.isFinite(x.lng) ? { lat: x.lat, lng: x.lng } : {}) }));
   const checks: CheckItem[] = list<CheckItem>(r.checks)
     .filter((x) => typeof x.tripId === 'string' && typeof x.text === 'string')
     .map((x, i) => ({ id: String(x.id ?? `c${i}`), tripId: x.tripId as string, text: x.text as string, done: !!x.done, order: Number(x.order) || 0 }));

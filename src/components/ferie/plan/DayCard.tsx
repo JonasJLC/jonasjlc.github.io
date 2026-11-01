@@ -7,6 +7,7 @@ import { dayLoad, sortPlan } from '../lib/plan';
 import type { DayOff, PlanItem, PlanType } from '../lib/types';
 import { cn } from '../lib/utils';
 import { AddPlan } from './AddPlan';
+import { PlaceInput, type Place } from './PlaceInput';
 
 /** A sortable drop target. Its empty slot only shows while something is being dragged. */
 export function DropList({ id, items, children, empty, always = false }: {
@@ -30,10 +31,10 @@ const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 
 /** One day of the trip: the date, where you sleep, and the day's plans in time order. */
 export function DayCard({
-  t, index, total, items, base, daysOff, onBase, onAdd, renderRow,
+  t, index, total, items, base, lat, lng, daysOff, onBase, onAdd, renderRow,
 }: {
-  t: number; index: number; total: number; items: PlanItem[]; base: string; daysOff: readonly DayOff[];
-  onBase: (v: string) => void; onAdd: (type: PlanType) => void; renderRow: (it: PlanItem) => React.ReactNode;
+  t: number; index: number; total: number; items: PlanItem[]; base: string; lat?: number; lng?: number; daysOff: readonly DayOff[];
+  onBase: (v: Place) => void; onAdd: (type: PlanType) => void; renderRow: (it: PlanItem) => React.ReactNode;
 }) {
   const ds = toISO(t);
   const d = new Date(t);
@@ -57,17 +58,10 @@ export function DayCard({
         {last ? (
           <p className="flex h-9 items-center gap-2 text-sm text-muted-foreground"><BedDoubleIcon className="size-3.5" aria-hidden />Hjem i dag</p>
         ) : (
-          <label className="-mx-2 flex h-9 items-center gap-2 rounded-lg border border-transparent px-2 text-sm transition-colors focus-within:border-ring focus-within:bg-card hover:border-input">
+          <div className="-mx-2 flex h-9 items-center gap-2 rounded-lg border border-transparent px-2 text-sm transition-colors focus-within:border-ring focus-within:bg-card hover:border-input">
             <BedDoubleIcon className="size-3.5 shrink-0 text-muted-foreground" aria-hidden />
-            <span className="sr-only">Hvor sover I natten efter dag {index + 1}?</span>
-            <input
-              className="h-full min-w-0 flex-1 bg-transparent text-base outline-none placeholder:text-muted-foreground md:text-sm"
-              placeholder="Hvor sover I?"
-              value={base}
-              maxLength={60}
-              onChange={(e) => onBase(e.target.value)}
-            />
-          </label>
+            <PlaceInput value={base} lat={lat} lng={lng} label={`Hvor sover I natten efter dag ${index + 1}?`} onChange={onBase} />
+          </div>
         )}
         <DropList id={ds} items={items} empty="Slip planen her">{renderRow}</DropList>
         <AddPlan onAdd={onAdd} label="Tilføj plan" types={['oplevelse', 'mad', 'transport', 'andet']} />

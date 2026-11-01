@@ -137,6 +137,7 @@ export function Plan({ state, dispatch }: { state: FerieState; dispatch: React.D
             <ol className="rounded-panel bg-panel px-5 py-4">
               {dates.map((t, i) => {
                 const ds = toISO(t);
+                const td = state.tdays.find((d) => d.id === dayKey(trip.id, t));
                 return (
                   <DayCard
                     key={ds}
@@ -144,9 +145,11 @@ export function Plan({ state, dispatch }: { state: FerieState; dispatch: React.D
                     index={i}
                     total={dates.length}
                     items={byDay(ds)}
-                    base={state.tdays.find((d) => d.id === dayKey(trip.id, t))?.base ?? ''}
+                    base={td?.base ?? ''}
+                    lat={td?.lat}
+                    lng={td?.lng}
                     daysOff={daysOff}
-                    onBase={(base) => dispatch({ type: 'saveTday', tday: { id: dayKey(trip.id, t), tripId: trip.id, date: ds, base } })}
+                    onBase={(p) => dispatch({ type: 'saveTday', tday: { id: dayKey(trip.id, t), tripId: trip.id, date: ds, ...p } })}
                     onAdd={(type) => openNew(ds, type)}
                     renderRow={(it) => <Fragment key={it.id}>{row(it)}</Fragment>}
                   />
