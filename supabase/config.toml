@@ -4,14 +4,16 @@
 project_id = "jonasjlc-ferie"
 
 [auth]
+# Both household members have already signed in; closing signup stops anyone else from
+# creating an account (Google included). To add a person later, re-enable this briefly.
+enable_signup = false
 site_url = "https://jonasjlc.github.io/ferie/"
 additional_redirect_urls = [
   "https://jonasjlc.github.io/ferie/",
   "http://localhost:4321/ferie/",
 ]
 
-# The app signs in with Google only; closing email signup stops anyone creating
-# email/password or magic-link accounts through the public API.
+# The app signs in with Google only; this also turns off email/password and magic-link accounts.
 [auth.email]
 enable_signup = false
 
