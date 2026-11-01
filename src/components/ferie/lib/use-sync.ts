@@ -11,6 +11,8 @@ import type { FerieState } from './types';
 export type SyncStatus =
   | 'off' | 'signed-out' | 'connecting' | 'synced' | 'saving' | 'offline' | 'no-access';
 
+/** `connecting` also covers the moment before the stored session has been read. */
+
 const BACKUP_KEY = 'ferie-v1-backup';
 
 const hasContent = (s: FerieState) =>
@@ -26,7 +28,8 @@ const isEmptyDoc = (d: unknown) => !d || typeof d !== 'object' || Object.keys(d 
  */
 export function useSync(state: FerieState, dispatch: React.Dispatch<Action>) {
   const [session, setSession] = useState<Session | null>(null);
-  const [status, setStatus] = useState<SyncStatus>(remoteEnabled ? 'signed-out' : 'off');
+  const [status, setStatus] = useState<SyncStatus>(remoteEnabled ? 'connecting' : 'off');
+  const [sessionLoaded, setSessionLoaded] = useState(!remoteEnabled);
   const [ready, setReady] = useState(false);
   const [retry, setRetry] = useState(0);
 
@@ -45,11 +48,15 @@ export function useSync(state: FerieState, dispatch: React.Dispatch<Action>) {
     getClient()
       .then((c) => {
         if (cancelled) return;
-        void c.auth.getSession().then(({ data }) => !cancelled && setSession(data.session));
+        void c.auth.getSession().then(({ data }) => {
+          if (cancelled) return;
+          setSession(data.session);
+          setSessionLoaded(true);
+        });
         const { data } = c.auth.onAuthStateChange((_e, s) => setSession(s));
         unsub = () => data.subscription.unsubscribe();
       })
-      .catch(() => setStatus('offline'));
+      .catch(() => { setStatus('offline'); setSessionLoaded(true); });
     return () => {
       cancelled = true;
       unsub?.();
@@ -74,7 +81,7 @@ export function useSync(state: FerieState, dispatch: React.Dispatch<Action>) {
 
   // Initial sync + live updates, per signed-in user
   useEffect(() => {
-    if (!remoteEnabled) return;
+    if (!remoteEnabled || !sessionLoaded) return;
     setReady(false);
     household.current = null;
     if (!userId) {
@@ -124,7 +131,7 @@ export function useSync(state: FerieState, dispatch: React.Dispatch<Action>) {
       cancelled = true;
       off?.();
     };
-  }, [userId, apply, retry]);
+  }, [userId, sessionLoaded, apply, retry]);
 
   // Save edits (debounced)
   useEffect(() => {

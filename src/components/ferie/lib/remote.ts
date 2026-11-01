@@ -77,11 +77,12 @@ export async function subscribeRemote(householdId: string, onRow: (row: RemoteRo
   };
 }
 
-export async function sendMagicLink(email: string): Promise<string | null> {
+/** Starts Google sign-in; the browser leaves the page and returns to /ferie/ signed in. */
+export async function signInWithGoogle(): Promise<string | null> {
   const c = await getClient();
-  const { error } = await c.auth.signInWithOtp({
-    email: email.trim(),
-    options: { emailRedirectTo: `${location.origin}/ferie/`, shouldCreateUser: true },
+  const { error } = await c.auth.signInWithOAuth({
+    provider: 'google',
+    options: { redirectTo: `${location.origin}/ferie/`, queryParams: { prompt: 'select_account' } },
   });
   return error ? error.message : null;
 }
