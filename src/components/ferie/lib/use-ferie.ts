@@ -4,6 +4,7 @@ import { syncBudget } from './plan';
 import type { CheckItem, FerieState, Kasse, MoneyItem, Person, PersonKey, PlanItem, Settings, Trip, TripDay } from './types';
 
 export type Action =
+  | { type: 'replace'; state: FerieState }
   | { type: 'year'; year: number }
   | { type: 'settings'; patch: Partial<Pick<Settings, 'extraOff'>> }
   | { type: 'person'; k: PersonKey; patch: Partial<Person> }
@@ -34,6 +35,8 @@ function withPlan(state: FerieState, item: PlanItem): FerieState {
 
 function reducer(state: FerieState, a: Action): FerieState {
   switch (a.type) {
+    case 'replace':
+      return a.state;
     case 'year':
       return { ...state, settings: { ...state.settings, year: a.year } };
     case 'settings':

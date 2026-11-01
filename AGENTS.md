@@ -15,7 +15,7 @@ The Ferieplan app lives at `/ferie/`: page in `src/pages/ferie/index.astro`, Rea
 - Preserve the Astro static-hosting layout and use generated Astro asset URLs instead of hardcoded bundle names.
 - Keep HTML semantic, responsive, and accessible. Every page needs a viewport tag and descriptive metadata.
 - Do not link the public homepage to `/gave/` unless explicitly asked.
-- Do not add frameworks, client islands, runtime dependencies, secrets, private URLs, generated debug output, or unrelated assets. The one exception is `/ferie/`, which is a React island (`src/pages/ferie/index.astro`, `src/components/ferie/`) using Tailwind and shadcn/ui; keep React and Tailwind confined to that route and to `src/styles/ferie.css`.
+- Do not add frameworks, client islands, runtime dependencies, secrets, private URLs, generated debug output, or unrelated assets. The one exception is `/ferie/`, which is a React island (`src/pages/ferie/index.astro`, `src/components/ferie/`) using Tailwind and shadcn/ui; keep React and Tailwind confined to that route and to `src/styles/ferie.css`. `/ferie/` also uses `@supabase/supabase-js` for shared storage; only the public URL and publishable key may be committed (`src/components/ferie/lib/supabase-config.ts`), never a service_role or secret key. Schema changes go in `supabase/migrations/`.
 - Preserve unrelated working-tree changes. Stage only files belonging to the task.
 - Read `.github/workflows/pages.yml` when changing CI; it installs with the frozen lockfile, runs the Astro build, and verifies `dist/gave/index.html` and `dist/ferie/index.html`.
 

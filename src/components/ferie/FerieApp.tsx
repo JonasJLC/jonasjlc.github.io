@@ -2,10 +2,12 @@ import { Moon, Plane, Settings, Sun, Wallet, Map } from 'lucide-react';
 import { Tabs } from 'radix-ui';
 import { useEffect, useState } from 'react';
 import { Toaster } from 'sonner';
+import { AccountButton } from './AccountButton';
 import { Feriedage } from './feriedage/Feriedage';
 import { Kassen } from './kassen/Kassen';
 import { Plan } from './plan/Plan';
 import { useFerie } from './lib/use-ferie';
+import { useSync } from './lib/use-sync';
 import { Button } from './ui/button';
 import { cn } from './lib/utils';
 
@@ -39,6 +41,7 @@ const TABS = [
 
 export default function FerieApp() {
   const [state, dispatch] = useFerie();
+  const sync = useSync(state, dispatch);
   const [theme, toggleTheme] = useTheme();
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [tab, setTab] = useState('feriedage');
@@ -66,6 +69,7 @@ export default function FerieApp() {
                 </button>
               ))}
             </div>
+            <AccountButton {...sync} />
             <Button variant="outline" size="icon" aria-label="Indstillinger" onClick={() => setSettingsOpen(true)}><Settings className="size-5" /></Button>
             <Button variant="outline" size="icon" aria-label={theme === 'dark' ? 'Skift til lyst tema' : 'Skift til mørkt tema'} onClick={toggleTheme}>
               {theme === 'dark' ? <Sun className="size-5" /> : <Moon className="size-5" />}
