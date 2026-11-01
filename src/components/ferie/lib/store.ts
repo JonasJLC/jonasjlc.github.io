@@ -18,6 +18,8 @@ export function normalize(raw: unknown): FerieState {
   const s = r.settings ?? {};
   const people = (s.people ?? {}) as Partial<FerieState['settings']['people']>;
   const base = defaultSettings();
+  // Older saves had one shared "ekstra fridage" switch instead of per-person days off.
+  const legacyOff = !!(s as { extraOff?: unknown }).extraOff;
   const trips: Trip[] = Array.isArray(r.trips)
     ? (r.trips as Partial<Trip>[])
         .filter((t) => t && typeof t.from === 'string' && typeof t.to === 'string')
@@ -97,12 +99,11 @@ export function normalize(raw: unknown): FerieState {
     checks,
     settings: {
       year: +(s.year as number) || base.year,
-      extraOff: !!s.extraOff,
       hoursPerDay: +(s.hoursPerDay as number) > 0 ? +(s.hoursPerDay as number) : base.hoursPerDay,
       unit: s.unit === 'hours' ? 'hours' : 'days',
       people: {
-        a: person(people.a, base.people.a, !!s.extraOff),
-        b: person(people.b, base.people.b, !!s.extraOff),
+        a: person(people.a, base.people.a, legacyOff),
+        b: person(people.b, base.people.b, legacyOff),
       },
     },
     trips,

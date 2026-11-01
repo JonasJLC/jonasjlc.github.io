@@ -17,7 +17,6 @@ export const defaultSettings = (): Settings => ({
   year: 2027,
   hoursPerDay: HOURS_PER_DAY,
   unit: 'days',
-  extraOff: false,
   people: { a: defaultPerson('Camilla'), b: defaultPerson('Jonas') },
 });
 

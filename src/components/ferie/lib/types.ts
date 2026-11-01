@@ -37,8 +37,6 @@ export interface Settings {
   hoursPerDay: number;
   /** Which unit number fields are typed in. */
   unit: Unit;
-  /** @deprecated Legacy shared switch, replaced by `Person.daysOff`. Still read by the plan view. */
-  extraOff: boolean;
   people: Record<PersonKey, Person>;
 }
 
