@@ -61,7 +61,7 @@ function TripForm({ state, draft, onClose, onSave, onDelete }: Props & { draft: 
   return (
     <form onSubmit={submit} className="flex flex-col gap-4">
       <Field label="Navn">
-        <Input value={f.name} maxLength={60} placeholder="Fx Rovaniemi" autoFocus={!draft.id}
+        <Input value={f.name} maxLength={60} placeholder="Fx Rovaniemi" autoFocus={!draft.id && !matchMedia('(pointer: coarse)').matches}
           onChange={(e) => setF({ ...f, name: e.target.value })} />
       </Field>
       <div className="grid grid-cols-2 gap-3">

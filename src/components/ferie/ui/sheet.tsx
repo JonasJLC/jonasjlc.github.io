@@ -39,8 +39,8 @@ export function ResponsiveSheet({ open, onOpenChange, title, description, childr
     )
   }
   return (
-    <Drawer open={open} onOpenChange={onOpenChange}>
-      <DrawerContent className="max-h-[92dvh] bg-card">
+    <Drawer open={open} onOpenChange={onOpenChange} repositionInputs={false}>
+      <DrawerContent className="max-h-[90svh] bg-card">
         <DrawerHeader className="text-left!">
           <DrawerTitle className="font-display text-2xl font-bold tracking-tight">{title}</DrawerTitle>
           <DrawerDescription className={description ? undefined : "sr-only"}>{description ?? title}</DrawerDescription>
