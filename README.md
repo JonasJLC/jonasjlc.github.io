@@ -20,7 +20,7 @@ Images belong in `public/gave/assets/` and should be optimized before being adde
 
 ## Local development
 
-**Requirements:** Node 20+, pnpm 10.33.2 (pinned via `packageManager` in `package.json`)
+**Requirements:** Node 22.23.4+, pnpm 10.33.2 (pinned via `packageManager` in `package.json`)
 
 ```bash
 pnpm install
