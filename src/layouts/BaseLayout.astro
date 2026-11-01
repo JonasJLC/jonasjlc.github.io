@@ -8,6 +8,7 @@ interface Props {
 }
 
 const { title, description } = Astro.props;
+const ogImage = new URL('/og.png', Astro.site ?? 'https://jonasjlc.github.io').toString();
 const canonical = new URL(Astro.url.pathname, Astro.site ?? 'https://jonasjlc.github.io').toString();
 ---
 
@@ -27,7 +28,12 @@ const canonical = new URL(Astro.url.pathname, Astro.site ?? 'https://jonasjlc.gi
     <meta property="og:url" content={canonical} />
     <meta property="og:site_name" content="Jonas JLC" />
     <meta property="og:locale" content="en_GB" />
-    <meta name="twitter:card" content="summary" />
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Jonas JLC, Senior Automation & AI Consultant, Aarhus, Denmark" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:image" content={ogImage} />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="sitemap" href="/sitemap-index.xml" />
     <link rel="preload" href={romanFont} as="font" type="font/woff2" crossorigin />
