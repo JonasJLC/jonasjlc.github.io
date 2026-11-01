@@ -4,7 +4,7 @@ import { holidayName } from '../lib/holidays';
 import type { FerieState, PersonKey, Trip } from '../lib/types';
 import { involves } from '../lib/balance';
 import { cn } from '../lib/utils';
-import { personColor } from './helpers';
+import { personColor, personName } from './helpers';
 
 export interface Selection {
   from: number | null;
@@ -65,8 +65,8 @@ export function YearCalendar({ state, selection, onPick }: Props) {
         </p>
       </div>
       <ul className="mb-4 flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
-        <li className="inline-flex items-center gap-1.5"><i className="size-3 rounded" style={{ background: personColor('a') }} />{state.settings.people.a.name || 'Person 1'}</li>
-        <li className="inline-flex items-center gap-1.5"><i className="size-3 rounded" style={{ background: personColor('b'), backgroundImage: 'repeating-linear-gradient(45deg, rgba(255,255,255,.35) 0 2px, transparent 2px 5px)' }} />{state.settings.people.b.name || 'Person 2'}</li>
+        <li className="inline-flex items-center gap-1.5"><i className="size-3 rounded" style={{ background: personColor('a') }} />{personName(state, 'a')}</li>
+        <li className="inline-flex items-center gap-1.5"><i className="size-3 rounded" style={{ background: personColor('b'), backgroundImage: 'repeating-linear-gradient(45deg, rgba(255,255,255,.35) 0 2px, transparent 2px 5px)' }} />{personName(state, 'b')}</li>
         <li className="inline-flex items-center gap-1.5"><i className="size-3 rounded" style={{ backgroundImage: `linear-gradient(135deg, ${personColor('a')} 50%, ${personColor('b')} 50%)` }} />Begge</li>
         <li className="inline-flex items-center gap-1.5"><i className="size-3 rounded border-2 border-holiday" />Helligdag</li>
         <li>Lys farve = fri dag, koster ikke ferie</li>

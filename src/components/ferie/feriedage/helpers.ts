@@ -3,7 +3,7 @@ import { DAY } from '../lib/dates';
 import type { FerieState, PersonKey, Who } from '../lib/types';
 
 export const personName = (s: FerieState, k: PersonKey): string =>
-  s.settings.people[k].name.trim() || (k === 'a' ? 'Person 1' : 'Person 2');
+  s.settings.people[k].name.trim() || (k === 'a' ? 'Camilla' : 'Jonas');
 
 export const personColor = (k: PersonKey): string => `var(--person-${k})`;
 

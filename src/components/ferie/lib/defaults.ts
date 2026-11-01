@@ -13,7 +13,7 @@ export const defaultPerson = (name: string): Person => ({
 export const defaultSettings = (): Settings => ({
   year: 2027,
   extraOff: false,
-  people: { a: defaultPerson('Person 1'), b: defaultPerson('Person 2') },
+  people: { a: defaultPerson('Camilla'), b: defaultPerson('Jonas') },
 });
 
 export const defaultKasse = (): Kasse => ({
