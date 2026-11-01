@@ -1,0 +1,40 @@
+---
+import { site } from '../content/site';
+---
+
+<section class="section" id="focus" aria-labelledby="focus-title">
+  <h2 id="focus-title"><span class="section__num">2</span> Focus</h2>
+
+  <ul class="focus">
+    {
+      site.focus.map((item) => (
+        <li>
+          <strong>{item.title}.</strong> {item.summary}
+        </li>
+      ))
+    }
+  </ul>
+
+  <figure class="layers">
+    <svg viewBox="0 0 480 232" role="img" aria-labelledby="layers-title layers-desc">
+      <title id="layers-title">The layers I work across</title>
+      <desc id="layers-desc">
+        Three stacked layers, Agents on top of Platform on top of IaC and CI/CD, with Governance as a bar spanning all
+        three.
+      </desc>
+      <g class="layers__box">
+        <rect x="1" y="1" width="378" height="66" />
+        <rect x="1" y="83" width="378" height="66" />
+        <rect x="1" y="165" width="378" height="66" />
+        <rect class="layers__gov" x="399" y="1" width="80" height="230" />
+      </g>
+      <g class="layers__label">
+        <text x="190" y="40" text-anchor="middle">Agents</text>
+        <text x="190" y="122" text-anchor="middle">Platform</text>
+        <text x="190" y="204" text-anchor="middle">IaC &amp; CI/CD</text>
+        <text transform="translate(445 116) rotate(-90)" text-anchor="middle">Governance</text>
+      </g>
+    </svg>
+    <figcaption>Fig. 1. The layers I work across, with governance cutting through all of them.</figcaption>
+  </figure>
+</section>

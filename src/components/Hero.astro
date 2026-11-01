@@ -2,32 +2,21 @@
 import { site } from '../content/site';
 ---
 
-<header class="hero" id="top">
+<header class="masthead" id="top">
   <nav class="nav" aria-label="Primary navigation">
     <a class="nav__mark" href="#top">{site.name}</a>
-    <a href="#projects">Projects</a>
-    <a href="#method">Method</a>
-    <a href="#contact">Contact</a>
+    <ul>
+      <li><a href="#focus">Focus</a></li>
+      <li><a href="#work">Work</a></li>
+      <li><a href="#contact">Contact</a></li>
+    </ul>
   </nav>
 
-  <div class="hero__grid">
-    <div class="hero__copy">
-      <div class="hero__index" aria-label="Site index">
-        <span>01</span>
-        <span>{site.location}</span>
-        <span>{site.role}</span>
-      </div>
-      <h1>{site.name}</h1>
-      <p class="intro">{site.intro}</p>
-    </div>
-
-    <aside class="hero__aside" aria-label="Current status">
-      <p class="eyebrow">Current</p>
-      <p>{site.availability}</p>
-      <div class="actions" aria-label="Primary links">
-        <a class="button button--primary" href="#projects">Work</a>
-        <a class="button" href={site.links[0].href} target="_blank" rel="noreferrer">GitHub</a>
-      </div>
-    </aside>
-  </div>
+  <h1>{site.name}</h1>
+  <p class="byline">
+    <span>{site.role}</span>
+    <span>{site.location}</span>
+  </p>
+  <p class="tagline">{site.tagline}</p>
+  <p class="current">{site.current}</p>
 </header>

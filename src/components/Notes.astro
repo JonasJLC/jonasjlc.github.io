@@ -2,16 +2,9 @@
 import { site } from '../content/site';
 ---
 
-<section class="section section--split" id="method" aria-labelledby="method-title">
-  <div class="section__header">
-    <p class="eyebrow">03 / Method</p>
-    <h2 id="method-title">Keep the page quiet. Keep the update path obvious.</h2>
-  </div>
-
-  <div class="notes">
-    <p>{site.note}</p>
-    <ul>
-      {site.highlights.map((highlight) => <li>{highlight}</li>)}
-    </ul>
-  </div>
+<section class="section" id="method" aria-labelledby="method-title">
+  <h2 id="method-title"><span class="section__num">4</span> Method</h2>
+  <ul class="principles">
+    {site.principles.map((principle) => <li>{principle}</li>)}
+  </ul>
 </section>

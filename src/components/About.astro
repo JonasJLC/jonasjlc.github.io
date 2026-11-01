@@ -1,0 +1,8 @@
+---
+import { site } from '../content/site';
+---
+
+<section class="section" id="about" aria-labelledby="about-title">
+  <h2 id="about-title"><span class="section__num">1</span> About</h2>
+  {site.about.map((paragraph) => <p>{paragraph}</p>)}
+</section>

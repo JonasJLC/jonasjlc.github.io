@@ -2,17 +2,17 @@
 import { site } from '../content/site';
 ---
 
-<section class="contact" id="contact" aria-labelledby="contact-title">
-  <p class="eyebrow">04 / Contact</p>
-  <h2 id="contact-title">For work, questions, or a pointer to something I should see.</h2>
-
-  <div class="contact__links">
+<section class="section" id="contact" aria-labelledby="contact-title">
+  <h2 id="contact-title"><span class="section__num">5</span> Contact</h2>
+  <ul class="contact__links">
     {
       site.links.map((link) => (
-        <a href={link.href} target={link.href.startsWith('http') ? '_blank' : undefined} rel="noreferrer">
-          {link.label}
-        </a>
+        <li>
+          <a href={link.href} target={link.href.startsWith('http') ? '_blank' : undefined} rel="noreferrer">
+            {link.label}
+          </a>
+        </li>
       ))
     }
-  </div>
+  </ul>
 </section>

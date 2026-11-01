@@ -1,23 +1,27 @@
 ---
+import About from '../components/About.astro';
 import Contact from '../components/Contact.astro';
+import Focus from '../components/Focus.astro';
 import Hero from '../components/Hero.astro';
 import Notes from '../components/Notes.astro';
 import ProjectList from '../components/ProjectList.astro';
 import { site } from '../content/site';
 import BaseLayout from '../layouts/BaseLayout.astro';
 
-const description = `${site.name}: a compact project index for software, automation, and AI experiments.`;
+const description = `${site.name} is a ${site.role} at ${site.employer}, based in ${site.location}. Agent systems, AI platforms, infrastructure as code and governance.`;
 ---
 
-<BaseLayout title={`${site.name} | Portfolio`} description={description}>
+<BaseLayout title={`${site.name} | ${site.role}`} description={description}>
   <Hero />
-  <main>
+  <main id="main">
+    <About />
+    <Focus />
     <ProjectList projects={site.projects} />
     <Notes />
     <Contact />
   </main>
   <footer>
     <a href="#top">{site.name}</a>
-    <span>{new Date().getFullYear()}</span>
+    <span>&copy; {new Date().getFullYear()}</span>
   </footer>
 </BaseLayout>
