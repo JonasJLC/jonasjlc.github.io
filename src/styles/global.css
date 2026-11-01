@@ -351,7 +351,7 @@ main {
 
 /* Figure */
 .layers {
-  margin-top: 1.25rem;
+  margin: 1.25rem 0 0;
 }
 
 .layers svg {
@@ -362,17 +362,39 @@ main {
   margin-inline: auto;
 }
 
-.layers__box rect {
+.layers__box rect,
+.layers__box polygon {
   fill: #fff;
   stroke: #000;
   stroke-width: 1;
   vector-effect: non-scaling-stroke;
 }
 
+.layers__box .layers__gov {
+  fill: url(#hatch);
+}
+
+.layers__hatch {
+  stroke: #000;
+  stroke-width: 0.8;
+}
+
 .layers__label text {
   fill: #000;
   font-family: var(--font-body);
-  font-size: 24px;
+  font-size: 22px;
+}
+
+.layers__label .layers__halo {
+  stroke: #fff;
+  stroke-width: 6px;
+  stroke-linejoin: round;
+  paint-order: stroke;
+}
+
+.layers__label .layers__sub {
+  font-size: 16px;
+  font-style: italic;
 }
 
 .layers figcaption {

@@ -16,25 +16,39 @@ import { site } from '../content/site';
   </ul>
 
   <figure class="layers">
-    <svg viewBox="0 0 480 232" role="img" aria-labelledby="layers-title layers-desc">
-      <title id="layers-title">The layers I work across</title>
+    <svg viewBox="0 0 480 320" role="img" aria-labelledby="layers-title layers-desc">
+      <title id="layers-title">The house I build</title>
       <desc id="layers-desc">
-        Three stacked layers, Agents on top of Platform on top of IaC and CI/CD, with Governance as a bar spanning all
-        three.
+        A house in section. Business value is the roof. Three floors sit below it, Agents on top of Platform on top of
+        IaC and CI/CD. Governance is the hatched foundation under all three floors.
       </desc>
+      <defs>
+        <pattern id="hatch" width="7" height="7" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+          <line x1="0" y1="0" x2="0" y2="7" class="layers__hatch" />
+        </pattern>
+      </defs>
       <g class="layers__box">
-        <rect x="1" y="1" width="378" height="66" />
-        <rect x="1" y="83" width="378" height="66" />
-        <rect x="1" y="165" width="378" height="66" />
-        <rect class="layers__gov" x="399" y="1" width="80" height="230" />
+        <polygon points="1,76 240,2 479,76" />
+        <rect x="1" y="76" width="478" height="62" />
+        <rect x="1" y="138" width="478" height="62" />
+        <rect x="1" y="200" width="478" height="62" />
+        <rect class="layers__gov" x="1" y="262" width="478" height="57" />
       </g>
-      <g class="layers__label">
-        <text x="190" y="40" text-anchor="middle">Agents</text>
-        <text x="190" y="122" text-anchor="middle">Platform</text>
-        <text x="190" y="204" text-anchor="middle">IaC &amp; CI/CD</text>
-        <text transform="translate(445 116) rotate(-90)" text-anchor="middle">Governance</text>
+      <g class="layers__label" text-anchor="middle">
+        <text x="240" y="66">Business value</text>
+        <text x="240" y="104">Agents</text>
+        <text class="layers__sub" x="240" y="125">single and multi-agent designs</text>
+        <text x="240" y="166">Platform</text>
+        <text class="layers__sub" x="240" y="187">Microsoft Foundry</text>
+        <text x="240" y="228">IaC &amp; CI/CD</text>
+        <text class="layers__sub" x="240" y="249">Bicep, Azure DevOps, GitHub</text>
+        <text class="layers__halo" x="240" y="287">Governance</text>
+        <text class="layers__sub layers__halo" x="240" y="306">identity, policy and guardrails as code</text>
       </g>
     </svg>
-    <figcaption><b>Figure 1:</b> The layers I work across, with governance cutting through all of them.</figcaption>
+    <figcaption>
+      <b>Figure 1:</b> The house I build. Governance is the foundation under every layer, so nothing above it is built
+      without it.
+    </figcaption>
   </figure>
 </section>
