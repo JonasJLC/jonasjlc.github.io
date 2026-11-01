@@ -1,0 +1,31 @@
+---
+import FerieApp from '../../components/ferie/FerieApp';
+import '../../styles/ferie.css';
+
+const title = 'Ferieplan';
+const description = 'Planlæg feriedage, rejser og rejsekasse for to.';
+---
+
+<!doctype html>
+<html lang="da">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="description" content={description} />
+    <meta name="theme-color" content="#eaf0ef" />
+    <meta name="robots" content="noindex, nofollow" />
+    <link rel="canonical" href="https://jonasjlc.github.io/ferie/" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://jonasjlc.github.io/ferie/" />
+    <title>{title}</title>
+    <link rel="icon" href="/assets/avatar.svg" type="image/svg+xml" />
+  </head>
+  <body>
+    <FerieApp client:only="react" />
+    <noscript>
+      <p style="padding:1.5rem;font-family:system-ui">Ferieplanen kræver JavaScript.</p>
+    </noscript>
+  </body>
+</html>

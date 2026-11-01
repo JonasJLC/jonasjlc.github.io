@@ -18,6 +18,8 @@ The gift reveal is available at [`/gave/`](https://jonasjlc.github.io/gave/). It
 
 Images belong in `public/gave/assets/` and should be optimized before being added. Set local paths in `gift.images`; the invitation remains readable if images fail to load. Progress is saved under `gave-reveal-v2`, with an in-memory fallback when storage is unavailable. “Start forfra” returns to the nickname gate.
 
+The holiday planner is available at `/ferie/` (unlisted, noindex). It is a React + Tailwind + shadcn/ui island under `src/components/ferie/`; data is stored in the browser (`ferie-v1`) for now.
+
 ## Local development
 
 **Requirements:** Node 22.23.4+, pnpm 10.33.2 (pinned via `packageManager` in `package.json`)

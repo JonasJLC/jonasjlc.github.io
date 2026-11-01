@@ -1,0 +1,83 @@
+@import '@fontsource-variable/figtree';
+@import '@fontsource-variable/bricolage-grotesque';
+@import 'tailwindcss';
+
+@custom-variant dark (&:is([data-theme='dark'] *));
+
+:root {
+  --background: #eaf0ef;
+  --foreground: #15232b;
+  --card: #ffffff;
+  --muted: #f5f8f7;
+  --muted-foreground: #5a6a72;
+  --border: #d3dddc;
+  --primary: #15232b;
+  --primary-foreground: #eaf0ef;
+  --person-a: #2867b0;
+  --person-b: #b8457f;
+  --warn: #c23d2a;
+  --ok: #2c7d53;
+  --holiday: #c98a12;
+  --ring: #2867b0;
+  color-scheme: light;
+}
+
+:root[data-theme='dark'] {
+  --background: #0e171b;
+  --foreground: #e4edef;
+  --card: #152127;
+  --muted: #1a2930;
+  --muted-foreground: #94a6ad;
+  --border: #283a41;
+  --primary: #e4edef;
+  --primary-foreground: #0e171b;
+  --person-a: #6ea6ea;
+  --person-b: #e57db0;
+  --warn: #f07a63;
+  --ok: #5dc08b;
+  --holiday: #e9b547;
+  --ring: #6ea6ea;
+  color-scheme: dark;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-border: var(--border);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-person-a: var(--person-a);
+  --color-person-b: var(--person-b);
+  --color-warn: var(--warn);
+  --color-ok: var(--ok);
+  --color-holiday: var(--holiday);
+  --color-ring: var(--ring);
+  --font-sans: 'Figtree Variable', system-ui, sans-serif;
+  --font-display: 'Bricolage Grotesque Variable', 'Figtree Variable', system-ui, sans-serif;
+  --radius-xl: 1.25rem;
+}
+
+@layer base {
+  * {
+    border-color: var(--border);
+  }
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+  body {
+    margin: 0;
+    background: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom)
+      env(safe-area-inset-left);
+  }
+  :focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
+}
