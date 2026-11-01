@@ -9,6 +9,7 @@ import { Button } from '../ui/button';
 import { Checkbox } from '../ui/checkbox';
 import { Field, FieldDescription, FieldGroup, FieldLabel } from '../ui/field';
 import { Input } from '../ui/input';
+import { PlaceInput } from './PlaceInput';
 import { ResponsiveSheet } from '../ui/sheet';
 import { Segmented } from '../ui/segmented';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
@@ -23,6 +24,8 @@ export interface PlanDraft {
   title: string;
   time: string;
   place: string;
+  lat?: number;
+  lng?: number;
   link: string;
   note: string;
   bookBy: string;
@@ -31,7 +34,7 @@ export interface PlanDraft {
 }
 
 export const draftFromPlan = (it: PlanItem): PlanDraft => ({
-  id: it.id, type: it.type, status: it.status, day: it.day, title: it.title, time: it.time, place: it.place,
+  id: it.id, type: it.type, status: it.status, day: it.day, title: it.title, time: it.time, place: it.place, lat: it.lat, lng: it.lng,
   link: it.link, note: it.note, bookBy: it.bookBy, price: it.price === null ? '' : String(it.price), inBudget: it.inBudget,
 });
 
@@ -78,6 +81,7 @@ function PlanForm({ state, trip, draft, onClose, onSave, onDelete }: Props & { d
     const order = !old || old.day !== day ? nextOrder(state.itin.filter((x) => x.id !== old?.id), trip.id, day) : old.order;
     onSave({
       id: old?.id ?? '', tripId: trip.id, type: f.type, title, day, time: f.time, place: f.place.trim(),
+      ...(f.lat !== undefined && f.lng !== undefined && f.place.trim() ? { lat: f.lat, lng: f.lng } : {}),
       link: f.link.trim(), note: f.note.trim(), status: f.status, bookBy: f.status === 'booked' ? '' : f.bookBy,
       price, inBudget: f.inBudget && price !== null, moneyId: old?.moneyId ?? null, order, created: old?.created ?? 0,
     });
@@ -112,7 +116,16 @@ function PlanForm({ state, trip, draft, onClose, onSave, onDelete }: Props & { d
         </LabeledField>
         <div className="grid grid-cols-2 gap-3">
           <LabeledField label="Tidspunkt"><Input type="time" value={f.time} onChange={(e) => setF({ ...f, time: e.target.value })} /></LabeledField>
-          <LabeledField label="Sted"><Input value={f.place} maxLength={80} onChange={(e) => setF({ ...f, place: e.target.value })} /></LabeledField>
+          <LabeledField label="Sted">
+            <PlaceInput
+              value={f.place}
+              lat={f.lat}
+              lng={f.lng}
+              maxLength={80}
+              className="h-11 rounded-[10px] border border-input bg-card px-3 transition-[color,box-shadow] focus-within:border-ring focus-within:ring-[3px] focus-within:ring-ring/50 md:h-[38px]"
+              onChange={(p) => setF({ ...f, place: p.base, lat: p.lat, lng: p.lng })}
+            />
+          </LabeledField>
         </div>
         <Field>
           <FieldLabel>Status</FieldLabel>

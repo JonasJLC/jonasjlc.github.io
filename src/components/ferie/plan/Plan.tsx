@@ -6,6 +6,7 @@ import { Fragment, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { commonDaysOff, sortedTrips } from '../lib/balance';
 import { fmtShort, toISO, toTime, todayTime } from '../lib/dates';
+import { distanceKm } from '../lib/geo';
 import { dayKey, nextStatus, sortPlan, tripDates } from '../lib/plan';
 import { newId, type Action } from '../lib/use-ferie';
 import type { CheckItem, FerieState, PlanItem, PlanType } from '../lib/types';
@@ -78,7 +79,19 @@ export function Plan({ state, dispatch }: { state: FerieState; dispatch: React.D
     dispatch({ type: 'savePlan', item: { ...it, status, bookBy: status === 'booked' ? '' : it.bookBy } });
   };
 
-  const row = (it: PlanItem) => <PlanRow key={it.id} item={it} onEdit={(x) => setDraft(draftFromPlan(x))} onCycle={cycle} />;
+  /** Straight-line km from where you sleep that day (tonight's stay, else last night's) to a placed plan. */
+  const distFromStay = (it: PlanItem): number | undefined => {
+    if (!it.day || it.type === 'transport' || it.lat === undefined || it.lng === undefined) return undefined;
+    const i = dates.findIndex((t) => toISO(t) === it.day);
+    if (i < 0) return undefined;
+    for (const t of [dates[i], dates[i - 1]]) {
+      const td = t === undefined ? undefined : state.tdays.find((d) => d.id === dayKey(trip.id, t));
+      if (td?.lat !== undefined && td.lng !== undefined) return distanceKm({ lat: it.lat, lng: it.lng }, { lat: td.lat, lng: td.lng });
+    }
+    return undefined;
+  };
+
+  const row = (it: PlanItem) => <PlanRow key={it.id} item={it} distKm={distFromStay(it)} onEdit={(x) => setDraft(draftFromPlan(x))} onCycle={cycle} />;
 
   const onDragEnd = ({ active, over }: DragEndEvent) => {
     if (!over) return;

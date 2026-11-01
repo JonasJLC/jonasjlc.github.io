@@ -75,6 +75,7 @@ export function normalize(raw: unknown): FerieState {
       day: x.day ? String(x.day) : null,
       time: String(x.time ?? ''),
       place: String(x.place ?? ''),
+      ...(Number.isFinite(x.lat) && Number.isFinite(x.lng) ? { lat: x.lat, lng: x.lng } : {}),
       link: String(x.link ?? ''),
       note: String(x.note ?? ''),
       status: STATUSES.includes(x.status as PlanStatus) ? (x.status as PlanStatus) : 'idea',

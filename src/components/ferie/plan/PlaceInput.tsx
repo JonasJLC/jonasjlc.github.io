@@ -25,8 +25,9 @@ function toSuggestion(f: PhotonFeature): Suggestion | null {
 }
 
 /** Free-text place field with OpenStreetMap (Photon) suggestions. Typing freely always works. */
-export function PlaceInput({ value, lat, lng, label, onChange }: {
-  value: string; lat?: number; lng?: number; label: string; onChange: (p: Place) => void;
+export function PlaceInput({ id, value, lat, lng, label, onChange, maxLength = MAX, className, inputClassName }: {
+  id?: string; value: string; lat?: number; lng?: number; label?: string; onChange: (p: Place) => void;
+  maxLength?: number; className?: string; inputClassName?: string;
 }) {
   const [items, setItems] = useState<Suggestion[]>([]);
   const [open, setOpen] = useState(false);
@@ -56,15 +57,16 @@ export function PlaceInput({ value, lat, lng, label, onChange }: {
     typed.current = false;
     setItems([]);
     setOpen(false);
-    onChange({ base: s.label.slice(0, MAX), lat: s.lat, lng: s.lng });
+    onChange({ base: s.label.slice(0, maxLength), lat: s.lat, lng: s.lng });
   };
   const show = open && items.length > 0;
   const pinned = lat !== undefined && lng !== undefined;
 
   return (
-    <div className="relative flex h-full min-w-0 flex-1 items-center gap-1">
+    <div className={cn('relative flex h-full min-w-0 flex-1 items-center gap-1', className)}>
       <input
-        className="h-full min-w-0 flex-1 bg-transparent text-base outline-none placeholder:text-muted-foreground md:text-sm"
+        id={id}
+        className={cn('h-full min-w-0 flex-1 bg-transparent text-base outline-none placeholder:text-muted-foreground md:text-sm', inputClassName)}
         placeholder="Hvor sover I?"
         aria-label={label}
         role="combobox"
@@ -74,7 +76,7 @@ export function PlaceInput({ value, lat, lng, label, onChange }: {
         aria-activedescendant={show && active >= 0 ? `${listId}-${active}` : undefined}
         autoComplete="off"
         value={value}
-        maxLength={MAX}
+        maxLength={maxLength}
         onChange={(e) => { typed.current = true; setOpen(true); onChange({ base: e.target.value }); }}
         onFocus={() => setOpen(true)}
         onBlur={() => setOpen(false)}

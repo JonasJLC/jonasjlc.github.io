@@ -1,6 +1,7 @@
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { ExternalLinkIcon, GripVerticalIcon } from 'lucide-react';
+import { fmtKm } from '../lib/geo';
 import { kr } from '../lib/kasse';
 import { PLAN_STATUS, safeUrl, typeInfo } from '../lib/plan';
 import type { PlanItem } from '../lib/types';
@@ -15,13 +16,13 @@ const STATUS_STYLE: Record<PlanItem['status'], string> = {
 
 /** One plan: time, kind, title and place, price, link, and its status (tap to move it on). */
 export function PlanRow({
-  item, onEdit, onCycle,
+  item, distKm, onEdit, onCycle,
 }: {
-  item: PlanItem; onEdit: (it: PlanItem) => void; onCycle: (it: PlanItem) => void;
+  item: PlanItem; distKm?: number; onEdit: (it: PlanItem) => void; onCycle: (it: PlanItem) => void;
 }) {
   const { attributes, listeners, setNodeRef, setActivatorNodeRef, transform, transition, isDragging } = useSortable({ id: item.id });
   const ti = typeInfo(item.type);
-  const sub = [item.place, item.note].filter(Boolean).join(' · ');
+  const sub = [item.place, distKm !== undefined && `${fmtKm(distKm)} fra overnatning`, item.note].filter(Boolean).join(' · ');
   const status = PLAN_STATUS.find((s) => s.value === item.status)!;
   return (
     <li

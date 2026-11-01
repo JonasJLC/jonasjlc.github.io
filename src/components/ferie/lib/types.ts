@@ -130,6 +130,9 @@ export interface PlanItem {
   place: string;
   link: string;
   note: string;
+  /** Set when the place was picked from the map suggestions. */
+  lat?: number;
+  lng?: number;
   status: PlanStatus;
   /** Book-by deadline, `YYYY-MM-DD` or empty. */
   bookBy: string;
