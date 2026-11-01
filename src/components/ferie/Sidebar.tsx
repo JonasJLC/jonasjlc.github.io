@@ -47,12 +47,12 @@ export function Couple({ state, className }: { state: FerieState; className?: st
 
 function YearSwitch({ year, onYear, className }: { year: number; onYear: (y: number) => void; className?: string }) {
   return (
-    <div role="group" aria-label="År" className={cn('inline-flex h-9 items-center rounded-full border border-input bg-background md:h-8', className)}>
-      <button type="button" aria-label={`Forrige år, ${year - 1}`} onClick={() => onYear(year - 1)} className="flex h-full w-9 items-center justify-center rounded-full text-muted-foreground hover:text-foreground md:w-8">
+    <div role="group" aria-label="År" className={cn('inline-flex h-10 items-center rounded-full border border-input bg-background md:h-8', className)}>
+      <button type="button" aria-label={`Forrige år, ${year - 1}`} onClick={() => onYear(year - 1)} className="flex h-full w-10 items-center justify-center rounded-full text-muted-foreground hover:text-foreground md:w-8">
         <ChevronLeft className="size-4" aria-hidden />
       </button>
       <span aria-live="polite" className="min-w-10 text-center text-sm font-medium tabular-nums">{year}</span>
-      <button type="button" aria-label={`Næste år, ${year + 1}`} onClick={() => onYear(year + 1)} className="flex h-full w-9 items-center justify-center rounded-full text-muted-foreground hover:text-foreground md:w-8">
+      <button type="button" aria-label={`Næste år, ${year + 1}`} onClick={() => onYear(year + 1)} className="flex h-full w-10 items-center justify-center rounded-full text-muted-foreground hover:text-foreground md:w-8">
         <ChevronRight className="size-4" aria-hidden />
       </button>
     </div>

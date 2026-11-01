@@ -32,7 +32,7 @@ export function AccountCard({
     <Card>
       <CardHeader>
         <CardTitle>Kontoen</CardTitle>
-        <CardAction><Button variant="ghost" size="sm" className="-mt-1 -mr-2" onClick={onEdit}>Ret</Button></CardAction>
+        <CardAction className="row-span-1 self-center"><Button variant="ghost" size="sm" className="-my-1 -mr-2" onClick={onEdit}>Ret</Button></CardAction>
       </CardHeader>
       <dl className="flex flex-col text-sm">
         {rows.map(([l, v]) => (

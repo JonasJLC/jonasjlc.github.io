@@ -47,7 +47,7 @@ export function Overview({ state, dispatch }: { state: FerieState; dispatch: Rea
             <Input
               id="kasse-look"
               type="date"
-              className="h-9 w-auto px-2 text-sm md:h-8"
+              className="h-9 w-auto px-2 text-base md:h-8 md:text-sm"
               value={state.kasse.look}
               onChange={(e) => dispatch({ type: 'kasse', patch: { look: e.target.value } })}
             />
