@@ -4,9 +4,10 @@ import { tripDays } from '../lib/balance';
 import { fmtN, toTime } from '../lib/dates';
 import type { FerieState, Trip, Who } from '../lib/types';
 import { Button } from '../ui/button';
-import { Field, Input } from '../ui/input';
+import { LabeledField as Field } from '../labeled-field';
+import { Input } from '../ui/input';
 import { ResponsiveSheet } from '../ui/sheet';
-import { Segmented } from '../ui/toggle-group';
+import { Segmented } from '../ui/segmented';
 import { impact, personColor, personName, whoOptions } from './helpers';
 
 export interface Draft {

@@ -5,8 +5,9 @@ import { fmtLong, fmtN, todayTime } from '../lib/dates';
 import { earliestAffordable } from '../lib/finder';
 import type { FerieState, Who } from '../lib/types';
 import { Button } from '../ui/button';
-import { Field, Input } from '../ui/input';
-import { Segmented } from '../ui/toggle-group';
+import { LabeledField as Field } from '../labeled-field';
+import { Input } from '../ui/input';
+import { Segmented } from '../ui/segmented';
 import { whoOptions } from './helpers';
 
 export function Finder({ state, onCreate }: { state: FerieState; onCreate: (from: number, days: number, who: Who) => void }) {

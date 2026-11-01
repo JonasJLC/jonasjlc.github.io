@@ -19,6 +19,8 @@
   --ok: #2c7d53;
   --holiday: #c98a12;
   --ring: #2867b0;
+  --accent: #e3ebea;
+  --input: #b9c7c6;
   color-scheme: light;
 }
 
@@ -37,6 +39,8 @@
   --ok: #5dc08b;
   --holiday: #e9b547;
   --ring: #6ea6ea;
+  --accent: #21343c;
+  --input: #3a5059;
   color-scheme: dark;
 }
 
@@ -55,6 +59,16 @@
   --color-ok: var(--ok);
   --color-holiday: var(--holiday);
   --color-ring: var(--ring);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--foreground);
+  --color-input: var(--input);
+  --color-secondary: var(--muted);
+  --color-secondary-foreground: var(--foreground);
+  --color-popover: var(--card);
+  --color-popover-foreground: var(--foreground);
+  --color-card-foreground: var(--foreground);
+  --color-destructive: var(--warn);
+  --color-destructive-foreground: #ffffff;
   --font-sans: 'Figtree Variable', system-ui, sans-serif;
   --font-display: 'Bricolage Grotesque Variable', 'Figtree Variable', system-ui, sans-serif;
   --radius-xl: 1.25rem;

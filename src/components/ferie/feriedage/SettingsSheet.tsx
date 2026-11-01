@@ -1,6 +1,7 @@
 import type { Action } from '../lib/use-ferie';
 import { PERSON_KEYS, type FerieState, type Person, type PersonKey } from '../lib/types';
-import { Field, Input } from '../ui/input';
+import { LabeledField as Field } from '../labeled-field';
+import { Input } from '../ui/input';
 import { ResponsiveSheet } from '../ui/sheet';
 import { Switch } from '../ui/switch';
 import { personColor, personName } from './helpers';
