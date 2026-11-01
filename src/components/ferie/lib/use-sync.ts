@@ -18,6 +18,12 @@ const BACKUP_KEY = 'ferie-v1-backup';
 const hasContent = (s: FerieState) =>
   s.trips.length + s.money.length + s.itin.length + s.checks.length + s.tdays.length > 0;
 
+/**
+ * The selected year is a per-device view choice, so it never goes into the shared document:
+ * it is zeroed before saving or comparing, and kept from the local state when a copy arrives.
+ */
+const shared = (s: FerieState): FerieState => ({ ...s, settings: { ...s.settings, year: 0 } });
+
 /** An untouched document that was never filled in. */
 const isEmptyDoc = (d: unknown) => !d || typeof d !== 'object' || Object.keys(d as object).length === 0;
 
@@ -71,9 +77,10 @@ export function useSync(state: FerieState, dispatch: React.Dispatch<Action>) {
 
   /** Replaces the local state with the shared copy. */
   const apply = useCallback((data: unknown, v: number) => {
-    const next = normalize(data);
-    const json = JSON.stringify(next);
-    if (JSON.stringify(stateRef.current) !== json) backupLocal();
+    const parsed = normalize(data);
+    const next = { ...parsed, settings: { ...parsed.settings, year: stateRef.current.settings.year } };
+    const json = JSON.stringify(shared(next));
+    if (JSON.stringify(shared(stateRef.current)) !== json) backupLocal();
     last.current = json;
     version.current = v;
     dispatch({ type: 'replace', state: next });
@@ -100,16 +107,16 @@ export function useSync(state: FerieState, dispatch: React.Dispatch<Action>) {
         const local = stateRef.current;
         if (!r.row) {
           // First sign-in: import what is on this device.
-          if (await createRemote(hid, local)) {
-            last.current = JSON.stringify(local);
+          if (await createRemote(hid, shared(local))) {
+            last.current = JSON.stringify(shared(local));
             version.current = 0;
           } else {
             r = await fetchRemote();
             if (r.status === 'ok' && r.row) apply(r.row.data, r.row.version);
           }
         } else if (isEmptyDoc(r.row.data)) {
-          const res = await pushRemote(hid, r.row.version, local);
-          if (res.ok) { last.current = JSON.stringify(local); version.current = res.version; }
+          const res = await pushRemote(hid, r.row.version, shared(local));
+          if (res.ok) { last.current = JSON.stringify(shared(local)); version.current = res.version; }
           else { const again = await fetchRemote(); if (again.status === 'ok' && again.row) apply(again.row.data, again.row.version); }
         } else {
           apply(r.row.data, r.row.version);
@@ -136,19 +143,19 @@ export function useSync(state: FerieState, dispatch: React.Dispatch<Action>) {
   // Save edits (debounced)
   useEffect(() => {
     if (!ready || !household.current) return;
-    if (JSON.stringify(state) === last.current) return;
+    if (JSON.stringify(shared(state)) === last.current) return;
     setStatus('saving');
     const timer = window.setTimeout(async () => {
       const hid = household.current;
       if (!hid) return;
-      const snapshot = stateRef.current;
+      const snapshot = shared(stateRef.current);
       const json = JSON.stringify(snapshot);
       try {
         const res = await pushRemote(hid, version.current, snapshot);
         if (res.ok) {
           version.current = res.version;
           last.current = json;
-          setStatus(JSON.stringify(stateRef.current) === json ? 'synced' : 'saving');
+          setStatus(JSON.stringify(shared(stateRef.current)) === json ? 'synced' : 'saving');
         } else {
           const r = await fetchRemote();
           if (r.status === 'ok' && r.row) {
