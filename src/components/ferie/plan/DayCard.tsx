@@ -1,6 +1,6 @@
 import { useDndContext, useDroppable } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
-import { BedDoubleIcon, MapPinIcon } from 'lucide-react';
+import { BedDoubleIcon } from 'lucide-react';
 import { MONTHS_SHORT, WEEKDAYS, toISO } from '../lib/dates';
 import { holidayName } from '../lib/holidays';
 import { dayLoad, sortPlan } from '../lib/plan';
@@ -57,31 +57,17 @@ export function DayCard({
         {last ? (
           <p className="flex h-9 items-center gap-2 text-sm text-muted-foreground"><BedDoubleIcon className="size-3.5" aria-hidden />Hjem i dag</p>
         ) : (
-          <div className="-mx-2 flex h-9 items-center gap-1 rounded-lg border border-transparent px-2 text-sm transition-colors focus-within:border-ring focus-within:bg-card hover:border-input">
+          <label className="-mx-2 flex h-9 items-center gap-2 rounded-lg border border-transparent px-2 text-sm transition-colors focus-within:border-ring focus-within:bg-card hover:border-input">
             <BedDoubleIcon className="size-3.5 shrink-0 text-muted-foreground" aria-hidden />
-            <label className="h-full min-w-0 flex-1">
-              <span className="sr-only">Hvor sover I natten efter dag {index + 1}?</span>
-              <input
-                className="h-full w-full min-w-0 bg-transparent text-base outline-none placeholder:text-muted-foreground md:text-sm"
-                placeholder="Hvor sover I?"
-                value={base}
-                maxLength={60}
-                onChange={(e) => onBase(e.target.value)}
-              />
-            </label>
-            {base.trim() && (
-              <a
-                href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(base.trim())}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="grid size-7 shrink-0 place-items-center rounded-md text-muted-foreground outline-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring"
-                aria-label={`Søg efter ${base.trim()} i Google Maps (åbner i ny fane)`}
-                title="Åbn i Google Maps"
-              >
-                <MapPinIcon className="size-4" aria-hidden />
-              </a>
-            )}
-          </div>
+            <span className="sr-only">Hvor sover I natten efter dag {index + 1}?</span>
+            <input
+              className="h-full min-w-0 flex-1 bg-transparent text-base outline-none placeholder:text-muted-foreground md:text-sm"
+              placeholder="Hvor sover I?"
+              value={base}
+              maxLength={60}
+              onChange={(e) => onBase(e.target.value)}
+            />
+          </label>
         )}
         <DropList id={ds} items={items} empty="Slip planen her">{renderRow}</DropList>
         <AddPlan onAdd={onAdd} label="Tilføj plan" types={['oplevelse', 'mad', 'transport', 'andet']} />
