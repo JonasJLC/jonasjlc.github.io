@@ -3,23 +3,41 @@ export type Who = 'both' | PersonKey;
 
 export const PERSON_KEYS: PersonKey[] = ['a', 'b'];
 
+/** Fixed days off besides the public holidays (`MM-DD`). */
+export type DayOff = '05-01' | '06-05' | '12-24' | '12-31';
+
+/**
+ * One person's vacation balance, Danish rules: ferie is earned 1 Sep–31 Aug and can be
+ * held until 31 Dec the year after; feriefridage are granted 1 Jan and expire 31 Dec.
+ * All amounts are in days.
+ */
 export interface Person {
   name: string;
-  /** Balance (days) before the first accrual. */
-  start: number;
-  /** Days accrued on the 1st of every month. */
+  /** `YYYY-MM-DD` the balances below are from, e.g. the latest payslip. */
+  asOf: string;
+  /** Left from the previous ferieår (expires 31 Dec of the `asOf` year or the next). */
+  prev: number;
+  /** Earned so far in the current ferieår. */
+  curr: number;
+  /** Earned at the end of every month after `asOf`. */
   rate: number;
-  /** First accrual month, `YYYY-MM`. */
-  first: string;
-  /** Extra days credited once a year. */
-  extra: number;
-  /** Month (1-12) the extra days are credited. */
-  extraMonth: number;
+  /** Feriefridage granted every 1 January. */
+  ff: number;
+  /** Feriefridage left in the `asOf` calendar year. */
+  ffOpen: number;
+  /** Fixed days off that do not cost vacation. */
+  daysOff: DayOff[];
 }
+
+export type Unit = 'days' | 'hours';
 
 export interface Settings {
   year: number;
-  /** Treat Grundlovsdag, juleaften and nytårsaftensdag as days off. */
+  /** Hours in one vacation day (15,41 t = 2,08 dage). Balances are stored in days. */
+  hoursPerDay: number;
+  /** Which unit number fields are typed in. */
+  unit: Unit;
+  /** @deprecated Legacy shared switch, replaced by `Person.daysOff`. Still read by the plan view. */
   extraOff: boolean;
   people: Record<PersonKey, Person>;
 }

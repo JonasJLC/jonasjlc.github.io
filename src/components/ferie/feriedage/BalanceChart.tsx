@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { balanceSeries, involves } from '../lib/balance';
 import { DAY, MONTHS_SHORT, fmtLong, fmtN, toTime, todayTime } from '../lib/dates';
 import { PERSON_KEYS, type FerieState } from '../lib/types';
+import { fmtHours } from '../lib/units';
 import { personColor, personName } from './helpers';
 
 export function BalanceChart({ state }: { state: FerieState }) {
@@ -163,7 +164,7 @@ export function BalanceChart({ state }: { state: FerieState }) {
           >
             <b className="block">{fmtLong(hoverT)}</b>
             {PERSON_KEYS.map((k) => (
-              <span key={k} className="block">{personName(state, k)}: <b>{fmtN(ser[k][hover])}</b> dage</span>
+              <span key={k} className="block">{personName(state, k)}: <b>{fmtN(ser[k][hover])}</b> dage ({fmtHours(ser[k][hover], state.settings)})</span>
             ))}
             {onTrips.map((t) => <span key={t.id} className="block opacity-80">✈ {t.name || 'Rejse'}</span>)}
           </div>

@@ -1,9 +1,9 @@
 import { X } from 'lucide-react';
-import { fmtN, fmtRange } from '../lib/dates';
-import { countWorkDays } from '../lib/holidays';
+import { fmtN, fmtRange, toISO } from '../lib/dates';
 import type { FerieState } from '../lib/types';
 import { Button } from '../ui/button';
-import { impact, personColor, personName } from './helpers';
+import { fmtHours } from '../lib/units';
+import { fmtDaysRange, impact, personColor, personName } from './helpers';
 import type { Selection } from './YearCalendar';
 
 export function SelectionBar({
@@ -12,12 +12,13 @@ export function SelectionBar({
   state: FerieState; selection: Selection; onClear: () => void; onContinue: () => void;
 }) {
   if (selection.from === null) return null;
-  const { extraOff, year } = state.settings;
+  const { year } = state.settings;
   const ready = selection.to !== null;
   const a = Math.min(selection.from, selection.to ?? selection.from);
   const b = Math.max(selection.from, selection.to ?? selection.from);
-  const cost = ready ? countWorkDays(a, b, extraOff) : 0;
-  const chips = ready ? impact(state, 'both', a, cost) : [];
+  const chips = ready ? impact(state, 'both', { from: toISO(a), to: toISO(b), days: null }) : [];
+  const costs = chips.map((c) => c.days);
+  const cost = Math.max(0, ...costs);
 
   return (
     <div
@@ -32,7 +33,7 @@ export function SelectionBar({
           </b>
           {ready ? (
             <span className="text-sm text-muted-foreground">
-              Koster <b className="text-foreground">{fmtN(cost)}</b> feriedag{cost === 1 ? '' : 'e'}
+              Koster <b className="text-foreground">{fmtDaysRange(costs)}</b> feriedag{cost === 1 ? '' : 'e'} ({fmtHours(cost, state.settings)})
             </span>
           ) : (
             <span className="text-sm text-muted-foreground">Tryk på den sidste dag i rejsen</span>
@@ -51,7 +52,7 @@ export function SelectionBar({
                 className={`rounded-full border px-2.5 py-1 font-semibold ${ok ? 'text-ok' : 'text-warn'}`}
               >
                 <i className="mr-1.5 inline-block size-2 rounded-full" style={{ background: personColor(c.k) }} />
-                {personName(state, c.k)}: {fmtN(c.after)} efter {ok ? '✓' : c.short ? '– for få dage' : '– senere rejse bliver for dyr'}
+                {personName(state, c.k)}: {fmtN(c.after)} ({fmtHours(c.after, state.settings)}) efter {ok ? '✓' : c.short ? '– for få dage' : '– senere rejse bliver for dyr'}
               </li>
             );
           })}

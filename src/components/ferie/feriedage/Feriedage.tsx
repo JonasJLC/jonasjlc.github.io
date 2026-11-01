@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { addWorkDays } from '../lib/holidays';
+import { commonDaysOff } from '../lib/balance';
 import { toISO, toTime } from '../lib/dates';
 import { newId, type Action } from '../lib/use-ferie';
 import type { FerieState, Trip, Who } from '../lib/types';
@@ -74,7 +75,8 @@ export function Feriedage({
           <TripList state={state} onEdit={(t) => setDraft(draftFromTrip(t))} onNew={() => openNew(start, start)} />
           <Finder
             state={state}
-            onCreate={(from, days, who) => openNew(from, Math.max(from, addWorkDays(from, days, state.settings.extraOff)), who)}
+            dispatch={dispatch}
+            onCreate={(from, days, who) => openNew(from, Math.max(from, addWorkDays(from, days, commonDaysOff(state, who))), who)}
           />
         </div>
       </div>
@@ -86,7 +88,7 @@ export function Feriedage({
           if (sel.from !== null && sel.to !== null) openNew(sel.from, sel.to);
         }}
       />
-      <TripSheet state={state} draft={draft} onClose={() => setDraft(null)} onSave={save} onDelete={remove} />
+      <TripSheet state={state} dispatch={dispatch} draft={draft} onClose={() => setDraft(null)} onSave={save} onDelete={remove} />
       <SettingsSheet open={settingsOpen} onOpenChange={setSettingsOpen} state={state} dispatch={dispatch} />
     </div>
   );

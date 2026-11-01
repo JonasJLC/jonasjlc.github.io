@@ -1,5 +1,7 @@
 import { defaultKasse, defaultSettings, defaultState } from './defaults';
-import type { CheckItem, FerieState, Kasse, MoneyItem, PlanItem, PlanStatus, PlanType, Trip, TripDay } from './types';
+import { toISO } from './dates';
+import { DAYS_OFF, LEGACY_DAYS_OFF } from './holidays';
+import type { CheckItem, Person, FerieState, Kasse, MoneyItem, PlanItem, PlanStatus, PlanType, Trip, TripDay } from './types';
 
 /** Persistence boundary. A Supabase implementation can replace the local one later. */
 export interface FerieStore {
@@ -96,12 +98,47 @@ export function normalize(raw: unknown): FerieState {
     settings: {
       year: +(s.year as number) || base.year,
       extraOff: !!s.extraOff,
+      hoursPerDay: +(s.hoursPerDay as number) > 0 ? +(s.hoursPerDay as number) : base.hoursPerDay,
+      unit: s.unit === 'hours' ? 'hours' : 'days',
       people: {
-        a: { ...base.people.a, ...(people.a ?? {}) },
-        b: { ...base.people.b, ...(people.b ?? {}) },
+        a: person(people.a, base.people.a, !!s.extraOff),
+        b: person(people.b, base.people.b, !!s.extraOff),
       },
     },
     trips,
+  };
+}
+
+/**
+ * One person's settings. Older saves had `start` (balance before the first accrual on the 1st of
+ * `first`), `extra` days in `extraMonth` and a shared `extraOff` switch; they map onto a balance
+ * date just before the first accrual, the current ferieår, feriefridage and per-person days off.
+ */
+function person(raw: unknown, base: Person, legacyOff: boolean): Person {
+  const r = (raw && typeof raw === 'object' ? raw : {}) as Record<string, unknown>;
+  const n = (v: unknown, d: number) => (v === null || v === undefined || v === '' || Number.isNaN(+(v as number)) ? d : +(v as number));
+  const iso = /^\d{4}-\d{2}-\d{2}$/;
+  const legacy = !(typeof r.asOf === 'string' && iso.test(r.asOf));
+  let asOf = base.asOf;
+  if (!legacy) asOf = r.asOf as string;
+  else if (typeof r.first === 'string' && /^\d{4}-\d{2}$/.test(r.first)) {
+    const [y, m] = r.first.split('-').map(Number);
+    // Accrual now lands at month end, so put the balance date two months back:
+    // first = 2026-11 (1 Nov) becomes 30 Sep, with the first accrual on 31 Oct.
+    asOf = toISO(Date.UTC(y, m - 2, 0));
+  }
+  const valid = DAYS_OFF.map((d) => d.md);
+  return {
+    name: typeof r.name === 'string' ? r.name : base.name,
+    asOf,
+    prev: n(r.prev, 0),
+    curr: legacy ? n(r.start, base.curr) : n(r.curr, 0),
+    rate: n(r.rate, base.rate),
+    ff: legacy ? n(r.extra, base.ff) : n(r.ff, 0),
+    ffOpen: n(r.ffOpen, 0),
+    daysOff: Array.isArray(r.daysOff)
+      ? valid.filter((d) => (r.daysOff as unknown[]).includes(d))
+      : legacyOff ? [...LEGACY_DAYS_OFF] : [...base.daysOff],
   };
 }
 

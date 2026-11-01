@@ -1,5 +1,6 @@
-import { balanceAt, balanceSeries, tripDays, whoKeys } from '../lib/balance';
-import { DAY } from '../lib/dates';
+import { tripDays, valueAt, whoKeys, type Span } from '../lib/balance';
+import { DAY, fmtN, toTime } from '../lib/dates';
+import { verdict } from '../lib/finder';
 import type { FerieState, PersonKey, Who } from '../lib/types';
 
 export const personName = (s: FerieState, k: PersonKey): string =>
@@ -15,38 +16,41 @@ export const whoOptions = (s: FerieState) => [
 
 export interface Impact {
   k: PersonKey;
+  /** Vacation days the trip costs this person. */
+  days: number;
+  /** Balance the day before the trip. */
   before: number;
+  /** Balance at the end of the trip's last day. */
   after: number;
-  /** Lowest balance from the trip's start until the end of the horizon. */
+  /** Lowest balance from the trip's start until the horizon, trip included. */
   lowest: number;
-  /** The trip itself leaves the balance negative. */
+  /** The balance goes negative during the trip itself. */
   short: boolean;
   /** The trip fits, but pushes a later trip into the red that fit without it. */
   squeezes: boolean;
 }
 
-const EPS = 1e-9;
-
-/** Balance effect of taking `days` off starting `from`, ignoring trip `excludeId`. */
-export function impact(
-  state: FerieState,
-  who: Who,
-  from: number,
-  days: number,
-  excludeId?: string,
-): Impact[] {
-  const horizon = Date.UTC(state.settings.year + 2, 11, 31);
+/** Balance effect of `span` for each person in `who`, ignoring saved trip `excludeId`. */
+export function impact(state: FerieState, who: Who, span: Span, excludeId?: string): Impact[] {
+  const from = toTime(span.from), to = toTime(span.to);
   return whoKeys(who).map((k) => {
-    const before = balanceAt(state, k, from, excludeId);
-    const series = balanceSeries(state, k, from, Math.max(from, horizon), excludeId);
-    let without = Infinity;
-    for (const v of series) without = Math.min(without, v);
-    const after = before - days;
-    const lowest = without - days;
-    const short = after < -EPS;
-    const squeezes = !short && lowest < -EPS && without >= -EPS;
-    return { k, before, after, lowest, short, squeezes };
+    const v = verdict(state, k, from, to, span, excludeId);
+    return {
+      k,
+      days: tripDays(state, span, k),
+      before: valueAt(v.base, from - DAY),
+      after: valueAt(v.withT, to),
+      lowest: Math.min(v.during, v.later),
+      short: v.short,
+      squeezes: v.squeezes,
+    };
   });
+}
+
+/** "5" when everyone pays the same, else "4–5". */
+export function fmtDaysRange(list: number[]): string {
+  const lo = Math.min(...list), hi = Math.max(...list);
+  return Math.abs(hi - lo) < 1e-9 ? fmtN(lo) : `${fmtN(lo)}–${fmtN(hi)}`;
 }
 
 export { DAY, tripDays };

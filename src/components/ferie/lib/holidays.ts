@@ -1,4 +1,5 @@
 import { DAY, isWeekend } from './dates';
+import type { DayOff } from './types';
 
 /** Easter Sunday (UTC midnight), anonymous Gregorian algorithm. */
 export function easter(y: number): number {
@@ -19,12 +20,22 @@ export function easter(y: number): number {
   return Date.UTC(y, month - 1, day);
 }
 
-const cache = new Map<string, Map<number, string>>();
+/** Days off that are not public holidays but common in Danish contracts. */
+export const DAYS_OFF: { md: DayOff; name: string }[] = [
+  { md: '05-01', name: '1. maj' },
+  { md: '06-05', name: 'Grundlovsdag' },
+  { md: '12-24', name: 'Juleaftensdag' },
+  { md: '12-31', name: 'Nytårsaftensdag' },
+];
 
-/** Danish public holidays; `extraOff` adds Grundlovsdag, juleaften and nytårsaftensdag. */
-export function holidays(year: number, extraOff: boolean): Map<number, string> {
-  const key = `${year}:${extraOff}`;
-  const hit = cache.get(key);
+/** What the old shared "ekstra fridage" switch covered. */
+export const LEGACY_DAYS_OFF: DayOff[] = ['06-05', '12-24', '12-31'];
+
+const cache = new Map<number, Map<number, string>>();
+
+/** The official Danish public holidays (helligdage) of a year. */
+export function holidays(year: number): Map<number, string> {
+  const hit = cache.get(year);
   if (hit) return hit;
   const m = new Map<number, string>();
   const E = easter(year);
@@ -39,35 +50,44 @@ export function holidays(year: number, extraOff: boolean): Map<number, string> {
   m.set(E + 50 * DAY, '2. pinsedag');
   m.set(Date.UTC(year, 11, 25), 'Juledag');
   m.set(Date.UTC(year, 11, 26), '2. juledag');
-  if (extraOff) {
-    m.set(Date.UTC(year, 5, 5), 'Grundlovsdag');
-    m.set(Date.UTC(year, 11, 24), 'Juleaften');
-    m.set(Date.UTC(year, 11, 31), 'Nytårsaftensdag');
-  }
-  cache.set(key, m);
+  cache.set(year, m);
   return m;
 }
 
-export const holidayName = (t: number, extraOff: boolean): string | undefined =>
-  holidays(new Date(t).getUTCFullYear(), extraOff).get(t);
+const mdOf = (t: number): string => new Date(t).toISOString().slice(5, 10);
+
+/** Name of the day off on `t` if it is one of `off`. */
+export const dayOffName = (t: number, off: readonly DayOff[]): string | undefined => {
+  const md = mdOf(t);
+  return off.includes(md as DayOff) ? DAYS_OFF.find((d) => d.md === md)?.name : undefined;
+};
+
+/**
+ * Public holiday or day-off name on `t`. `off` is the list of extra days off; `true` is
+ * the legacy shared switch and means Grundlovsdag, juleaften and nytårsaftensdag.
+ */
+export function holidayName(t: number, off: readonly DayOff[] | boolean = []): string | undefined {
+  const list = off === true ? LEGACY_DAYS_OFF : off === false ? [] : off;
+  return holidays(new Date(t).getUTCFullYear()).get(t) ?? dayOffName(t, list);
+}
 
 /** A day that costs a vacation day when taken off. */
-export const isWorkDay = (t: number, extraOff: boolean): boolean =>
-  !isWeekend(t) && !holidayName(t, extraOff);
+export const isWorkDay = (t: number, off: readonly DayOff[]): boolean =>
+  !isWeekend(t) && !holidayName(t, off);
 
-export function countWorkDays(a: number, b: number, extraOff: boolean): number {
+export function countWorkDays(a: number, b: number, off: readonly DayOff[]): number {
   let n = 0;
-  for (let t = a; t <= b; t += DAY) if (isWorkDay(t, extraOff)) n++;
+  for (let t = a; t <= b; t += DAY) if (isWorkDay(t, off)) n++;
   return n;
 }
 
 /** The date of the n-th work day counting `start` as day one. */
-export function addWorkDays(start: number, n: number, extraOff: boolean): number {
+export function addWorkDays(start: number, n: number, off: readonly DayOff[]): number {
   const need = Math.max(1, Math.ceil(n));
   let t = start;
   let count = 0;
   for (let i = 0; i < 500; i++) {
-    if (isWorkDay(t, extraOff)) {
+    if (isWorkDay(t, off)) {
       count++;
       if (count >= need) return t;
     }

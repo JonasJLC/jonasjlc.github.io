@@ -1,7 +1,7 @@
 import { memo, useMemo } from 'react';
 import { DAY, MONTHS, fmtLong, isoWeek, isWeekend, toTime, todayTime } from '../lib/dates';
-import { holidayName } from '../lib/holidays';
-import type { FerieState, PersonKey, Trip } from '../lib/types';
+import { dayOffName, holidayName } from '../lib/holidays';
+import type { DayOff, FerieState, PersonKey, Trip } from '../lib/types';
 import { involves } from '../lib/balance';
 import { cn } from '../lib/utils';
 import { personColor, personName } from './helpers';
@@ -37,7 +37,10 @@ interface Props {
 
 export function YearCalendar({ state, selection, onPick }: Props) {
   const Y = state.settings.year;
-  const { extraOff } = state.settings;
+  const offA = state.settings.people.a.daysOff;
+  const offB = state.settings.people.b.daysOff;
+  const nameA = personName(state, 'a');
+  const nameB = personName(state, 'b');
 
   const byDay = useMemo(() => {
     const m = new Map<number, Trip[]>();
@@ -68,12 +71,12 @@ export function YearCalendar({ state, selection, onPick }: Props) {
         <li className="inline-flex items-center gap-1.5"><i className="size-3 rounded" style={{ background: personColor('a') }} />{personName(state, 'a')}</li>
         <li className="inline-flex items-center gap-1.5"><i className="size-3 rounded" style={{ background: personColor('b'), backgroundImage: 'repeating-linear-gradient(45deg, rgba(255,255,255,.35) 0 2px, transparent 2px 5px)' }} />{personName(state, 'b')}</li>
         <li className="inline-flex items-center gap-1.5"><i className="size-3 rounded" style={{ backgroundImage: `linear-gradient(135deg, ${personColor('a')} 50%, ${personColor('b')} 50%)` }} />Begge</li>
-        <li className="inline-flex items-center gap-1.5"><i className="size-3 rounded border-2 border-holiday" />Helligdag</li>
+        <li className="inline-flex items-center gap-1.5"><i className="size-3 rounded border-2 border-holiday" />Helligdag eller fast fridag</li>
         <li>Lys farve = fri dag, koster ikke ferie</li>
       </ul>
       <div className="grid gap-5 sm:grid-cols-2 2xl:grid-cols-3">
         {MONTHS.map((name, m) => (
-          <Month key={m} Y={Y} m={m} name={name} byDay={byDay} extraOff={extraOff} lo={lo} hi={hi} today={today} onPick={onPick} />
+          <Month key={m} Y={Y} m={m} name={name} byDay={byDay} offA={offA} offB={offB} nameA={nameA} nameB={nameB} lo={lo} hi={hi} today={today} onPick={onPick} />
         ))}
       </div>
     </section>
@@ -81,11 +84,12 @@ export function YearCalendar({ state, selection, onPick }: Props) {
 }
 
 interface MonthProps {
-  Y: number; m: number; name: string; byDay: Map<number, Trip[]>; extraOff: boolean;
+  Y: number; m: number; name: string; byDay: Map<number, Trip[]>;
+  offA: DayOff[]; offB: DayOff[]; nameA: string; nameB: string;
   lo: number | null; hi: number | null; today: number; onPick: (t: number) => void;
 }
 
-const Month = memo(function Month({ Y, m, name, byDay, extraOff, lo, hi, today, onPick }: MonthProps) {
+const Month = memo(function Month({ Y, m, name, byDay, offA, offB, nameA, nameB, lo, hi, today, onPick }: MonthProps) {
   const first = Date.UTC(Y, m, 1);
   const days = new Date(Date.UTC(Y, m + 1, 0)).getUTCDate();
   const lead = (new Date(first).getUTCDay() + 6) % 7;
@@ -108,11 +112,16 @@ const Month = memo(function Month({ Y, m, name, byDay, extraOff, lo, hi, today, 
                 const idx = w * 7 + d - lead;
                 if (idx < 0 || idx >= days) return <span key={d} role="gridcell" />;
                 const t = first + idx * DAY;
-                const hol = holidayName(t, extraOff);
+                const official = holidayName(t);
+                const offFor = { a: !!dayOffName(t, offA), b: !!dayOffName(t, offB) };
+                const offName = dayOffName(t, offA) ?? dayOffName(t, offB);
                 const weekend = isWeekend(t);
-                const free = weekend || !!hol;
                 const trips = byDay.get(t) ?? [];
                 const keys = (['a', 'b'] as PersonKey[]).filter((k) => trips.some((tr) => involves(tr, k)));
+                // Free when nobody it concerns has to take vacation that day.
+                const free = weekend || !!official || (keys.length ? keys : (['a', 'b'] as PersonKey[])).every((k) => offFor[k]);
+                const partly = !official && !!offName && !(offFor.a && offFor.b);
+                const hol = official ?? (offName && (partly ? `${offName} (fri for ${offFor.a ? nameA : nameB})` : offName));
                 const selected = lo !== null && hi !== null && t >= lo && t <= hi;
                 const edge = selected && (t === lo || t === hi);
                 const label = [
@@ -134,7 +143,7 @@ const Month = memo(function Month({ Y, m, name, byDay, extraOff, lo, hi, today, 
                         free && !keys.length && 'text-muted-foreground',
                         keys.length > 0 && !free && 'font-bold text-card',
                         keys.length > 0 && free && 'text-foreground',
-                        hol && 'ring-1 ring-inset ring-holiday',
+                        hol && (partly ? 'ring-1 ring-inset ring-holiday/45' : 'ring-1 ring-inset ring-holiday'),
                         !keys.length && !selected && 'hover:bg-muted',
                         selected && 'bg-foreground/15 ring-2 ring-inset ring-foreground',
                         edge && 'bg-foreground text-background ring-0',

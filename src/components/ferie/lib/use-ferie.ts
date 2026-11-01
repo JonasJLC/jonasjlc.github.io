@@ -6,7 +6,7 @@ import type { CheckItem, FerieState, Kasse, MoneyItem, Person, PersonKey, PlanIt
 export type Action =
   | { type: 'replace'; state: FerieState }
   | { type: 'year'; year: number }
-  | { type: 'settings'; patch: Partial<Pick<Settings, 'extraOff'>> }
+  | { type: 'settings'; patch: Partial<Pick<Settings, 'hoursPerDay' | 'unit'>> }
   | { type: 'person'; k: PersonKey; patch: Partial<Person> }
   | { type: 'saveTrip'; trip: Trip }
   | { type: 'deleteTrip'; id: string }

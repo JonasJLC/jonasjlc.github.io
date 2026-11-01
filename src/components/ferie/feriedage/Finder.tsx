@@ -8,12 +8,16 @@ import { Button } from '../ui/button';
 import { LabeledField as Field } from '../labeled-field';
 import { Input } from '../ui/input';
 import { Segmented } from '../ui/segmented';
+import { UnitToggle } from '../days-hours-field';
+import { fmtHours, parseDays } from '../lib/units';
+import type { Action } from '../lib/use-ferie';
 import { whoOptions } from './helpers';
 
-export function Finder({ state, onCreate }: { state: FerieState; onCreate: (from: number, days: number, who: Who) => void }) {
+export function Finder({ state, dispatch, onCreate }: { state: FerieState; dispatch: React.Dispatch<Action>; onCreate: (from: number, days: number, who: Who) => void }) {
   const [raw, setRaw] = useState('5');
   const [who, setWho] = useState<Who>('both');
-  const days = Number(raw.replace(',', '.'));
+  const { unit } = state.settings;
+  const days = parseDays(raw, unit, state.settings);
   const valid = raw.trim() !== '' && !Number.isNaN(days) && days > 0;
   const found = valid ? earliestAffordable(state, days, whoKeys(who), todayTime()) : null;
 
@@ -24,17 +28,18 @@ export function Finder({ state, onCreate }: { state: FerieState; onCreate: (from
         Find den første arbejdsdag, hvor turen kan lade sig gøre uden at gå ud over de planlagte rejser.
       </p>
       <div className="grid gap-3">
-        <Field label="Antal feriedage"><Input inputMode="decimal" value={raw} onChange={(e) => setRaw(e.target.value)} /></Field>
+        <UnitToggle unit={unit} onChange={(u) => dispatch({ type: 'settings', patch: { unit: u } })} />
+        <Field label={unit === 'hours' ? 'Antal ferietimer' : 'Antal feriedage'}><Input inputMode="decimal" value={raw} onChange={(e) => setRaw(e.target.value)} /></Field>
         <Segmented label="Hvem" value={who} onValueChange={setWho} options={whoOptions(state)} />
       </div>
       <div aria-live="polite" className="mt-4 rounded-xl bg-muted p-3 text-sm">
         {!valid ? (
-          'Skriv et antal dage.'
+          `Skriv et antal ${unit === 'hours' ? 'timer' : 'dage'}.`
         ) : found === null ? (
           <b className="text-warn">Det kan ikke lade sig gøre inden for de næste par år.</b>
         ) : (
           <>
-            <span className="text-muted-foreground">{fmtN(days)} dage kan tidligst bruges</span>
+            <span className="text-muted-foreground">{fmtN(days)} dage ({fmtHours(days, state.settings)}) kan tidligst bruges</span>
             <b className="mt-0.5 block font-display text-lg first-letter:uppercase">{fmtLong(found)}</b>
             <Button className="mt-3 w-full" onClick={() => onCreate(found, days, who)}>Lav rejse fra denne dato</Button>
           </>

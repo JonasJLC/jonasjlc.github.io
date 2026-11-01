@@ -1,4 +1,4 @@
-import { tripDays } from './balance';
+import { tripDaysMax } from './balance';
 import { DAY, MONTHS, fmtShort, toISO, toTime } from './dates';
 import type { FerieState, MoneyItem, Step } from './types';
 
@@ -369,5 +369,5 @@ export function tripBudget(s: FerieState, tripId: string, m: MoneyModel): TripBu
     const b = m.bal[idxOf(m, e.t)];
     if (!lowest || b < lowest.bal) lowest = { bal: b, t: e.t };
   }
-  return { items, total, paid, over, days: tr ? tripDays(tr, s.settings.extraOff) : 0, lowest };
+  return { items, total, paid, over, days: tr ? tripDaysMax(s, tr) : 0, lowest };
 }

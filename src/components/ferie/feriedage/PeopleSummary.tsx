@@ -1,8 +1,9 @@
-import { balanceAt, balanceSeries, usedInYear } from '../lib/balance';
+import { balanceAt, balanceSeries, lostInYear, usedInYear } from '../lib/balance';
 import { fmtN, todayTime } from '../lib/dates';
 import type { Action } from '../lib/use-ferie';
 import { PERSON_KEYS, type FerieState, type PersonKey } from '../lib/types';
 import { AnimatedNumber } from '../ui/animated-number';
+import { fmtHours } from '../lib/units';
 import { personColor, personName } from './helpers';
 
 export function PeopleSummary({ state, dispatch }: { state: FerieState; dispatch: React.Dispatch<Action> }) {
@@ -28,20 +29,22 @@ function PersonCard({
   const now = balanceAt(state, k, today);
   const yearEnd = balanceAt(state, k, en);
   const used = usedInYear(state, k, Y);
+  const lost = lostInYear(state, k, Y);
   let min = Infinity;
   for (const v of balanceSeries(state, k, st, en)) min = Math.min(min, v);
   const over = yearEnd < -1e-9;
-  const avail = used + yearEnd;
+  const avail = used + yearEnd + lost;
   const pct = over ? 100 : avail > 0 ? Math.min(100, (used / avail) * 100) : 0;
   const caption = over
-    ? `${fmtN(-yearEnd)} dage for meget planlagt i ${Y}`
-    : `${fmtN(used)} af ${fmtN(avail)} optjente dage er planlagt i ${Y}`;
+    ? `${fmtN(-yearEnd)} dage (${fmtHours(-yearEnd, state.settings)}) for meget planlagt i ${Y}`
+    : `${fmtN(used)} af ${fmtN(avail)} optjente dage (${fmtHours(used, state.settings)} af ${fmtHours(avail, state.settings)}) er planlagt i ${Y}`;
 
   const stats: { label: string; v: number; neg?: boolean }[] = [
     { label: 'Saldo i dag', v: now, neg: now < -1e-9 },
     { label: `Planlagt i ${Y}`, v: used },
     { label: 'Tilbage 31. dec.', v: yearEnd, neg: over },
   ];
+  if (lost > 1e-9) stats.push({ label: 'Går tabt 31. dec.', v: lost, neg: true });
   if (min < -1e-9) stats.push({ label: `Laveste i ${Y}`, v: min, neg: true });
 
   return (
@@ -65,7 +68,8 @@ function PersonCard({
             <dd className={`font-display text-2xl font-bold leading-none sm:text-3xl ${s.neg ? 'text-warn' : ''}`}>
               <AnimatedNumber value={s.v} />
             </dd>
-            <dt className="mt-1 text-xs text-muted-foreground">{s.label}</dt>
+            <dd className="mt-1 text-xs tabular-nums text-muted-foreground">{fmtHours(s.v, state.settings)}</dd>
+            <dt className="text-xs text-muted-foreground">{s.label}</dt>
           </div>
         ))}
       </dl>
