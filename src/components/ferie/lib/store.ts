@@ -1,5 +1,5 @@
 import { defaultKasse, defaultSettings, defaultState } from './defaults';
-import type { FerieState, Kasse, MoneyItem, Trip } from './types';
+import type { CheckItem, FerieState, Kasse, MoneyItem, PlanItem, PlanStatus, PlanType, Trip, TripDay } from './types';
 
 /** Persistence boundary. A Supabase implementation can replace the local one later. */
 export interface FerieStore {
@@ -12,7 +12,7 @@ const KEY = 'ferie-v1';
 export function normalize(raw: unknown): FerieState {
   const d = defaultState();
   if (!raw || typeof raw !== 'object') return d;
-  const r = raw as { settings?: Partial<FerieState['settings']>; trips?: unknown; kasse?: Partial<Kasse>; money?: unknown };
+  const r = raw as { settings?: Partial<FerieState['settings']>; trips?: unknown; kasse?: Partial<Kasse>; money?: unknown; itin?: unknown; tdays?: unknown; checks?: unknown };
   const s = r.settings ?? {};
   const people = (s.people ?? {}) as Partial<FerieState['settings']['people']>;
   const base = defaultSettings();
@@ -57,9 +57,42 @@ export function normalize(raw: unknown): FerieState {
           fromPlan: it.fromPlan ? true : undefined,
         }))
     : [];
+  const TYPES: PlanType[] = ['transport', 'oplevelse', 'mad', 'overnatning', 'andet'];
+  const STATUSES: PlanStatus[] = ['idea', 'tobook', 'booked'];
+  const list = <T,>(v: unknown): Partial<T>[] =>
+    Array.isArray(v) ? (v as Partial<T>[]).filter((x) => x && typeof x === 'object') : [];
+  const itin: PlanItem[] = list<PlanItem>(r.itin)
+    .filter((x) => typeof x.tripId === 'string')
+    .map((x, i) => ({
+      id: String(x.id ?? `p${i}`),
+      tripId: x.tripId as string,
+      type: TYPES.includes(x.type as PlanType) ? (x.type as PlanType) : 'andet',
+      title: String(x.title ?? ''),
+      day: x.day ? String(x.day) : null,
+      time: String(x.time ?? ''),
+      place: String(x.place ?? ''),
+      link: String(x.link ?? ''),
+      note: String(x.note ?? ''),
+      status: STATUSES.includes(x.status as PlanStatus) ? (x.status as PlanStatus) : 'idea',
+      bookBy: String(x.bookBy ?? ''),
+      price: numOrNull(x.price),
+      inBudget: !!x.inBudget,
+      moneyId: x.moneyId ? String(x.moneyId) : null,
+      order: Number(x.order) || 0,
+      created: Number(x.created) || 0,
+    }));
+  const tdays: TripDay[] = list<TripDay>(r.tdays)
+    .filter((x) => typeof x.tripId === 'string' && typeof x.date === 'string')
+    .map((x) => ({ id: String(x.id), tripId: x.tripId as string, date: x.date as string, base: String(x.base ?? '') }));
+  const checks: CheckItem[] = list<CheckItem>(r.checks)
+    .filter((x) => typeof x.tripId === 'string' && typeof x.text === 'string')
+    .map((x, i) => ({ id: String(x.id ?? `c${i}`), tripId: x.tripId as string, text: x.text as string, done: !!x.done, order: Number(x.order) || 0 }));
   return {
     kasse,
     money,
+    itin,
+    tdays,
+    checks,
     settings: {
       year: +(s.year as number) || base.year,
       extraOff: !!s.extraOff,

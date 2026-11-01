@@ -33,4 +33,7 @@ export const defaultState = (): FerieState => ({
   trips: [],
   kasse: defaultKasse(),
   money: [],
+  itin: [],
+  tdays: [],
+  checks: [],
 });

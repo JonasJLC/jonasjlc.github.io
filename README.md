@@ -18,7 +18,7 @@ The gift reveal is available at [`/gave/`](https://jonasjlc.github.io/gave/). It
 
 Images belong in `public/gave/assets/` and should be optimized before being added. Set local paths in `gift.images`; the invitation remains readable if images fail to load. Progress is saved under `gave-reveal-v2`, with an in-memory fallback when storage is unavailable. “Start forfra” returns to the nickname gate.
 
-The holiday planner is available at `/ferie/` (unlisted, noindex). It is a React + Tailwind + shadcn/ui island under `src/components/ferie/`; data is stored in the browser (`ferie-v1`) for now.
+The holiday planner is available at `/ferie/` (unlisted, noindex). It is a React + Tailwind + shadcn/ui island under `src/components/ferie/` with three tabs: **Feriedage** (balances, calendar, trips), **Rejsekassen** (travel fund, recommendation, budgets) and **Rejseplan** (day-by-day itinerary, bookings, packing list). Data is stored in the browser (`ferie-v1`) behind the `FerieStore` interface in `lib/store.ts`, so a Supabase store can replace it later. Add shadcn components with `pnpm dlx shadcn@latest add <name>`; the CLI currently adds a stray `cn` npm package and rewrites `import { cn } from "cn"`, so fix those imports to `@/components/ferie/lib/utils` and run `pnpm remove cn` afterwards.
 
 ## Local development
 

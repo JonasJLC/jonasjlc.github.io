@@ -4,7 +4,7 @@ import type { Action } from '../lib/use-ferie';
 import type { FerieState } from '../lib/types';
 import { toTime } from '../lib/dates';
 import { AnimatedNumber } from '../ui/animated-number';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
+import { Card, CardContent, CardDescription, CardHeader } from '../ui/card';
 import { Input } from '../ui/input';
 import { personName } from './helpers';
 
@@ -75,4 +75,3 @@ export function Overview({ state, dispatch }: { state: FerieState; dispatch: Rea
   );
 }
 
-export { CardTitle };

@@ -42,6 +42,9 @@ export interface FerieState {
   trips: Trip[];
   kasse: Kasse;
   money: MoneyItem[];
+  itin: PlanItem[];
+  tdays: TripDay[];
+  checks: CheckItem[];
 }
 
 export type Payer = 'acc' | PersonKey;
@@ -93,4 +96,47 @@ export interface MoneyItem {
   payer: Payer;
   created: number;
   fromPlan?: boolean;
+}
+
+export type PlanType = 'transport' | 'oplevelse' | 'mad' | 'overnatning' | 'andet';
+export type PlanStatus = 'idea' | 'tobook' | 'booked';
+
+/** One thing on a trip's itinerary. `day === null` means it sits in the idea bank. */
+export interface PlanItem {
+  id: string;
+  tripId: string;
+  type: PlanType;
+  title: string;
+  /** `YYYY-MM-DD` or null (idea bank). */
+  day: string | null;
+  /** `HH:MM` or empty. */
+  time: string;
+  place: string;
+  link: string;
+  note: string;
+  status: PlanStatus;
+  /** Book-by deadline, `YYYY-MM-DD` or empty. */
+  bookBy: string;
+  price: number | null;
+  /** Mirror the price as an expense in the trip budget. */
+  inBudget: boolean;
+  moneyId: string | null;
+  order: number;
+  created: number;
+}
+
+/** Where you sleep on a given night of a trip. */
+export interface TripDay {
+  id: string;
+  tripId: string;
+  date: string;
+  base: string;
+}
+
+export interface CheckItem {
+  id: string;
+  tripId: string;
+  text: string;
+  done: boolean;
+  order: number;
 }
