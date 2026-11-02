@@ -1,6 +1,6 @@
 import { useEffect, useMemo } from 'react';
 import { toast } from 'sonner';
-import { bridgeKey, findBridges, type Bridge } from '../lib/bridges';
+import { bridgeKey, bridgeNear, type Bridge } from '../lib/bridges';
 import { fmtRange, toISO, todayTime } from '../lib/dates';
 import type { FerieState } from '../lib/types';
 import { impact } from './helpers';
@@ -21,16 +21,18 @@ const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one :
  * Pops up once per visit with the best stretch of public holidays that few vacation days
  * can link together. "Ikke nu" hides that stretch for a week.
  */
-export function BridgeTip({ state, onUse, year }: { state: FerieState; year: number; onUse: (from: number, to: number) => void }) {
+export function BridgeTip({ state, bridges, onUse, year }: { state: FerieState; bridges: Bridge[]; year: number; onUse: (from: number, to: number) => void }) {
   const bridge = useMemo<Bridge | undefined>(() => {
     const now = Date.now();
     const hidden = snoozed();
-    return findBridges(state, todayTime(), year).find((b) => {
+    const today = todayTime();
+    return bridges.find((b) => {
+      if (!bridgeNear(b, today)) return false;
       if ((hidden[bridgeKey(b)] ?? 0) > now) return false;
       const span = { from: toISO(b.from), to: toISO(b.to), days: null };
       return !impact(state, 'both', span).some((i) => i.short || i.squeezes);
     });
-  }, [state, year]);
+  }, [state, bridges]);
 
   const key = bridge ? bridgeKey(bridge) : null;
   useEffect(() => {
@@ -45,7 +47,7 @@ export function BridgeTip({ state, onUse, year }: { state: FerieState; year: num
     });
     return () => { toast.dismiss(id); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [key, year]);
+  }, [key]);
 
   return null;
 }
