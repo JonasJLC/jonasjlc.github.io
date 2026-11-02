@@ -60,6 +60,8 @@
   --ok-tint: #e2f3e4;
   --ok-ink: #14451a;
   --holiday: #b45309;
+  --bridge: #7552c2;
+  --bridge-tint: #efe9fa;
   --grid: #e9e2d8;
   --ring: #1b6e66;
   --elev: 0 1px 2px rgb(74 52 28 / 0.06), 0 8px 24px -10px rgb(74 52 28 / 0.18);
@@ -116,6 +118,8 @@
   --ok-tint: #1b2e1f;
   --ok-ink: #9ad9a6;
   --holiday: #e2a447;
+  --bridge: #a98be6;
+  --bridge-tint: #2a2240;
   --grid: #2e2a25;
   --ring: #4fb5a9;
   --elev: 0 1px 2px rgb(0 0 0 / 0.35), 0 10px 28px -12px rgb(0 0 0 / 0.7);
@@ -167,6 +171,8 @@
   --color-ok-tint: var(--ok-tint);
   --color-ok-ink: var(--ok-ink);
   --color-holiday: var(--holiday);
+  --color-bridge: var(--bridge);
+  --color-bridge-tint: var(--bridge-tint);
   --color-cash: var(--data);
   --color-ring: var(--ring);
   --color-accent: var(--accent);
