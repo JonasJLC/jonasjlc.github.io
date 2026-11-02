@@ -22,6 +22,8 @@ export const BRIDGE_POPUP_MONTHS = 10;
 
 const MAX_COST = 4;
 const MIN_RATIO = 2.5;
+/** Fewer days off in a row than this is not enough to go anywhere, or is easy to spot yourself. */
+const MIN_TOTAL = 5;
 
 /**
  * Stretches where a few vacation days link weekends and public holidays into a long break,
@@ -60,7 +62,7 @@ export function findBridges(state: FerieState, today: number, months = BRIDGE_HO
       if (cost > MAX_COST) break;
       if (cost < 1 || !names.length) continue;
       const total = Math.round((to - from) / DAY) + 1;
-      if (total / cost < MIN_RATIO || clash(from, to)) continue;
+      if (total < MIN_TOTAL || total / cost < MIN_RATIO || clash(from, to)) continue;
       found.push({ from, to, cost, total, holidays: names });
     }
   }

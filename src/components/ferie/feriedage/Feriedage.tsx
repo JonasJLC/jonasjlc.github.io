@@ -28,7 +28,11 @@ export function Feriedage({
 }) {
   const [sel, setSel] = useState<Selection>({ from: null, to: null });
   const [draft, setDraft] = useState<Draft | null>(null);
-  const bridges = useMemo(() => findBridges(state, todayTime()), [state]);
+  const bridges = useMemo(() => {
+    // Only stretches that lie inside the year on screen: list, calendar marks and pop-up share this.
+    const Y = state.settings.year;
+    return findBridges(state, todayTime()).filter((b) => new Date(b.from).getUTCFullYear() === Y && new Date(b.to).getUTCFullYear() === Y);
+  }, [state]);
 
   const tripAt = (t: number) => state.trips.find((tr) => toTime(tr.from) <= t && toTime(tr.to) >= t);
 

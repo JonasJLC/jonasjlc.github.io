@@ -1,8 +1,6 @@
 import { useDndContext, useDroppable } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { BedDoubleIcon, HouseIcon } from 'lucide-react';
-import { useId, useState } from 'react';
-import { Checkbox } from '../ui/checkbox';
 import { MONTHS_SHORT, WEEKDAYS, toISO } from '../lib/dates';
 import { holidayName } from '../lib/holidays';
 import { dayLoad, sortPlan } from '../lib/plan';
@@ -32,75 +30,14 @@ export function DropList({ id, items, children, empty, always = false, gap = 'ga
 
 const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 
-/** Tick the other nights this stay also covers, then copy it onto all of them at once. */
-function NightPicker({ nights, stay, onApply }: {
-  nights: readonly { t: number; index: number }[]; stay: string; onApply: (times: number[]) => void;
-}) {
-  const [open, setOpen] = useState(false);
-  const [picked, setPicked] = useState<ReadonlySet<number>>(new Set());
-  const panelId = useId();
-  if (nights.length === 0) return null;
-  const toggle = (t: number, on: boolean) => setPicked((s) => {
-    const next = new Set(s);
-    if (on) next.add(t); else next.delete(t);
-    return next;
-  });
-  const close = () => { setOpen(false); setPicked(new Set()); };
-  return (
-    <div className="w-full">
-      <button
-        type="button"
-        className="rounded-md px-1 py-1 text-xs font-medium text-muted-foreground underline underline-offset-4 outline-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring disabled:no-underline disabled:opacity-50"
-        aria-expanded={open}
-        aria-controls={panelId}
-        disabled={!stay.trim()}
-        onClick={() => (open ? close() : setOpen(true))}
-      >
-        Samme sted flere nætter
-      </button>
-      {open && (
-        <fieldset id={panelId} className="mt-2 rounded-xl bg-muted/50 p-3">
-          <legend className="px-1 text-xs text-muted-foreground">Vælg de nætter, I sover på {stay.trim()}</legend>
-          <div className="flex flex-wrap gap-x-4 gap-y-2">
-            {nights.map(({ t, index }) => {
-              const d = new Date(t);
-              const id = `${panelId}-${t}`;
-              return (
-                <div key={t} className="flex items-center gap-2 text-sm">
-                  <Checkbox id={id} checked={picked.has(t)} onCheckedChange={(v) => toggle(t, v === true)} />
-                  <label htmlFor={id} className="cursor-pointer">
-                    Dag {index + 1} · {cap(WEEKDAYS[d.getUTCDay()].slice(0, 3))}. {d.getUTCDate()}. {MONTHS_SHORT[d.getUTCMonth()]}
-                  </label>
-                </div>
-              );
-            })}
-          </div>
-          <div className="mt-3 flex gap-2">
-            <button
-              type="button"
-              className="rounded-lg bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
-              disabled={picked.size === 0}
-              onClick={() => { onApply([...picked]); close(); }}
-            >
-              Sæt på {picked.size} {picked.size === 1 ? 'nat' : 'nætter'}
-            </button>
-            <button type="button" className="rounded-lg px-3 py-1.5 text-xs text-muted-foreground outline-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring" onClick={close}>
-              Annuller
-            </button>
-          </div>
-        </fieldset>
-      )}
-    </div>
-  );
-}
-
 /** One day of the trip as its own card: the date, the day's stops in time order, and where you sleep. */
 export function DayCard({
-  t, index, total, items, base, lat, lng, daysOff, otherNights, onBase, onApplyBase, onAdd, renderRow,
+  t, index, total, items, base, lat, lng, daysOff, stay, onBase, onNights, onAdd, renderRow,
 }: {
   t: number; index: number; total: number; items: PlanItem[]; base: string; lat?: number; lng?: number; daysOff: readonly DayOff[];
-  otherNights: readonly { t: number; index: number }[];
-  onBase: (v: Place) => void; onApplyBase: (times: number[]) => void; onAdd: (type: PlanType, fly?: boolean) => void; renderRow: (it: PlanItem) => React.ReactNode;
+  /** Set on the first night at a place: how many nights in a row, and how many the next stay leaves room for. */
+  stay?: { nights: number; max: number };
+  onBase: (v: Place) => void; onNights: (n: number) => void; onAdd: (type: PlanType, fly?: boolean) => void; renderRow: (it: PlanItem) => React.ReactNode;
 }) {
   const ds = toISO(t);
   const d = new Date(t);
@@ -133,10 +70,21 @@ export function DayCard({
           <div className="flex h-10 min-w-0 flex-1 basis-56 items-center gap-2.5 rounded-xl border border-transparent pr-2 pl-1 text-sm transition-colors focus-within:border-ring hover:bg-cat-overnatning-tint/50">
             <IconChip tone="bg-cat-overnatning-tint text-cat-overnatning-ink"><BedDoubleIcon /></IconChip>
             <PlaceInput value={base} lat={lat} lng={lng} label={`Hvor sover I natten efter dag ${index + 1}?`} onChange={onBase} />
+            {stay && stay.max > 1 && (
+              <select
+                aria-label={`Antal nætter på dette sted fra dag ${index + 1}`}
+                className="h-8 shrink-0 rounded-lg bg-muted px-2 text-xs text-muted-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                value={stay.nights}
+                onChange={(e) => onNights(Number(e.target.value))}
+              >
+                {Array.from({ length: stay.max }, (_, k) => k + 1).map((k) => (
+                  <option key={k} value={k}>{k} {k === 1 ? 'nat' : 'nætter'}</option>
+                ))}
+              </select>
+            )}
           </div>
         )}
         <AddPlan onAdd={onAdd} label="Tilføj plan" types={['oplevelse', 'mad', 'transport', 'andet']} />
-        {!last && <NightPicker nights={otherNights} stay={base} onApply={onApplyBase} />}
       </div>
     </li>
   );
