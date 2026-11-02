@@ -180,7 +180,15 @@ export function Plan({ state, dispatch }: { state: FerieState; dispatch: React.D
                     lat={td?.lat}
                     lng={td?.lng}
                     daysOff={daysOff}
+                    otherNights={dates.slice(0, -1).map((nt, ni) => ({ t: nt, index: ni })).filter((n) => n.t !== t)}
                     onBase={(p) => dispatch({ type: 'saveTday', tday: { id: dayKey(trip.id, t), tripId: trip.id, date: ds, ...p } })}
+                    onApplyBase={(times) => {
+                      times.forEach((nt) => dispatch({
+                        type: 'saveTday',
+                        tday: { id: dayKey(trip.id, nt), tripId: trip.id, date: toISO(nt), base: td?.base ?? '', lat: td?.lat, lng: td?.lng },
+                      }));
+                      toast.success(`${td?.base ?? 'Stedet'} er sat på ${times.length} ${times.length === 1 ? 'nat' : 'nætter'}`);
+                    }}
                     onAdd={(type, fly) => openNew(ds, type, fly)}
                     renderRow={(it) => <Fragment key={it.id}>{row(it)}</Fragment>}
                   />
