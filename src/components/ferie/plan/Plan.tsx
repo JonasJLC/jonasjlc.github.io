@@ -2,6 +2,7 @@ import {
   DndContext, KeyboardSensor, PointerSensor, closestCorners, useSensor, useSensors, type DragEndEvent,
 } from '@dnd-kit/core';
 import { arrayMove, sortableKeyboardCoordinates } from '@dnd-kit/sortable';
+import { ChevronDownIcon } from 'lucide-react';
 import { Fragment, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { commonDaysOff, sortedTrips } from '../lib/balance';
@@ -20,12 +21,15 @@ import { TripHeader, TripPicker } from './TripHeader';
 
 const KEY = 'ferie-plan-trip';
 const readTrip = () => { try { return localStorage.getItem(KEY); } catch { return null; } };
+const DAYS_KEY = 'ferie-plan-days-folded';
+const readFolded = () => { try { return localStorage.getItem(DAYS_KEY) === '1'; } catch { return false; } };
 
 export function Plan({ state, dispatch }: { state: FerieState; dispatch: React.Dispatch<Action> }) {
   const today = todayTime();
   const trips = sortedTrips(state.trips);
   const [picked, setPicked] = useState<string | null>(readTrip);
   const [draft, setDraft] = useState<PlanDraft | null>(null);
+  const [folded, setFolded] = useState(readFolded);
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
@@ -54,10 +58,19 @@ export function Plan({ state, dispatch }: { state: FerieState; dispatch: React.D
   const daysOff = commonDaysOff(state, trip.who);
   const byDay = (ds: string | null) => items.filter((x) => (x.day ?? null) === ds);
 
+  const toggleFolded = (v: boolean) => {
+    setFolded(v);
+    try { localStorage.setItem(DAYS_KEY, v ? '1' : '0'); } catch { /* ignore */ }
+  };
+
   const goto = (ds: string) => {
-    const el = document.getElementById(`pday-${ds}`);
-    const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
-    el?.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' });
+    const scroll = () => {
+      const el = document.getElementById(`pday-${ds}`);
+      const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+      el?.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' });
+    };
+    // A folded list has no day cards to scroll to: open it first.
+    if (folded) { toggleFolded(false); requestAnimationFrame(scroll); } else scroll();
   };
 
   const nightBase = (i: number) => (state.tdays.find((d) => d.id === dayKey(trip.id, dates[i]))?.base ?? '').trim().toLowerCase();
@@ -182,8 +195,20 @@ export function Plan({ state, dispatch }: { state: FerieState; dispatch: React.D
         </div>
         <div className="mt-10 grid items-start gap-4 lg:grid-cols-12">
           <section aria-labelledby="days-h" className="min-w-0 lg:col-span-8">
-            <SectionTitle><span id="days-h">Dag for dag</span></SectionTitle>
-            <ol className="flex flex-col gap-3">
+            <SectionTitle>
+              <button
+                type="button"
+                aria-expanded={!folded}
+                aria-controls="days-list"
+                onClick={() => toggleFolded(!folded)}
+                className="-mx-2 flex min-h-11 items-center gap-1.5 rounded-lg px-2 text-left transition-colors hover:bg-accent/60 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+              >
+                <span id="days-h">Dag for dag</span>
+                <ChevronDownIcon className={`size-4 text-muted-foreground transition-transform ${folded ? '-rotate-90' : ''}`} aria-hidden />
+                {folded && <span className="text-xs font-normal text-muted-foreground">{dates.length} {dates.length === 1 ? 'dag' : 'dage'} skjult</span>}
+              </button>
+            </SectionTitle>
+            <ol id="days-list" className={`${folded ? 'hidden' : 'flex'} flex-col gap-3`}>
               {dates.map((t, i) => {
                 const ds = toISO(t);
                 const td = state.tdays.find((d) => d.id === dayKey(trip.id, t));
