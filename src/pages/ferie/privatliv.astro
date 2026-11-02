@@ -1,0 +1,90 @@
+---
+const title = 'Privatlivspolitik · Ferieplan';
+const description = 'Hvilke oplysninger Ferieplan gemmer, hvorfor, og hvordan du får dem slettet.';
+const updated = '2. november 2026';
+---
+
+<!doctype html>
+<html lang="da">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content={description} />
+    <meta name="robots" content="noindex, nofollow" />
+    <link rel="canonical" href="https://jonasjlc.github.io/ferie/privatliv/" />
+    <title>{title}</title>
+    <link rel="icon" href="/ferie/icon.svg" type="image/svg+xml" />
+    <style>
+      :root {
+        color-scheme: light dark;
+        --bg: #eef2f1;
+        --fg: #1b1f1e;
+        --muted: #56605d;
+        --link: #1f5f55;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root { --bg: #0c0d0d; --fg: #e8ecea; --muted: #a2aba8; --link: #8fd0c4; }
+      }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--fg);
+        font: 16px/1.6 system-ui, -apple-system, 'Segoe UI', sans-serif;
+      }
+      main { max-width: 40rem; margin: 0 auto; padding: 2.5rem 1rem 4rem; }
+      h1 { font-size: 2rem; line-height: 1.2; margin: 0 0 0.25rem; }
+      h2 { font-size: 1.15rem; margin: 2rem 0 0.5rem; }
+      p, li { color: var(--fg); }
+      .meta { color: var(--muted); margin: 0 0 2rem; }
+      a { color: var(--link); }
+      ul { padding-left: 1.25rem; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <p><a href="/ferie/">← Tilbage til Ferieplan</a></p>
+      <h1>Privatlivspolitik</h1>
+      <p class="meta">Ferieplan · senest opdateret {updated}</p>
+
+      <p>
+        Ferieplan er et privat værktøj til at planlægge feriedage, rejser og en fælles rejsekasse.
+        Det bruges kun af inviterede personer og har ingen reklamer, ingen sporing og ingen analyseværktøjer.
+      </p>
+
+      <h2>Hvad vi gemmer</h2>
+      <ul>
+        <li>
+          <strong>Fra din Google-konto:</strong> din e-mailadresse, dit navn og din Google-konto-id, når du logger ind.
+          Vi bruger kun dem til at logge dig ind og til at tjekke, om du er inviteret.
+        </li>
+        <li>
+          <strong>Dine planer:</strong> feriedage, rejser, rejsekasse og noter, som du selv skriver i appen.
+          De deles kun med de andre personer i din husstand i Ferieplan.
+        </li>
+        <li>
+          <strong>I din browser:</strong> en lokal kopi af dine planer, dit valg af lyst/mørkt tema og din login-session.
+          Det ligger i browserens lokale lager på din egen enhed.
+        </li>
+      </ul>
+
+      <h2>Hvem behandler oplysningerne</h2>
+      <ul>
+        <li><strong>Supabase</strong> opbevarer login og planer i en database, som er beskyttet, så kun medlemmer af husstanden kan læse dem.</li>
+        <li><strong>Google</strong> står for selve login. Googles egen <a href="https://policies.google.com/privacy" rel="noopener">privatlivspolitik</a> gælder for den del.</li>
+        <li><strong>GitHub Pages</strong> leverer selve hjemmesiden og kan som enhver webserver registrere tekniske oplysninger som IP-adresse.</li>
+      </ul>
+      <p>Oplysningerne bliver ikke solgt, delt med andre eller brugt til markedsføring.</p>
+
+      <h2>Sletning</h2>
+      <p>
+        Du kan til enhver tid logge ud og rydde browserens data for siden. Vil du have din konto og dine planer
+        slettet fra databasen, så kontakt den person, der inviterede dig til Ferieplan, så bliver det gjort.
+        Du kan også fjerne Ferieplans adgang til din Google-konto under
+        <a href="https://myaccount.google.com/connections" rel="noopener">Googles tredjepartsforbindelser</a>.
+      </p>
+
+      <h2>Ændringer</h2>
+      <p>Hvis politikken ændres, opdateres datoen øverst på siden.</p>
+    </main>
+  </body>
+</html>
