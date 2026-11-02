@@ -144,6 +144,10 @@ export function Plan({ state, dispatch }: { state: FerieState; dispatch: React.D
         <Route trip={trip} items={items} tdays={state.tdays} onGoto={goto} />
       </div>
       <DndContext sensors={sensors} collisionDetection={closestCorners} onDragEnd={onDragEnd}>
+        <div className="mt-10 grid items-start gap-4 md:grid-cols-2">
+          <ToBook items={items} today={today} onEdit={(it) => setDraft(draftFromPlan(it))} />
+          <IdeaBank items={byDay(null)} onAdd={() => openNew(null, 'oplevelse')} renderRow={(it) => <Fragment key={it.id}>{row(it)}</Fragment>} />
+        </div>
         <div className="mt-10 grid items-start gap-4 lg:grid-cols-12">
           <section aria-labelledby="days-h" className="min-w-0 lg:col-span-8">
             <SectionTitle><span id="days-h">Dag for dag</span></SectionTitle>
@@ -170,9 +174,7 @@ export function Plan({ state, dispatch }: { state: FerieState; dispatch: React.D
               })}
             </ol>
           </section>
-          <aside aria-label="Bookinger, idéer og huskeliste" className="flex min-w-0 flex-col gap-4 lg:sticky lg:top-6 lg:col-span-4 lg:mt-9">
-            <ToBook items={items} today={today} onEdit={(it) => setDraft(draftFromPlan(it))} />
-            <IdeaBank items={byDay(null)} onAdd={() => openNew(null, 'oplevelse')} renderRow={(it) => <Fragment key={it.id}>{row(it)}</Fragment>} />
+          <aside aria-label="Huskeliste" className="flex min-w-0 flex-col gap-4 lg:sticky lg:top-6 lg:col-span-4 lg:mt-9">
             <Checklist
               tripId={trip.id}
               checks={state.checks}
