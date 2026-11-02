@@ -3,6 +3,7 @@ import { Toaster } from 'sonner';
 import { AuthGate } from './AuthGate';
 import { Feriedage } from './feriedage/Feriedage';
 import { SettingsSheet } from './feriedage/SettingsSheet';
+import { Forslag } from './forslag/Forslag';
 import { Kassen } from './kassen/Kassen';
 import { Plan } from './plan/Plan';
 import { useFerie } from './lib/use-ferie';
@@ -76,6 +77,7 @@ export default function FerieApp() {
               )}
               {view === 'rejsekassen' && <Kassen state={state} dispatch={dispatch} />}
               {view === 'rejseplan' && <Plan state={state} dispatch={dispatch} />}
+              {view === 'forslag' && <Forslag status={sync.status} />}
             </main>
           </div>
         </div>

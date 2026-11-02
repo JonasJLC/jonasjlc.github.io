@@ -1,4 +1,4 @@
-import { ChevronLeft, ChevronRight, Map, Menu, Moon, Plane, SlidersHorizontal, Sun, Wallet } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Lightbulb, Map, Menu, Moon, Plane, SlidersHorizontal, Sun, Wallet } from 'lucide-react';
 import { useState } from 'react';
 import { AccountButton, AccountDetails, type SyncProps } from './AccountButton';
 import { Mark } from './Mark';
@@ -12,6 +12,7 @@ export const VIEWS = [
   { value: 'feriedage', label: 'Feriedage', icon: Plane },
   { value: 'rejsekassen', label: 'Rejsekassen', icon: Wallet },
   { value: 'rejseplan', label: 'Rejseplan', icon: Map },
+  { value: 'forslag', label: 'Forslag', icon: Lightbulb },
 ] as const;
 export type View = (typeof VIEWS)[number]['value'];
 
@@ -61,7 +62,7 @@ function YearSwitch({ year, onYear, className }: { year: number; onYear: (y: num
 
 const row = 'flex h-9 w-full items-center gap-2.5 rounded-lg px-2.5 text-left text-sm text-muted-foreground transition-colors hover:bg-accent hover:text-foreground';
 
-/** Desktop shell: product, household, the three screens, the year, and the utilities at the foot. */
+/** Desktop shell: product, household, the screens, the year, and the utilities at the foot. */
 export function Sidebar({ state, view, year, onYear, sync, theme, onTheme, onSettings }: ShellProps) {
   return (
     <aside className="sticky top-0 hidden h-dvh w-56 shrink-0 flex-col px-3 pt-6 pb-4 lg:flex">
@@ -120,7 +121,7 @@ export function TopBar({ state, view, year, onYear, sync, theme, onTheme, onSett
       </header>
       <nav
         aria-label="Ferieplan"
-        className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-3 border-t bg-card pb-[env(safe-area-inset-bottom)] lg:hidden"
+        className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-4 border-t bg-card pb-[env(safe-area-inset-bottom)] lg:hidden"
       >
         {VIEWS.map(({ value, label, icon: Icon }) => (
           <a
