@@ -87,6 +87,13 @@ export async function signInWithGoogle(): Promise<string | null> {
   return error ? error.message : null;
 }
 
+/** Finishes sign-in with an ID token from Google's button; `nonce` is the raw (unhashed) nonce. */
+export async function signInWithGoogleIdToken(token: string, nonce: string): Promise<string | null> {
+  const c = await getClient();
+  const { error } = await c.auth.signInWithIdToken({ provider: 'google', token, nonce });
+  return error ? error.message : null;
+}
+
 export async function signOut(): Promise<void> {
   const c = await getClient();
   await c.auth.signOut();

@@ -1,6 +1,8 @@
 import { LogOutIcon } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
+import { GoogleButton } from './GoogleButton';
 import { signInWithGoogle, signOut } from './lib/remote';
+import { GOOGLE_CLIENT_ID } from './lib/supabase-config';
 import type { SyncStatus } from './lib/use-sync';
 import { Button } from './ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from './ui/card';
@@ -42,6 +44,9 @@ export function AuthGate({
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [waited, setWaited] = useState(false);
+  // Google's own button when configured and its script loads; otherwise the Supabase redirect.
+  const [useRedirect, setUseRedirect] = useState(!GOOGLE_CLIENT_ID);
+  const fallBack = useCallback(() => setUseRedirect(true), []);
 
   // Don't hold the app hostage on a slow connection: show it after a few seconds.
   useEffect(() => {
@@ -75,13 +80,20 @@ export function AuthGate({
             <CardDescription>Feriedage, rejsekasse og rejseplan er kun for inviterede.</CardDescription>
           </CardHeader>
           <CardContent>
-            <Button className="w-full" variant="outline" size="lg" onClick={go} disabled={busy}>
-              <GoogleMark />
-              {busy ? 'Åbner Google …' : 'Fortsæt med Google'}
-            </Button>
+            {useRedirect ? (
+              <Button className="w-full" variant="outline" size="lg" onClick={go} disabled={busy}>
+                <GoogleMark />
+                {busy ? 'Åbner Google …' : 'Fortsæt med Google'}
+              </Button>
+            ) : (
+              <GoogleButton clientId={GOOGLE_CLIENT_ID} onError={setError} onUnavailable={fallBack} />
+            )}
             {error && <p role="alert" className="mt-3 text-sm text-warn">{error}</p>}
           </CardContent>
         </Card>
+        <p className="mt-4 text-center text-xs text-muted-foreground">
+          <a className="underline underline-offset-2" href="/ferie/privatliv/">Privatlivspolitik</a>
+        </p>
       </Shell>
     );
   }
