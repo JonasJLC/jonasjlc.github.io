@@ -51,6 +51,8 @@ function Button({
 
   return (
     <Comp
+      // Default to type="button": a bare <button> inside a <form> submits it.
+      {...(asChild ? {} : { type: "button" as const })}
       data-slot="button"
       data-variant={variant}
       data-size={size}
