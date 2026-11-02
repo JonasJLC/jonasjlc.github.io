@@ -76,7 +76,6 @@ export function GoogleButton({
 }) {
   const slot = useRef<HTMLDivElement>(null);
   const [busy, setBusy] = useState(false);
-  const [round, setRound] = useState(0); // bumps after each attempt: every nonce is single-use
 
   useEffect(() => {
     let cancelled = false;
@@ -97,7 +96,8 @@ export function GoogleButton({
           setBusy(true);
           onError(null);
           const err = await signInWithGoogleIdToken(credential, nonce.raw);
-          if (err) { onError(err); setBusy(false); setRound((r) => r + 1); }
+          // If the token is refused, keep people unblocked: switch to the redirect button.
+          if (err) { onError(err); setBusy(false); onUnavailable(); }
         },
       });
       el.replaceChildren();
@@ -113,7 +113,7 @@ export function GoogleButton({
       });
     })();
     return () => { cancelled = true; };
-  }, [clientId, round, onError, onUnavailable]);
+  }, [clientId, onError, onUnavailable]);
 
   return (
     <>

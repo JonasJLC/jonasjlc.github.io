@@ -15,4 +15,5 @@ export const SUPABASE_KEY: string =
  * so Google's dialog names this site instead of the Supabase project domain. When empty,
  * sign-in falls back to the Supabase redirect flow.
  */
-export const GOOGLE_CLIENT_ID: string = import.meta.env.PUBLIC_GOOGLE_CLIENT_ID ?? '';
+export const GOOGLE_CLIENT_ID: string =
+  import.meta.env.PUBLIC_GOOGLE_CLIENT_ID ?? '596784295680-5lpud72ff6ad4ncqj9lffvps0rol28u3.apps.googleusercontent.com';
