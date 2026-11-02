@@ -68,7 +68,7 @@ export function FlightCard({ item, onEdit, notch = 'bg-panel' }: { item: PlanIte
         </span>
         <span className="mt-4 grid grid-cols-[minmax(0,1fr)_minmax(64px,1.1fr)_minmax(0,1fr)] items-end gap-2" aria-hidden>
           <span className="min-w-0">
-            <span className="block truncate text-xs text-muted-foreground">{f.fromCity || 'Fra'}</span>
+            <span className="block truncate text-xs text-muted-foreground">{f.fromCity || 'Fra lufthavn'}</span>
             <Code code={f.from} className="text-[34px] leading-[38px] sm:text-[40px] sm:leading-[44px]" />
             <span className="block text-[15px] font-medium tabular-nums">{f.dep || '–:–'}</span>
           </span>
@@ -77,7 +77,7 @@ export function FlightCard({ item, onEdit, notch = 'bg-panel' }: { item: PlanIte
             <span className="text-xs whitespace-nowrap text-muted-foreground">{dur || 'Flyvetid'}</span>
           </span>
           <span className="min-w-0 text-right">
-            <span className="block truncate text-xs text-muted-foreground">{f.toCity || 'Til'}</span>
+            <span className="block truncate text-xs text-muted-foreground">{f.toCity || 'Til lufthavn'}</span>
             <Code code={f.to} className="text-[34px] leading-[38px] sm:text-[40px] sm:leading-[44px]" />
             <span className="block text-[15px] font-medium tabular-nums">
               {f.arr || '–:–'}{f.arrPlus ? <sup className="ml-0.5 text-[10px] font-semibold text-cat-transport-ink">+1</sup> : null}

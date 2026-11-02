@@ -198,11 +198,9 @@ function FlightFields({ f, onChange, autoFocus }: { f: FlightDraft; onChange: (p
   return (
     <fieldset className="flex flex-col gap-4 rounded-card bg-cat-transport-tint/60 p-4">
       <legend className="sr-only">Flyoplysninger</legend>
-      <div className="grid grid-cols-[88px_minmax(0,1fr)] gap-3">
+      <div className="grid grid-cols-2 gap-3">
         <LabeledField label="Fra"><Input value={f.from} placeholder="CPH" autoCapitalize="characters" autoFocus={autoFocus} className="font-semibold tracking-wide" onChange={(e) => onChange({ from: iata(e.target.value) })} /></LabeledField>
-        <LabeledField label="By"><Input value={f.fromCity} maxLength={40} placeholder="København" onChange={(e) => onChange({ fromCity: e.target.value })} /></LabeledField>
         <LabeledField label="Til"><Input value={f.to} placeholder="RVN" autoCapitalize="characters" className="font-semibold tracking-wide" onChange={(e) => onChange({ to: iata(e.target.value) })} /></LabeledField>
-        <LabeledField label="By"><Input value={f.toCity} maxLength={40} placeholder="Rovaniemi" onChange={(e) => onChange({ toCity: e.target.value })} /></LabeledField>
       </div>
       <div className="grid grid-cols-3 gap-3">
         <LabeledField label="Afgang"><Input type="time" value={f.dep} onChange={(e) => onChange({ dep: e.target.value })} /></LabeledField>
