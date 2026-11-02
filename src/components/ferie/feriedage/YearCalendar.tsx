@@ -3,6 +3,7 @@ import { DAY, MONTHS, fmtLong, isoWeek, isWeekend, toTime, todayTime } from '../
 import { dayOffName, holidayName } from '../lib/holidays';
 import type { DayOff, FerieState, PersonKey, Trip } from '../lib/types';
 import { involves } from '../lib/balance';
+import type { Bridge } from '../lib/bridges';
 import { cn } from '../lib/utils';
 import { personName } from './helpers';
 
@@ -23,10 +24,11 @@ function band(keys: PersonKey[]): string | undefined {
 interface Props {
   state: FerieState;
   selection: Selection;
+  bridges: Bridge[];
   onPick: (t: number) => void;
 }
 
-export function YearCalendar({ state, selection, onPick }: Props) {
+export function YearCalendar({ state, selection, bridges, onPick }: Props) {
   const Y = state.settings.year;
   const offA = state.settings.people.a.daysOff;
   const offB = state.settings.people.b.daysOff;
@@ -46,6 +48,12 @@ export function YearCalendar({ state, selection, onPick }: Props) {
     return m;
   }, [state.trips]);
 
+  const bridgeDays = useMemo(() => {
+    const m = new Map<number, Bridge>();
+    for (const b of bridges) for (let t = b.from; t <= b.to; t += DAY) m.set(t, b);
+    return m;
+  }, [bridges]);
+
   const lo = selection.from === null ? null : Math.min(selection.from, selection.to ?? selection.from);
   const hi = selection.from === null ? null : Math.max(selection.from, selection.to ?? selection.from);
   const today = todayTime();
@@ -62,12 +70,13 @@ export function YearCalendar({ state, selection, onPick }: Props) {
         <li className="inline-flex items-center gap-1.5"><i className={swatch} style={{ background: band(['b']) }} />{nameB}</li>
         <li className="inline-flex items-center gap-1.5"><i className={swatch} style={{ background: band(['a', 'b']) }} />Begge</li>
         <li className="inline-flex items-center gap-1.5"><i className={`${swatch} hatch`} style={{ backgroundColor: band(['a', 'b']) }} />Fri dag i rejsen</li>
+        <li className="inline-flex items-center gap-1.5"><i className="inline-block h-1 w-5 rounded-full bg-bridge" />Forslag: mange fridage for få feriedage</li>
         <li className="inline-flex items-center gap-1.5"><i className="size-1.5 rounded-full bg-holiday" />Helligdag eller fast fridag</li>
         <li className="inline-flex items-center gap-1.5"><i className="size-3.5 rounded-full ring-1 ring-inset ring-data" />I dag</li>
       </ul>
       <div className="grid gap-x-8 gap-y-6 sm:grid-cols-2 xl:grid-cols-3">
         {MONTHS.map((name, m) => (
-          <Month key={m} Y={Y} m={m} name={name} byDay={byDay} offA={offA} offB={offB} nameA={nameA} nameB={nameB} lo={lo} hi={hi} today={today} onPick={onPick} />
+          <Month key={m} Y={Y} m={m} name={name} byDay={byDay} bridgeDays={bridgeDays} offA={offA} offB={offB} nameA={nameA} nameB={nameB} lo={lo} hi={hi} today={today} onPick={onPick} />
         ))}
       </div>
     </section>
@@ -75,12 +84,12 @@ export function YearCalendar({ state, selection, onPick }: Props) {
 }
 
 interface MonthProps {
-  Y: number; m: number; name: string; byDay: Map<number, Trip[]>;
+  Y: number; m: number; name: string; byDay: Map<number, Trip[]>; bridgeDays: Map<number, Bridge>;
   offA: DayOff[]; offB: DayOff[]; nameA: string; nameB: string;
   lo: number | null; hi: number | null; today: number; onPick: (t: number) => void;
 }
 
-const Month = memo(function Month({ Y, m, name, byDay, offA, offB, nameA, nameB, lo, hi, today, onPick }: MonthProps) {
+const Month = memo(function Month({ Y, m, name, byDay, bridgeDays, offA, offB, nameA, nameB, lo, hi, today, onPick }: MonthProps) {
   const first = Date.UTC(Y, m, 1);
   const days = new Date(Date.UTC(Y, m + 1, 0)).getUTCDate();
   const lead = (new Date(first).getUTCDay() + 6) % 7;
@@ -120,9 +129,13 @@ const Month = memo(function Month({ Y, m, name, byDay, offA, offB, nameA, nameB,
                 const next = byDay.get(t + DAY)?.some((tr) => trips.includes(tr)) && d < 6 && idx < days - 1;
                 const selPrev = selected && t > (lo as number) && d > 0 && idx > 0;
                 const selNext = selected && t < (hi as number) && d < 6 && idx < days - 1;
+                const sug = bridgeDays.get(t);
+                const sugPrev = !!sug && bridgeDays.get(t - DAY) === sug && d > 0 && idx > 0;
+                const sugNext = !!sug && bridgeDays.get(t + DAY) === sug && d < 6 && idx < days - 1;
                 const label = [
                   fmtLong(t),
                   hol,
+                  sug && `foreslået ferieperiode: ${sug.total} fridage for ${sug.cost} ${sug.cost === 1 ? 'feriedag' : 'feriedage'}`,
                   ...trips.map((tr) => `rejse: ${tr.name || 'Rejse'}`),
                   keys.length && free ? 'koster ikke ferie' : '',
                   selected ? 'valgt' : '',
@@ -153,6 +166,12 @@ const Month = memo(function Month({ Y, m, name, byDay, offA, offB, nameA, nameB,
                     >
                       {t === today && !edge && <span aria-hidden className="absolute inset-0.5 rounded-md ring-1 ring-inset ring-data" />}
                       {idx + 1}
+                      {sug && (
+                        <span
+                          aria-hidden
+                          className={cn('absolute right-0 bottom-0 left-0 h-1 bg-bridge', !sugPrev && 'rounded-l-full', !sugNext && 'rounded-r-full')}
+                        />
+                      )}
                       {hol && (
                         <span
                           aria-hidden

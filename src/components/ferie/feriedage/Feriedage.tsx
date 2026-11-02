@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { addWorkDays } from '../lib/holidays';
 import { PlaneIcon, PlusIcon } from 'lucide-react';
@@ -10,6 +10,8 @@ import { PageTitle, PersonDots } from '../page';
 import { Button } from '../ui/button';
 import { newId, type Action } from '../lib/use-ferie';
 import type { FerieState, Trip, Who } from '../lib/types';
+import { findBridges } from '../lib/bridges';
+import { BridgeList } from './BridgeList';
 import { BridgeTip } from './BridgeTip';
 import { Finder } from './Finder';
 import { PeopleSummary } from './PeopleSummary';
@@ -26,6 +28,7 @@ export function Feriedage({
 }) {
   const [sel, setSel] = useState<Selection>({ from: null, to: null });
   const [draft, setDraft] = useState<Draft | null>(null);
+  const bridges = useMemo(() => findBridges(state, todayTime()), [state]);
 
   const tripAt = (t: number) => state.trips.find((tr) => toTime(tr.from) <= t && toTime(tr.to) >= t);
 
@@ -87,7 +90,8 @@ export function Feriedage({
         </div>
         <div className="grid items-start gap-4 lg:grid-cols-12">
           <div className="min-w-0 lg:col-span-8">
-            <YearCalendar state={state} selection={sel} onPick={onPick} />
+            <YearCalendar state={state} selection={sel} bridges={bridges} onPick={onPick} />
+            <BridgeList bridges={bridges} year={state.settings.year} onUse={openNew} />
           </div>
           <div className="order-first flex min-w-0 flex-col gap-4 lg:sticky lg:top-6 lg:order-none lg:col-span-4">
             <TripList state={state} onEdit={(t) => setDraft(draftFromTrip(t))} />
@@ -107,7 +111,7 @@ export function Feriedage({
           if (sel.from !== null && sel.to !== null) openNew(sel.from, sel.to);
         }}
       />
-      <BridgeTip state={state} year={state.settings.year} onUse={openNew} />
+      <BridgeTip state={state} bridges={bridges} year={state.settings.year} onUse={openNew} />
       <TripSheet state={state} dispatch={dispatch} draft={draft} onClose={() => setDraft(null)} onSave={save} onDelete={remove} />
     </div>
   );
