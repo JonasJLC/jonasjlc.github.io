@@ -91,7 +91,16 @@ export function Plan({ state, dispatch }: { state: FerieState; dispatch: React.D
     return undefined;
   };
 
-  const row = (it: PlanItem) => <PlanRow key={it.id} item={it} distKm={distFromStay(it)} onEdit={(x) => setDraft(draftFromPlan(x))} onCycle={cycle} />;
+  /** Straight-line km from the previous stop on the same day, when both have a map point. */
+  const legFromPrev = (it: PlanItem): number | undefined => {
+    if (!it.day || it.lat === undefined || it.lng === undefined) return undefined;
+    const day = items.filter((x) => x.day === it.day).sort(sortPlan);
+    const prev = day[day.findIndex((x) => x.id === it.id) - 1];
+    if (prev?.lat === undefined || prev.lng === undefined) return undefined;
+    return distanceKm({ lat: prev.lat, lng: prev.lng }, { lat: it.lat, lng: it.lng });
+  };
+
+  const row = (it: PlanItem) => <PlanRow key={it.id} item={it} distKm={distFromStay(it)} legKm={legFromPrev(it)} onEdit={(x) => setDraft(draftFromPlan(x))} onCycle={cycle} />;
 
   const onDragEnd = ({ active, over }: DragEndEvent) => {
     if (!over) return;
@@ -134,12 +143,17 @@ export function Plan({ state, dispatch }: { state: FerieState; dispatch: React.D
     dispatch({ type: 'addChecks', checks: add });
   };
 
-  const openNew = (day: string | null, type: PlanType) => setDraft(newPlanDraft(day, type));
+  const openNew = (day: string | null, type: PlanType, fly = false) => setDraft(newPlanDraft(day, type, fly));
 
   return (
     <div>
-      <TripPicker trips={trips} selectedId={trip.id} today={today} onSelect={select} />
-      <TripHeader state={state} trip={trip} items={items} checks={state.checks} today={today} onNew={() => openNew(null, 'oplevelse')} />
+      <TripPicker state={state} trips={trips} selectedId={trip.id} today={today} onSelect={select} />
+      <TripHeader
+        state={state} trip={trip} items={items} checks={state.checks} today={today}
+        onNew={() => openNew(null, 'oplevelse')}
+        onNewFlight={() => openNew(trip.from, 'transport', true)}
+        onEdit={(x) => setDraft(draftFromPlan(x))}
+      />
       <div className="mt-4">
         <Route trip={trip} items={items} tdays={state.tdays} onGoto={goto} />
       </div>
@@ -151,7 +165,7 @@ export function Plan({ state, dispatch }: { state: FerieState; dispatch: React.D
         <div className="mt-10 grid items-start gap-4 lg:grid-cols-12">
           <section aria-labelledby="days-h" className="min-w-0 lg:col-span-8">
             <SectionTitle><span id="days-h">Dag for dag</span></SectionTitle>
-            <ol className="rounded-panel bg-panel px-5 py-4">
+            <ol className="flex flex-col gap-3">
               {dates.map((t, i) => {
                 const ds = toISO(t);
                 const td = state.tdays.find((d) => d.id === dayKey(trip.id, t));
@@ -167,14 +181,14 @@ export function Plan({ state, dispatch }: { state: FerieState; dispatch: React.D
                     lng={td?.lng}
                     daysOff={daysOff}
                     onBase={(p) => dispatch({ type: 'saveTday', tday: { id: dayKey(trip.id, t), tripId: trip.id, date: ds, ...p } })}
-                    onAdd={(type) => openNew(ds, type)}
+                    onAdd={(type, fly) => openNew(ds, type, fly)}
                     renderRow={(it) => <Fragment key={it.id}>{row(it)}</Fragment>}
                   />
                 );
               })}
             </ol>
           </section>
-          <aside aria-label="Huskeliste" className="flex min-w-0 flex-col gap-4 lg:sticky lg:top-6 lg:col-span-4 lg:mt-9">
+          <aside aria-label="Huskeliste" id="huskeliste" className="flex min-w-0 scroll-mt-20 flex-col gap-4 lg:sticky lg:top-6 lg:col-span-4 lg:mt-9">
             <Checklist
               tripId={trip.id}
               checks={state.checks}

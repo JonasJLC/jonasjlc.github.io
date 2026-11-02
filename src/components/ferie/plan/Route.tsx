@@ -1,9 +1,7 @@
 import { fmtShort, toISO } from '../lib/dates';
-import { sortPlan, tripDates } from '../lib/plan';
+import { routeGroups, sortPlan, tripDates } from '../lib/plan';
 import type { PlanItem, Trip, TripDay } from '../lib/types';
 import { cn } from '../lib/utils';
-
-interface Group { base: string; from: number; n: number }
 
 /**
  * The route as a strip: each stay is as long as its nights, with the transport that takes
@@ -17,13 +15,7 @@ export function Route({
   const dates = tripDates(trip);
   if (!dates.length) return null;
   const nights = dates.length > 1 ? dates.slice(0, -1) : [];
-  const groups: Group[] = [];
-  for (const t of nights) {
-    const base = (tdays.find((d) => d.tripId === trip.id && d.date === toISO(t))?.base ?? '').trim();
-    const g = groups[groups.length - 1];
-    if (g && g.base.toLowerCase() === base.toLowerCase()) g.n++;
-    else groups.push({ base, from: t, n: 1 });
-  }
+  const groups = routeGroups(trip, tdays);
   const legs = (t: number) =>
     items.filter((x) => x.type === 'transport' && x.day === toISO(t)).sort(sortPlan).map((x) => x.title || 'Transport');
   const last = dates[dates.length - 1];
@@ -40,7 +32,7 @@ export function Route({
       <div className="-mx-5 overflow-x-auto px-5">
         <ol className="flex min-w-[560px] items-stretch gap-1" aria-label="Rute">
           <li className="w-24 shrink-0 pr-2">
-            <span className="block h-1.5 w-full rounded-full bg-foreground" aria-hidden />
+            <span className="block h-1.5 w-full rounded-full bg-cat-transport" aria-hidden />
             <span className="mt-2.5 block text-sm font-medium">Hjemme</span>
             <span className="block text-xs text-muted-foreground">Afrejse {fmtShort(dates[0])}</span>
           </li>
@@ -51,9 +43,9 @@ export function Route({
                 <button
                   type="button"
                   onClick={() => onGoto(toISO(g.from))}
-                  className="group -mx-1 -my-1 block w-[calc(100%+0.5rem)] rounded-lg px-1 py-1 text-left transition-colors hover:bg-accent"
+                  className="group -mx-1 -my-1 block w-[calc(100%+0.5rem)] rounded-lg px-1 py-1 text-left transition-colors hover:bg-cat-overnatning-tint/60"
                 >
-                  <span className={cn('block h-1.5 w-full rounded-full', g.base ? 'bg-data' : 'hatch bg-muted')} aria-hidden />
+                  <span className={cn('block h-1.5 w-full rounded-full', g.base ? 'bg-cat-overnatning' : 'hatch bg-muted')} aria-hidden />
                   <span className={cn('mt-2.5 block truncate text-sm', g.base ? 'font-medium' : 'text-muted-foreground')}>{g.base || 'Ikke valgt'}</span>
                   <span className="block truncate text-xs text-muted-foreground">
                     {g.n} {g.n === 1 ? 'nat' : 'nætter'} fra {fmtShort(g.from)}
@@ -64,7 +56,7 @@ export function Route({
             );
           })}
           <li className="w-24 shrink-0 pl-2">
-            <span className="block h-1.5 w-full rounded-full bg-foreground" aria-hidden />
+            <span className="block h-1.5 w-full rounded-full bg-cat-transport" aria-hidden />
             <span className="mt-2.5 block text-sm font-medium">Hjem</span>
             <span className="block text-xs text-muted-foreground">{fmtShort(last)}</span>
             {home.length > 0 && <span className="block truncate text-xs text-muted-foreground">Med {home.join(', ').replace(/^./, (c) => c.toLowerCase())}</span>}

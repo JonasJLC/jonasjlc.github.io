@@ -109,3 +109,54 @@ export const bookByLabel = (it: PlanItem, today: number) => {
 };
 
 export const checkOrder = (list: CheckItem[]) => list.reduce((m, c) => Math.max(m, c.order), 0);
+
+/** `2 t 25 min`, `45 min`. */
+export function fmtMins(m: number | null): string {
+  if (!m || m <= 0) return '';
+  const h = Math.floor(m / 60);
+  const r = m % 60;
+  return h ? `${h} t${r ? ` ${r} min` : ''}` : `${r} min`;
+}
+
+/** Parses `2:25`, `2.25`, `145` (minutes) or `2t 25` into minutes. */
+export function parseMins(s: string): number | null {
+  const v = s.trim();
+  if (!v) return null;
+  const hm = v.match(/^(\d{1,2})\s*[:.t]\s*(\d{1,2})?\s*(?:min)?$/i);
+  if (hm) return +hm[1] * 60 + (+(hm[2] ?? 0));
+  return /^\d+$/.test(v) ? +v : null;
+}
+
+/** Spoken label for a flight, for screen readers. */
+export function flightLabel(it: PlanItem): string {
+  const f = it.flight;
+  if (!f) return it.title;
+  const end = (code: string, city: string, time: string) => [city, code, time].filter(Boolean).join(' ');
+  return `Fly fra ${end(f.from, f.fromCity, f.dep)} til ${end(f.to, f.toCity, f.arr)}${f.no ? `, ${f.no}` : ''}`;
+}
+
+export interface RouteGroup { base: string; from: number; n: number }
+
+/** Consecutive nights at the same place, in order. */
+export function routeGroups(trip: Trip, tdays: { tripId: string; date: string; base: string }[]): RouteGroup[] {
+  const dates = tripDates(trip);
+  const nights = dates.length > 1 ? dates.slice(0, -1) : [];
+  const groups: RouteGroup[] = [];
+  for (const t of nights) {
+    const base = (tdays.find((d) => d.tripId === trip.id && d.date === toISO(t))?.base ?? '').trim();
+    const g = groups[groups.length - 1];
+    if (g && g.base.toLowerCase() === base.toLowerCase()) g.n++;
+    else groups.push({ base, from: t, n: 1 });
+  }
+  return groups;
+}
+
+/** Days until departure, or where in the trip today falls. */
+export function tripClock(tr: Trip, today: number): { kind: 'before' | 'during' | 'after'; n: number; of: number } {
+  const a = toTime(tr.from);
+  const b = toTime(tr.to);
+  const of = Math.max(1, Math.round((b - a) / DAY) + 1);
+  if (today < a) return { kind: 'before', n: Math.round((a - today) / DAY), of };
+  if (today <= b) return { kind: 'during', n: Math.round((today - a) / DAY) + 1, of };
+  return { kind: 'after', n: Math.round((today - b) / DAY), of };
+}

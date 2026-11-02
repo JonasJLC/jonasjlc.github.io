@@ -1,7 +1,7 @@
 import { defaultKasse, defaultSettings, defaultState } from './defaults';
 import { toISO } from './dates';
 import { DAYS_OFF, LEGACY_DAYS_OFF } from './holidays';
-import type { CheckItem, Person, FerieState, Kasse, MoneyItem, PlanItem, PlanStatus, PlanType, Trip, TripDay } from './types';
+import type { CheckItem, Flight, Person, FerieState, Kasse, MoneyItem, PlanItem, PlanStatus, PlanType, Trip, TripDay } from './types';
 
 /** Persistence boundary. A Supabase implementation can replace the local one later. */
 export interface FerieStore {
@@ -85,6 +85,7 @@ export function normalize(raw: unknown): FerieState {
       moneyId: x.moneyId ? String(x.moneyId) : null,
       order: Number(x.order) || 0,
       created: Number(x.created) || 0,
+      ...(x.type === 'transport' && flightOf(x.flight) ? { flight: flightOf(x.flight) } : {}),
     }));
   const tdays: TripDay[] = list<TripDay>(r.tdays)
     .filter((x) => typeof x.tripId === 'string' && typeof x.date === 'string')
@@ -110,6 +111,23 @@ export function normalize(raw: unknown): FerieState {
     },
     trips,
   };
+}
+
+/** A plan's flight details, cleaned; undefined when there is nothing to show. */
+export function flightOf(raw: unknown): Flight | undefined {
+  if (!raw || typeof raw !== 'object') return undefined;
+  const r = raw as Record<string, unknown>;
+  const str = (v: unknown, max = 40) => (typeof v === 'string' ? v.trim().slice(0, max) : '');
+  const code = (v: unknown) => str(v).toUpperCase().replace(/[^A-Z]/g, '').slice(0, 3);
+  const time = (v: unknown) => (typeof v === 'string' && /^\d{2}:\d{2}$/.test(v) ? v : '');
+  const mins = Number(r.mins);
+  const f: Flight = {
+    from: code(r.from), fromCity: str(r.fromCity), to: code(r.to), toCity: str(r.toCity),
+    dep: time(r.dep), arr: time(r.arr), arrPlus: r.arrPlus === 1 ? 1 : 0,
+    mins: Number.isFinite(mins) && mins > 0 && r.mins !== null && r.mins !== '' ? Math.round(mins) : null,
+    airline: str(r.airline), no: str(r.no, 12).toUpperCase(), ref: str(r.ref, 12).toUpperCase(),
+  };
+  return f.from || f.to || f.no ? f : undefined;
 }
 
 /**

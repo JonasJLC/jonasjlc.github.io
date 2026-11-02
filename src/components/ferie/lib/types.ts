@@ -117,6 +117,27 @@ export interface MoneyItem {
 export type PlanType = 'transport' | 'oplevelse' | 'mad' | 'overnatning' | 'andet';
 export type PlanStatus = 'idea' | 'tobook' | 'booked';
 
+/** Boarding-pass details on a transport plan. Times are local at each airport. */
+export interface Flight {
+  /** IATA codes, e.g. `CPH`. */
+  from: string;
+  fromCity: string;
+  to: string;
+  toCity: string;
+  /** `HH:MM` or empty. */
+  dep: string;
+  arr: string;
+  /** Lands the day after it departs. */
+  arrPlus: 0 | 1;
+  /** Flight time in minutes, typed in (time zones make computing it unreliable). */
+  mins: number | null;
+  airline: string;
+  /** Flight number, e.g. `SK 1302`. */
+  no: string;
+  /** Booking reference. */
+  ref: string;
+}
+
 /** One thing on a trip's itinerary. `day === null` means it sits in the idea bank. */
 export interface PlanItem {
   id: string;
@@ -142,6 +163,8 @@ export interface PlanItem {
   moneyId: string | null;
   order: number;
   created: number;
+  /** Only on transport plans that are flights. */
+  flight?: Flight;
 }
 
 /** Where you sleep on a given night of a trip. */
