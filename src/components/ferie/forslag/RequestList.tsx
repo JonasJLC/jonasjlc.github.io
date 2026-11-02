@@ -67,6 +67,16 @@ function Item({ r, owner, onChanged }: { r: FeatureRequest; owner: boolean; onCh
           {d.acceptance.map((a, i) => <li key={i}>{a}</li>)}
         </ul>
       )}
+      {r.github_issue_url && (
+        <a
+          href={r.github_issue_url}
+          target="_blank"
+          rel="noreferrer"
+          className="w-fit text-xs text-muted-foreground underline underline-offset-2 hover:text-foreground"
+        >
+          GitHub #{r.github_issue_number}
+        </a>
+      )}
       {!owner && r.owner_note && (
         <p className="rounded-xl bg-card p-3 text-sm leading-6"><b className="font-medium">Svar: </b>{r.owner_note}</p>
       )}

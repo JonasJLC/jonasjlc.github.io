@@ -29,3 +29,9 @@ skip_nonce_check = false
 #   supabase secrets set ANTHROPIC_API_KEY=...
 [functions.feature-chat]
 verify_jwt = false
+
+# Mirrors a saved feature request to a GitHub issue. Same JWT handling as feature-chat.
+# The token is a secret, never committed (fine-grained PAT, this repo only, Issues read/write):
+#   supabase secrets set GITHUB_ISSUES_TOKEN=...
+[functions.create-issue]
+verify_jwt = false

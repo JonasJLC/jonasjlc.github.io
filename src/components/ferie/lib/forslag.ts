@@ -26,6 +26,8 @@ export interface FeatureRequest {
   owner_note: string | null;
   created_by_name: string;
   created_at: string;
+  github_issue_number: number | null;
+  github_issue_url: string | null;
 }
 
 export type ChatReply =
@@ -70,7 +72,7 @@ export interface Board {
   requests: FeatureRequest[];
 }
 
-const COLUMNS = 'id,title,summary,details,status,owner_note,created_by_name,created_at';
+const COLUMNS = 'id,title,summary,details,status,owner_note,created_by_name,created_at,github_issue_number,github_issue_url';
 
 export async function loadBoard(): Promise<Board | null> {
   const c = await getClient();
@@ -86,16 +88,20 @@ export async function loadBoard(): Promise<Board | null> {
   };
 }
 
+/** Saves the request, then mirrors it to a GitHub issue. The issue is best effort: the request is kept either way. */
 export async function saveRequest(householdId: string, draft: Draft, transcript: ChatMessage[]): Promise<void> {
   const c = await getClient();
-  const { error } = await c.from('feature_requests').insert({
+  const { data, error } = await c.from('feature_requests').insert({
     household_id: householdId,
     title: draft.title,
     summary: draft.summary,
     details: { why: draft.why, area: draft.area, acceptance: draft.acceptance },
     transcript,
-  });
+  }).select('id').single();
   if (error) throw error;
+  try {
+    await c.functions.invoke('create-issue', { body: { id: data.id } });
+  } catch { /* the request is saved; the issue can be created later */ }
 }
 
 export async function triage(id: string, patch: { status?: RequestStatus; owner_note?: string | null }): Promise<void> {
