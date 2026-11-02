@@ -249,10 +249,8 @@ export function lostInYear(state: FerieState, k: PersonKey, year: number): numbe
   return ledger(state, k).lost.reduce((s, x) => (x.t >= st && x.t <= en ? s + x.amt : s), 0);
 }
 
-/** Vacation days planned on work days in a calendar year for one person. */
-export function usedInYear(state: FerieState, k: PersonKey, year: number): number {
-  const st = Date.UTC(year, 0, 1);
-  const en = Date.UTC(year, 11, 31);
+/** Vacation days planned on work days from `st` to `en` inclusive for one person. */
+export function usedBetween(state: FerieState, k: PersonKey, st: number, en: number): number {
   let used = 0;
   for (const trip of state.trips) {
     if (!involves(trip, k)) continue;
@@ -263,6 +261,10 @@ export function usedInYear(state: FerieState, k: PersonKey, year: number): numbe
   }
   return used;
 }
+
+/** Vacation days planned on work days in a calendar year for one person. */
+export const usedInYear = (state: FerieState, k: PersonKey, year: number): number =>
+  usedBetween(state, k, Date.UTC(year, 0, 1), Date.UTC(year, 11, 31));
 
 export const sortedTrips = (trips: Trip[]): Trip[] =>
   trips

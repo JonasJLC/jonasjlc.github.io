@@ -1,21 +1,20 @@
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { addWorkDays } from '../lib/holidays';
-import { PlusIcon } from 'lucide-react';
-import { commonDaysOff, lostInYear, sortedTrips } from '../lib/balance';
-import { fmtN, fmtShort, toISO, toTime, todayTime } from '../lib/dates';
+import { PlaneIcon, PlusIcon } from 'lucide-react';
+import { commonDaysOff, lostInYear, sortedTrips, whoKeys } from '../lib/balance';
+import { DAY, fmtN, fmtShort, toISO, toTime, todayTime } from '../lib/dates';
 import { earliestAffordable } from '../lib/finder';
 import { PERSON_KEYS } from '../lib/types';
-import { PageTitle } from '../page';
+import { PageTitle, PersonDots } from '../page';
 import { Button } from '../ui/button';
 import { newId, type Action } from '../lib/use-ferie';
 import type { FerieState, Trip, Who } from '../lib/types';
-import { BalanceChart } from './BalanceChart';
 import { Finder } from './Finder';
 import { PeopleSummary } from './PeopleSummary';
 import { SelectionBar } from './SelectionBar';
 import { TripList } from './TripList';
-import { impact, personName } from './helpers';
+import { fmtDaysRange, impact, personName, tripDays } from './helpers';
 import { TripSheet, draftFromTrip, type Draft } from './TripSheet';
 import { YearCalendar, type Selection } from './YearCalendar';
 
@@ -72,7 +71,12 @@ export function Feriedage({
     <div>
       <PageTitle
         title={`Feriedage ${state.settings.year}`}
-        actions={<Button onClick={() => openNew(start, start)}><PlusIcon aria-hidden />Ny rejse</Button>}
+        actions={
+          <>
+            <NextTrip state={state} onOpen={(t) => setDraft(draftFromTrip(t))} />
+            <Button onClick={() => openNew(start, start)}><PlusIcon aria-hidden />Ny rejse</Button>
+          </>
+        }
       >
         <Finding state={state} />
       </PageTitle>
@@ -80,7 +84,6 @@ export function Feriedage({
         <div className="grid gap-4 md:grid-cols-2">
           <PeopleSummary state={state} />
         </div>
-        <BalanceChart state={state} />
         <div className="grid items-start gap-4 lg:grid-cols-12">
           <div className="min-w-0 lg:col-span-8">
             <YearCalendar state={state} selection={sel} onPick={onPick} />
@@ -134,4 +137,39 @@ function Finding({ state }: { state: FerieState }) {
   }
   if (!upcoming.length) return <>Ingen rejser planlagt endnu. Vælg datoer i kalenderen for at lægge den første ind.</>;
   return <span className="text-foreground">I har dage nok til {upcoming.length === 1 ? 'rejsen' : `alle ${upcoming.length} rejser`}.</span>;
+}
+
+/** The next trip (or the one under way) and how long until it, as a shortcut to open it. */
+function NextTrip({ state, onOpen }: { state: FerieState; onOpen: (t: Trip) => void }) {
+  const today = todayTime();
+  const trip = sortedTrips(state.trips).find((t) => !Number.isNaN(toTime(t.from)) && toTime(t.to) >= today);
+  if (!trip) return null;
+  const from = toTime(trip.from), to = toTime(trip.to);
+  const name = trip.name || 'Rejsen';
+  const days = (a: number, b: number) => Math.round((b - a) / DAY);
+  const n = days(today, from);
+  const left = days(today, to);
+  const when = from <= today
+    ? left === 0 ? 'slutter i dag' : `i gang, ${left === 1 ? '1 dag' : `${left} dage`} tilbage`
+    : n === 1 ? 'i morgen' : `om ${n} dage`;
+  const cost = fmtDaysRange(whoKeys(trip.who).map((k) => tripDays(state, trip, k)));
+  return (
+    <Button
+      variant="outline"
+      className="h-auto max-w-full py-1.5 md:h-auto"
+      onClick={() => onOpen(trip)}
+      aria-label={`Næste rejse: ${name} ${when}, ${fmtShort(from, true)}, ${cost} feriedage. Åbn rejsen.`}
+    >
+      <PlaneIcon aria-hidden className="text-data" />
+      <span className="flex min-w-0 flex-col items-start text-left leading-5">
+        <span className="truncate">
+          <span className="font-semibold">{name}</span> {when}
+        </span>
+        <span className="flex items-center gap-1.5 text-xs font-normal text-muted-foreground">
+          <PersonDots who={trip.who} />
+          {fmtShort(from)} · {cost} {cost === '1' ? 'feriedag' : 'feriedage'}
+        </span>
+      </span>
+    </Button>
+  );
 }
