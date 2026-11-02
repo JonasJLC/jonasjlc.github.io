@@ -10,6 +10,7 @@ import { PageTitle, PersonDots } from '../page';
 import { Button } from '../ui/button';
 import { newId, type Action } from '../lib/use-ferie';
 import type { FerieState, Trip, Who } from '../lib/types';
+import { BridgeTip } from './BridgeTip';
 import { Finder } from './Finder';
 import { PeopleSummary } from './PeopleSummary';
 import { SelectionBar } from './SelectionBar';
@@ -106,6 +107,7 @@ export function Feriedage({
           if (sel.from !== null && sel.to !== null) openNew(sel.from, sel.to);
         }}
       />
+      <BridgeTip state={state} year={state.settings.year} onUse={openNew} />
       <TripSheet state={state} dispatch={dispatch} draft={draft} onClose={() => setDraft(null)} onSave={save} onDelete={remove} />
     </div>
   );
