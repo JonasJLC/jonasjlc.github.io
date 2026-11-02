@@ -11,7 +11,7 @@ import { useSync } from './lib/use-sync';
 import { Sidebar, TopBar, VIEWS, type Theme, type View } from './Sidebar';
 
 const THEME_KEY = 'ferie-theme';
-const FRAME = { light: '#eef2f1', dark: '#0c0d0d' };
+const FRAME = { light: '#f2ece4', dark: '#100e0c' };
 
 function useTheme(): [Theme, () => void] {
   const [theme, setTheme] = useState<Theme>(() => {
@@ -70,8 +70,8 @@ export default function FerieApp() {
         <Sidebar {...shell} />
         <TopBar {...shell} />
         <div className="min-w-0 flex-1 bg-background lg:bg-frame lg:py-2 lg:pr-2">
-          <div className="min-h-[calc(100dvh-3.5rem)] bg-background lg:min-h-[calc(100dvh-1rem)] lg:rounded-2xl lg:border">
-            <main className="mx-auto w-full max-w-[1148px] px-4 pt-6 pb-28 sm:px-6 lg:pt-10 lg:pb-16">
+          <div className="min-h-[calc(100dvh-3.5rem)] bg-background lg:min-h-[calc(100dvh-1rem)] lg:rounded-[20px] lg:shadow-card">
+            <main className="mx-auto w-full max-w-[1148px] px-4 pt-6 pb-32 sm:px-6 lg:pt-10 lg:pb-16">
               {view === 'feriedage' && (
                 <Feriedage state={state} dispatch={dispatch} />
               )}
@@ -88,7 +88,7 @@ export default function FerieApp() {
         closeButton
         toastOptions={{
           classNames: {
-            toast: 'bg-card! text-foreground! border-border! rounded-2xl! font-sans! shadow-[0_12px_32px_rgba(0,0,0,.14)]!',
+            toast: 'bg-card! text-foreground! border-0! rounded-2xl! font-sans! shadow-lift!',
             description: 'text-muted-foreground!',
             actionButton: 'bg-primary! text-primary-foreground! rounded-full!',
             closeButton: 'bg-card! border-border! text-muted-foreground!',

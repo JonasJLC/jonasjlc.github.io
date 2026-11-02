@@ -12,7 +12,7 @@ const description = 'Planlæg feriedage, rejser og rejsekasse for to.';
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="description" content={description} />
-    <meta name="theme-color" content="#eef2f1" />
+    <meta name="theme-color" content="#f2ece4" />
     <meta name="robots" content="noindex, nofollow" />
     <link rel="canonical" href="https://jonasjlc.github.io/ferie/" />
     <meta property="og:title" content={title} />
@@ -32,7 +32,7 @@ const description = 'Planlæg feriedage, rejser og rejsekasse for to.';
         try { t = localStorage.getItem('ferie-theme'); } catch {}
         if (t !== 'light' && t !== 'dark') t = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
         document.documentElement.dataset.theme = t;
-        document.querySelector('meta[name="theme-color"]')?.setAttribute('content', t === 'dark' ? '#0c0d0d' : '#eef2f1');
+        document.querySelector('meta[name="theme-color"]')?.setAttribute('content', t === 'dark' ? '#100e0c' : '#f2ece4');
       })();
     </script>
   </head>

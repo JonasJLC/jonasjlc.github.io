@@ -6,69 +6,106 @@
 
 /*
  * Ferieplan tokens.
- * A sea-mist frame around a white sheet; tonal panels one step off white, no borders and no
- * shadows at rest. Colour lives on data: the teal is the one data hue, each person keeps a
- * stable hue (full on their own series, pale as identity), red only marks a failing fact.
+ * Warm sand frame around a paper sheet; panels one step darker, cards lifted with a soft warm
+ * shadow (elevation is declared once: shadow, never shadow plus border). Teal is the money/data
+ * hue, each person keeps a stable hue, and each kind of plan has its own category hue so a day
+ * reads at a glance. Red only marks a failing fact.
  */
 :root {
-  --frame: #eef2f1;
-  --background: #ffffff;
-  --foreground: #1f201d;
+  --frame: #f2ece4;
+  --background: #fcfaf6;
+  --foreground: #23201c;
   --card: #ffffff;
-  --panel: #f6f8f7;
-  --muted: #e9edec;
-  --muted-foreground: #5c605d;
-  --border: #e3e7e6;
-  --rule: #e8ecea;
-  --input: #cfd6d4;
-  --primary: #1f201d;
+  --panel: #f5efe7;
+  --muted: #ebe4da;
+  --muted-foreground: #6a625a;
+  --border: #e5ddd2;
+  --rule: #ece5db;
+  --input: #d5ccbf;
+  --primary: #23201c;
   --primary-foreground: #ffffff;
-  --accent: #eaeeed;
-  --nav-active: #dfe5e3;
+  --accent: #f1ebe2;
+  --nav-active: #ebe3d8;
 
   --data: #1b6e66;
-  --data-tint: #e1efed;
+  --data-tint: #e0efeb;
+  --data-ink: #12514b;
   --person-a: #2f66ad;
   --person-a-tint: #e4edf8;
   --person-b: #b2457b;
   --person-b-tint: #f6e6ee;
 
+  --cat-transport: #1a7fb0;
+  --cat-transport-tint: #e2f1f8;
+  --cat-transport-ink: #115877;
+  --cat-oplevelse: #d0563b;
+  --cat-oplevelse-tint: #fce9e2;
+  --cat-oplevelse-ink: #973620;
+  --cat-mad: #bb7410;
+  --cat-mad-tint: #fbefd8;
+  --cat-mad-ink: #7a4a06;
+  --cat-overnatning: #7552c2;
+  --cat-overnatning-tint: #efe9fa;
+  --cat-overnatning-ink: #4f338f;
+  --cat-andet: #6b6f78;
+  --cat-andet-tint: #edeef0;
+  --cat-andet-ink: #42464e;
+
   --warn: #b42318;
   --warn-tint: #fdecea;
   --warn-ink: #7a1d14;
   --caution: #92400e;
-  --caution-tint: #fdf3dc;
+  --caution-tint: #fcf0d8;
   --ok: #2e7d32;
   --ok-tint: #e2f3e4;
   --ok-ink: #14451a;
   --holiday: #b45309;
-  --grid: #e6e9e8;
+  --grid: #e9e2d8;
   --ring: #1b6e66;
+  --elev: 0 1px 2px rgb(74 52 28 / 0.06), 0 8px 24px -10px rgb(74 52 28 / 0.18);
+  --elev-lg: 0 2px 4px rgb(74 52 28 / 0.06), 0 18px 40px -14px rgb(74 52 28 / 0.28);
   color-scheme: light;
 }
 
 :root[data-theme='dark'] {
-  --frame: #0c0d0d;
-  --background: #141515;
-  --foreground: #f1f2f0;
-  --card: #141515;
-  --panel: #1c1e1d;
-  --muted: #262928;
-  --muted-foreground: #a9adab;
-  --border: #2a2d2c;
-  --rule: #252827;
-  --input: #3d4241;
-  --primary: #f1f2f0;
-  --primary-foreground: #141515;
-  --accent: #262928;
-  --nav-active: #232625;
+  --frame: #100e0c;
+  --background: #171512;
+  --foreground: #f3efe9;
+  --card: #221f1b;
+  --panel: #1d1a17;
+  --muted: #2b2723;
+  --muted-foreground: #b0a79c;
+  --border: #302b26;
+  --rule: #2b2723;
+  --input: #463f37;
+  --primary: #f3efe9;
+  --primary-foreground: #171512;
+  --accent: #2b2723;
+  --nav-active: #2e2a25;
 
   --data: #4fb5a9;
-  --data-tint: #183330;
+  --data-tint: #17302c;
+  --data-ink: #8fd6cc;
   --person-a: #7eaae6;
   --person-a-tint: #1d2a3b;
   --person-b: #e58ab6;
   --person-b-tint: #3a2230;
+
+  --cat-transport: #5cb8e3;
+  --cat-transport-tint: #16303c;
+  --cat-transport-ink: #9dd6f0;
+  --cat-oplevelse: #ef8a6e;
+  --cat-oplevelse-tint: #3a211a;
+  --cat-oplevelse-ink: #f7b7a4;
+  --cat-mad: #e6a83f;
+  --cat-mad-tint: #352915;
+  --cat-mad-ink: #f2cf8a;
+  --cat-overnatning: #a98be6;
+  --cat-overnatning-tint: #2a2240;
+  --cat-overnatning-ink: #ccbaf3;
+  --cat-andet: #9ca1ab;
+  --cat-andet-tint: #282a2f;
+  --cat-andet-ink: #c9ccd2;
 
   --warn: #f2786a;
   --warn-tint: #36201d;
@@ -79,8 +116,10 @@
   --ok-tint: #1b2e1f;
   --ok-ink: #9ad9a6;
   --holiday: #e2a447;
-  --grid: #2a2d2c;
+  --grid: #2e2a25;
   --ring: #4fb5a9;
+  --elev: 0 1px 2px rgb(0 0 0 / 0.35), 0 10px 28px -12px rgb(0 0 0 / 0.7);
+  --elev-lg: 0 2px 4px rgb(0 0 0 / 0.35), 0 20px 44px -14px rgb(0 0 0 / 0.8);
   color-scheme: dark;
 }
 
@@ -99,10 +138,26 @@
   --color-nav-active: var(--nav-active);
   --color-data: var(--data);
   --color-data-tint: var(--data-tint);
+  --color-data-ink: var(--data-ink);
   --color-person-a: var(--person-a);
   --color-person-a-tint: var(--person-a-tint);
   --color-person-b: var(--person-b);
   --color-person-b-tint: var(--person-b-tint);
+  --color-cat-transport: var(--cat-transport);
+  --color-cat-transport-tint: var(--cat-transport-tint);
+  --color-cat-transport-ink: var(--cat-transport-ink);
+  --color-cat-oplevelse: var(--cat-oplevelse);
+  --color-cat-oplevelse-tint: var(--cat-oplevelse-tint);
+  --color-cat-oplevelse-ink: var(--cat-oplevelse-ink);
+  --color-cat-mad: var(--cat-mad);
+  --color-cat-mad-tint: var(--cat-mad-tint);
+  --color-cat-mad-ink: var(--cat-mad-ink);
+  --color-cat-overnatning: var(--cat-overnatning);
+  --color-cat-overnatning-tint: var(--cat-overnatning-tint);
+  --color-cat-overnatning-ink: var(--cat-overnatning-ink);
+  --color-cat-andet: var(--cat-andet);
+  --color-cat-andet-tint: var(--cat-andet-tint);
+  --color-cat-andet-ink: var(--cat-andet-ink);
   --color-warn: var(--warn);
   --color-warn-tint: var(--warn-tint);
   --color-warn-ink: var(--warn-ink);
@@ -127,6 +182,9 @@
   --font-sans: 'Instrument Sans Variable', system-ui, sans-serif;
   --font-display: 'Instrument Serif', Georgia, serif;
   --radius-panel: 22px;
+  --radius-card: 16px;
+  --shadow-card: var(--elev);
+  --shadow-lift: var(--elev-lg);
   --radius-xl: 0.875rem;
 }
 
@@ -152,6 +210,20 @@
   :focus-visible {
     outline: 2px solid var(--ring);
     outline-offset: 2px;
+  }
+  ::selection {
+    background: var(--data-tint);
+    color: var(--data-ink);
+  }
+  input,
+  textarea {
+    caret-color: var(--data);
+  }
+  html {
+    scrollbar-color: var(--input) transparent;
+  }
+  a {
+    text-underline-offset: 0.2em;
   }
 }
 

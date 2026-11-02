@@ -43,3 +43,39 @@ export function PersonDots({ who, className }: { who: Who; className?: string })
     </span>
   );
 }
+
+const PERSON_TONE = {
+  a: 'bg-person-a-tint text-person-a',
+  b: 'bg-person-b-tint text-person-b',
+} as const;
+
+/** One person's initial in their own pale tint. */
+export function Avatar({ k, name, className }: { k: 'a' | 'b'; name: string; className?: string }) {
+  return (
+    <span
+      className={cn('flex size-6 shrink-0 items-center justify-center rounded-full text-[11px] font-semibold ring-2 ring-card', PERSON_TONE[k], className)}
+      aria-hidden
+    >
+      {name.trim().charAt(0).toUpperCase() || (k === 'a' ? 'A' : 'B')}
+    </span>
+  );
+}
+
+/** Who a trip is for, as overlapping initials. `names` is looked up by the caller (personName). */
+export function Avatars({ who, names, className, size }: { who: Who; names: { a: string; b: string }; className?: string; size?: string }) {
+  return (
+    <span className={cn('flex shrink-0', className)} aria-hidden>
+      {(who === 'both' || who === 'a') && <Avatar k="a" name={names.a} className={size} />}
+      {(who === 'both' || who === 'b') && <Avatar k="b" name={names.b} className={cn(who === 'both' && '-ml-1.5', size)} />}
+    </span>
+  );
+}
+
+/** A small tinted square holding an icon; `tone` is a pair of bg/text classes. */
+export function IconChip({ children, tone = 'bg-muted text-foreground', className }: { children: ReactNode; tone?: string; className?: string }) {
+  return (
+    <span className={cn('flex size-8 shrink-0 items-center justify-center rounded-[10px] [&_svg]:size-4', tone, className)} aria-hidden>
+      {children}
+    </span>
+  );
+}

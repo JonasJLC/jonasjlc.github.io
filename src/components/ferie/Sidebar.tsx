@@ -5,6 +5,7 @@ import { Mark } from './Mark';
 import { personName } from './feriedage/helpers';
 import type { FerieState } from './lib/types';
 import { cn } from './lib/utils';
+import { Avatars } from './page';
 import { Button } from './ui/button';
 import { ResponsiveSheet } from './ui/sheet';
 
@@ -33,14 +34,7 @@ interface ShellProps {
 export function Couple({ state, className }: { state: FerieState; className?: string }) {
   return (
     <span className={cn('flex items-center gap-2', className)}>
-      <span className="flex" aria-hidden>
-        <span className="flex size-5 items-center justify-center rounded-full bg-person-a-tint text-[11px] font-semibold text-person-a ring-2 ring-frame">
-          {personName(state, 'a').charAt(0)}
-        </span>
-        <span className="-ml-1.5 flex size-5 items-center justify-center rounded-full bg-person-b-tint text-[11px] font-semibold text-person-b ring-2 ring-frame">
-          {personName(state, 'b').charAt(0)}
-        </span>
-      </span>
+      <Avatars who="both" names={{ a: personName(state, 'a'), b: personName(state, 'b') }} size="size-5 text-[10px] ring-frame" />
       <span className="truncate">{personName(state, 'a')} &amp; {personName(state, 'b')}</span>
     </span>
   );
@@ -78,9 +72,9 @@ export function Sidebar({ state, view, year, onYear, sync, theme, onTheme, onSet
             key={value}
             href={`#${value}`}
             aria-current={view === value ? 'page' : undefined}
-            className={cn(row, view === value && 'bg-nav-active font-medium text-foreground hover:bg-nav-active')}
+            className={cn(row, 'h-10', view === value && 'bg-card font-medium text-foreground shadow-card hover:bg-card')}
           >
-            <Icon className="size-4 shrink-0" aria-hidden strokeWidth={1.75} />
+            <Icon className={cn('size-4 shrink-0', view === value && 'text-data')} aria-hidden strokeWidth={view === value ? 2 : 1.75} />
             {label}
           </a>
         ))}
@@ -121,21 +115,25 @@ export function TopBar({ state, view, year, onYear, sync, theme, onTheme, onSett
       </header>
       <nav
         aria-label="Ferieplan"
-        className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-4 border-t bg-card pb-[env(safe-area-inset-bottom)] lg:hidden"
+        className="fixed inset-x-3 bottom-[max(0.75rem,env(safe-area-inset-bottom))] z-30 grid grid-cols-4 gap-1 rounded-[22px] bg-card p-1.5 shadow-lift lg:hidden"
       >
-        {VIEWS.map(({ value, label, icon: Icon }) => (
-          <a
-            key={value}
-            href={`#${value}`}
-            aria-current={view === value ? 'page' : undefined}
-            className={cn('group flex h-16 flex-col items-center justify-center gap-1 text-xs text-muted-foreground', view === value && 'font-medium text-foreground')}
-          >
-            <span className={cn('flex h-7 w-14 items-center justify-center rounded-full transition-colors', view === value && 'bg-nav-active')}>
-              <Icon className="size-5" aria-hidden strokeWidth={1.75} />
-            </span>
-            {label}
-          </a>
-        ))}
+        {VIEWS.map(({ value, label, icon: Icon }) => {
+          const on = view === value;
+          return (
+            <a
+              key={value}
+              href={`#${value}`}
+              aria-current={on ? 'page' : undefined}
+              className={cn(
+                'flex h-14 flex-col items-center justify-center gap-0.5 rounded-2xl text-[11px] text-muted-foreground transition-colors',
+                on ? 'bg-data-tint font-semibold text-data-ink' : 'hover:text-foreground',
+              )}
+            >
+              <Icon className="size-5" aria-hidden strokeWidth={on ? 2 : 1.75} />
+              {label}
+            </a>
+          );
+        })}
       </nav>
       <ResponsiveSheet open={open} onOpenChange={setOpen} title="Menu">
         <div className="flex flex-col gap-6">

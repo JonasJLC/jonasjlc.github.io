@@ -2,8 +2,8 @@ import * as React from "react"
 import { cn } from "@/components/ferie/lib/utils"
 
 /**
- * A tonal panel one step off the sheet: no border, no shadow. `sheet` is the white,
- * bordered inner card, used once per screen for its main chart.
+ * `panel`: a tonal panel one step off the sheet, flat. `sheet`: the lifted white card, for a
+ * screen's main chart or anything that should sit above the panels.
  */
 function Card({ className, variant = "panel", ...props }: React.ComponentProps<"div"> & { variant?: "panel" | "sheet" }) {
   return (
@@ -12,7 +12,7 @@ function Card({ className, variant = "panel", ...props }: React.ComponentProps<"
       data-variant={variant}
       className={cn(
         "flex min-w-0 flex-col gap-4 rounded-panel p-5 text-card-foreground",
-        variant === "panel" ? "bg-panel" : "border bg-card",
+        variant === "panel" ? "bg-panel" : "bg-card shadow-card",
         className
       )}
       {...props}
