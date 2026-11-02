@@ -32,10 +32,12 @@ const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 
 /** One day of the trip as its own card: the date, the day's stops in time order, and where you sleep. */
 export function DayCard({
-  t, index, total, items, base, lat, lng, daysOff, onBase, onAdd, renderRow,
+  t, index, total, items, base, lat, lng, daysOff, stay, onBase, onNights, onAdd, renderRow,
 }: {
   t: number; index: number; total: number; items: PlanItem[]; base: string; lat?: number; lng?: number; daysOff: readonly DayOff[];
-  onBase: (v: Place) => void; onAdd: (type: PlanType, fly?: boolean) => void; renderRow: (it: PlanItem) => React.ReactNode;
+  /** Set on the first night at a place: how many nights in a row, and how many the next stay leaves room for. */
+  stay?: { nights: number; max: number };
+  onBase: (v: Place) => void; onNights: (n: number) => void; onAdd: (type: PlanType, fly?: boolean) => void; renderRow: (it: PlanItem) => React.ReactNode;
 }) {
   const ds = toISO(t);
   const d = new Date(t);
@@ -68,6 +70,18 @@ export function DayCard({
           <div className="flex h-10 min-w-0 flex-1 basis-56 items-center gap-2.5 rounded-xl border border-transparent pr-2 pl-1 text-sm transition-colors focus-within:border-ring hover:bg-cat-overnatning-tint/50">
             <IconChip tone="bg-cat-overnatning-tint text-cat-overnatning-ink"><BedDoubleIcon /></IconChip>
             <PlaceInput value={base} lat={lat} lng={lng} label={`Hvor sover I natten efter dag ${index + 1}?`} onChange={onBase} />
+            {stay && stay.max > 1 && (
+              <select
+                aria-label={`Antal nætter på dette sted fra dag ${index + 1}`}
+                className="h-8 shrink-0 rounded-lg bg-muted px-2 text-xs text-muted-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                value={stay.nights}
+                onChange={(e) => onNights(Number(e.target.value))}
+              >
+                {Array.from({ length: stay.max }, (_, k) => k + 1).map((k) => (
+                  <option key={k} value={k}>{k} {k === 1 ? 'nat' : 'nætter'}</option>
+                ))}
+              </select>
+            )}
           </div>
         )}
         <AddPlan onAdd={onAdd} label="Tilføj plan" types={['oplevelse', 'mad', 'transport', 'andet']} />

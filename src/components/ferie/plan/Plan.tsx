@@ -60,6 +60,24 @@ export function Plan({ state, dispatch }: { state: FerieState; dispatch: React.D
     el?.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' });
   };
 
+  const nightBase = (i: number) => (state.tdays.find((d) => d.id === dayKey(trip.id, dates[i]))?.base ?? '').trim().toLowerCase();
+  const saveNight = (i: number, p: { base: string; lat?: number; lng?: number }) =>
+    dispatch({ type: 'saveTday', tday: { id: dayKey(trip.id, dates[i]), tripId: trip.id, date: toISO(dates[i]), ...p } });
+  /**
+   * For the first night at a place: nights in a row there, and the most it can stretch to
+   * before it would run into a night already booked somewhere else.
+   */
+  const stayAt = (i: number): { nights: number; max: number } | undefined => {
+    const last = dates.length - 1; // nights are 0..last-1
+    const b = nightBase(i);
+    if (i >= last || !b || (i > 0 && nightBase(i - 1) === b)) return undefined;
+    let nights = 1;
+    while (i + nights < last && nightBase(i + nights) === b) nights++;
+    let max = nights;
+    while (i + max < last && !nightBase(i + max)) max++;
+    return { nights, max };
+  };
+
   const save = (item: PlanItem) => {
     const existing = item.id ? state.itin.find((x) => x.id === item.id) : undefined;
     dispatch({ type: 'savePlan', item: { ...item, id: item.id || newId(), created: existing?.created ?? Date.now() } });
@@ -169,6 +187,7 @@ export function Plan({ state, dispatch }: { state: FerieState; dispatch: React.D
               {dates.map((t, i) => {
                 const ds = toISO(t);
                 const td = state.tdays.find((d) => d.id === dayKey(trip.id, t));
+                const stay = stayAt(i);
                 return (
                   <DayCard
                     key={ds}
@@ -180,7 +199,20 @@ export function Plan({ state, dispatch }: { state: FerieState; dispatch: React.D
                     lat={td?.lat}
                     lng={td?.lng}
                     daysOff={daysOff}
-                    onBase={(p) => dispatch({ type: 'saveTday', tday: { id: dayKey(trip.id, t), tripId: trip.id, date: ds, ...p } })}
+                    stay={stay ? { nights: stay.nights, max: stay.max } : undefined}
+                    onBase={(p) => {
+                      // The first night of a stay carries its later nights along, so the place is only typed once.
+                      const span = stay && stay.nights > 1 ? stay.nights : 1;
+                      for (let k = 0; k < span; k++) saveNight(i + k, p);
+                    }}
+                    onNights={(n) => {
+                      if (!stay || !td) return;
+                      const place = { base: td.base, lat: td.lat, lng: td.lng };
+                      for (let k = 0; k < stay.max; k++) {
+                        if (k < n) saveNight(i + k, place);
+                        else if (k < stay.nights) saveNight(i + k, { base: '' });
+                      }
+                    }}
                     onAdd={(type, fly) => openNew(ds, type, fly)}
                     renderRow={(it) => <Fragment key={it.id}>{row(it)}</Fragment>}
                   />
