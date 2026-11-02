@@ -17,14 +17,18 @@ export interface Bridge {
 
 const MAX_COST = 4;
 const MIN_RATIO = 2.5;
+/** Fewer days off in a row than this is not enough to go anywhere, or is easy to spot yourself. */
+const MIN_TOTAL = 5;
 
 /**
- * Stretches where a few vacation days link weekends and public holidays into a long break,
- * with nothing booked. Best value first; overlapping stretches keep only the best.
+ * Stretches in `year` where a few vacation days link weekends and public holidays into a long
+ * break, with nothing booked. Only breaks long enough to travel on. Best value first;
+ * overlapping stretches keep only the best.
  */
-export function findBridges(state: FerieState, today: number, months = 14): Bridge[] {
+export function findBridges(state: FerieState, today: number, year: number): Bridge[] {
   const off = commonDaysOff(state, 'both');
-  const end = today + months * 30 * DAY;
+  const start = Math.max(today, Date.UTC(year, 0, 1));
+  const end = Date.UTC(year, 11, 31);
   const booked = state.trips
     .map((t) => [toTime(t.from), toTime(t.to)] as const)
     .filter(([a, b]) => !Number.isNaN(a) && !Number.isNaN(b));
@@ -32,7 +36,7 @@ export function findBridges(state: FerieState, today: number, months = 14): Brid
 
   // Runs of consecutive free days (weekend/holiday) that contain a public holiday or a weekend.
   const runs: { a: number; b: number }[] = [];
-  for (let t = today; t <= end; t += DAY) {
+  for (let t = start; t <= end; t += DAY) {
     if (isWorkDay(t, off)) continue;
     const last = runs[runs.length - 1];
     if (last && last.b === t - DAY) last.b = t;
@@ -55,7 +59,7 @@ export function findBridges(state: FerieState, today: number, months = 14): Brid
       if (cost > MAX_COST) break;
       if (cost < 1 || !names.length) continue;
       const total = Math.round((to - from) / DAY) + 1;
-      if (total / cost < MIN_RATIO || clash(from, to)) continue;
+      if (total < MIN_TOTAL || total / cost < MIN_RATIO || clash(from, to)) continue;
       found.push({ from, to, cost, total, holidays: names });
     }
   }

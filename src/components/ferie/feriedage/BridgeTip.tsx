@@ -25,12 +25,12 @@ export function BridgeTip({ state, onUse, year }: { state: FerieState; year: num
   const bridge = useMemo<Bridge | undefined>(() => {
     const now = Date.now();
     const hidden = snoozed();
-    return findBridges(state, todayTime()).find((b) => {
+    return findBridges(state, todayTime(), year).find((b) => {
       if ((hidden[bridgeKey(b)] ?? 0) > now) return false;
       const span = { from: toISO(b.from), to: toISO(b.to), days: null };
       return !impact(state, 'both', span).some((i) => i.short || i.squeezes);
     });
-  }, [state]);
+  }, [state, year]);
 
   const key = bridge ? bridgeKey(bridge) : null;
   useEffect(() => {
@@ -45,7 +45,7 @@ export function BridgeTip({ state, onUse, year }: { state: FerieState; year: num
     });
     return () => { toast.dismiss(id); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [key]);
+  }, [key, year]);
 
   return null;
 }
