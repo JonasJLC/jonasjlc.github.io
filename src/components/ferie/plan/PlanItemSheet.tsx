@@ -90,7 +90,8 @@ function PlanForm({ state, trip, draft, onClose, onSave, onDelete }: Props & { d
   const submit = (e: React.SyntheticEvent) => {
     e.preventDefault();
     const flight = isFly ? flightOf({ ...f.flight, mins: parseMins(f.flight.mins) }) : undefined;
-    const title = f.title.trim() || (flight ? autoTitle(f.flight) : '');
+    // Flights have no name field: the title always follows the airports, so it never goes stale.
+    const title = flight ? autoTitle(f.flight) || f.title.trim() || (f.flight.no ? `Fly ${f.flight.no}` : 'Fly') : f.title.trim();
     if (!title) return;
     const day = f.day || null;
     const order = !old || old.day !== day ? nextOrder(state.itin.filter((x) => x.id !== old?.id), trip.id, day) : old.order;
@@ -136,22 +137,26 @@ function PlanForm({ state, trip, draft, onClose, onSave, onDelete }: Props & { d
           />
         )}
         {isFly && <FlightFields f={f.flight} onChange={fl} autoFocus={!draft.id} />}
-        <LabeledField label="Navn" hint={isFly ? `Tomt navn bliver til “${autoTitle(f.flight) || 'Fly CPH–RVN'}”.` : undefined}>
-          <Input value={f.title} maxLength={80} placeholder={isFly ? autoTitle(f.flight) || 'Fx fly til Rovaniemi' : info.placeholder} autoFocus={!draft.id && !isFly} onChange={(e) => setF({ ...f, title: e.target.value })} />
-        </LabeledField>
-        <div className="grid grid-cols-2 gap-3">
-          {!isFly && <LabeledField label="Tidspunkt"><Input type="time" value={f.time} onChange={(e) => setF({ ...f, time: e.target.value })} /></LabeledField>}
-          <LabeledField label={isFly ? 'Mødested' : 'Sted'}>
-            <PlaceInput
-              value={f.place}
-              lat={f.lat}
-              lng={f.lng}
-              maxLength={80}
-              className="h-11 rounded-[10px] border border-input bg-card px-3 transition-[color,box-shadow] focus-within:border-ring focus-within:ring-[3px] focus-within:ring-ring/50 md:h-[38px]"
-              onChange={(p) => setF({ ...f, place: p.base, lat: p.lat, lng: p.lng })}
-            />
-          </LabeledField>
-        </div>
+        {!isFly && (
+          <>
+            <LabeledField label="Navn">
+              <Input value={f.title} maxLength={80} placeholder={info.placeholder} autoFocus={!draft.id} onChange={(e) => setF({ ...f, title: e.target.value })} />
+            </LabeledField>
+            <div className="grid grid-cols-2 gap-3">
+              <LabeledField label="Tidspunkt"><Input type="time" value={f.time} onChange={(e) => setF({ ...f, time: e.target.value })} /></LabeledField>
+              <LabeledField label="Sted">
+                <PlaceInput
+                  value={f.place}
+                  lat={f.lat}
+                  lng={f.lng}
+                  maxLength={80}
+                  className="h-11 rounded-[10px] border border-input bg-card px-3 transition-[color,box-shadow] focus-within:border-ring focus-within:ring-[3px] focus-within:ring-ring/50 md:h-[38px]"
+                  onChange={(p) => setF({ ...f, place: p.base, lat: p.lat, lng: p.lng })}
+                />
+              </LabeledField>
+            </div>
+          </>
+        )}
         <Field>
           <FieldLabel>Status</FieldLabel>
           <Segmented label="Status" value={f.status} onValueChange={(status) => setF({ ...f, status })} options={PLAN_STATUS} />
