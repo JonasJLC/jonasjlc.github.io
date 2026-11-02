@@ -120,10 +120,12 @@ function Finding({ state }: { state: FerieState }) {
     const short = impact(state, t.who, t, t.id).find((s) => s.short);
     if (!short) continue;
     const when = earliestAffordable(state, short.days, [short.k], today, t.id);
+    // "16. nov." already ends the sentence; "16. maj" needs its full stop.
+    const date = fmtShort(toTime(t.from)).replace(/\.$/, '');
     return (
       <span className="font-medium text-warn">
-        {personName(state, short.k)} har ikke dage nok til {t.name || 'rejsen'} {fmtShort(toTime(t.from))}
-        {when ? `. Der er nok fra ${fmtShort(when, true)}.` : '.'}
+        {personName(state, short.k)} har ikke dage nok til {t.name || 'rejsen'} {date}.
+        {when ? ` Der er nok fra ${fmtShort(when, true)}.` : ''}
       </span>
     );
   }
