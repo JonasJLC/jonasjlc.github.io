@@ -12,6 +12,7 @@ import { newId, type Action } from '../lib/use-ferie';
 import type { CheckItem, FerieState, PlanItem, PlanType } from '../lib/types';
 import { PageTitle, SectionTitle } from '../page';
 import { DayCard } from './DayCard';
+import { DestinationTips } from './DestinationTips';
 import { PlanItemSheet, draftFromPlan, newPlanDraft, type PlanDraft } from './PlanItemSheet';
 import { PlanRow } from './PlanRow';
 import { Route } from './Route';
@@ -174,6 +175,9 @@ export function Plan({ state, dispatch }: { state: FerieState; dispatch: React.D
       />
       <div className="mt-4">
         <Route trip={trip} items={items} tdays={state.tdays} onGoto={goto} />
+      </div>
+      <div className="mt-4">
+        <DestinationTips key={trip.id} tripName={trip.name} />
       </div>
       <DndContext sensors={sensors} collisionDetection={closestCorners} onDragEnd={onDragEnd}>
         <div className="mt-10 grid items-start gap-4 md:grid-cols-2">
