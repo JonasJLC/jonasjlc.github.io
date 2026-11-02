@@ -76,8 +76,9 @@ export function AccountChart({
   if (hover !== null && cur.depMark[hover] && cur.depAmt[hover] > 0) todays.push(`Fast indskud: +${kr(cur.depAmt[hover])}`);
   const tipLeft = hover === null ? 0 : Math.min(Math.max(x(hover + 0.5), 100), W - 100);
 
-  const sliderMax = Math.max(5000, Math.ceil((Math.max(D, req, scen ?? 0) * 2) / 500) * 500);
-  const val = scen ?? D;
+  // The range must not depend on the dragged value, or every pull to the end would widen it again.
+  const sliderMax = Math.max(10000, Math.ceil((Math.max(D, req) * 2) / 1000) * 1000);
+  const val = Math.min(scen ?? D, sliderMax);
 
   const dip = sc ? sc.min : cur.min;
   return (
@@ -160,7 +161,7 @@ export function AccountChart({
           aria-label="Månedligt indskud, scenarie"
           min={0}
           max={sliderMax}
-          step={50}
+          step={500}
           value={[val]}
           onValueChange={([v]) => setScen(v)}
         />
