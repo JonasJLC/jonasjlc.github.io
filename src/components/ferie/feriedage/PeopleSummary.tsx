@@ -4,6 +4,7 @@ import { PERSON_KEYS, type FerieState, type PersonKey } from '../lib/types';
 import { fmtHours } from '../lib/units';
 import { cn } from '../lib/utils';
 import { AnimatedNumber } from '../ui/animated-number';
+import { Avatar } from '../page';
 import { personName } from './helpers';
 
 /** One panel per person: today's balance leads, then the year as one stacked bar with its legend. */
@@ -67,9 +68,7 @@ function PersonCard({
   return (
     <article aria-labelledby={`p-${k}`} className="grid min-w-0 gap-4 rounded-panel bg-panel p-5 lg:grid-cols-[minmax(0,4fr)_minmax(0,8fr)] lg:gap-x-8">
       <header className="flex items-center gap-2 lg:col-span-2">
-        <span className={cn('flex size-6 items-center justify-center rounded-full text-xs font-semibold', k === 'a' ? 'bg-person-a-tint text-person-a' : 'bg-person-b-tint text-person-b')} aria-hidden>
-          {personName(state, k).charAt(0)}
-        </span>
+        <Avatar k={k} name={personName(state, k)} className="ring-0" />
         <h2 id={`p-${k}`} className="text-[15px] leading-6 font-semibold">{personName(state, k)}</h2>
       </header>
       <div>
