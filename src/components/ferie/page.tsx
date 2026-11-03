@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
 import { kr } from './lib/kasse';
 import type { Who } from './lib/types';
 import { cn } from './lib/utils';
@@ -49,13 +49,24 @@ const PERSON_TONE = {
   b: 'bg-person-b-tint text-person-b',
 } as const;
 
-/** One person's initial in their own pale tint. */
+const PERSON_PHOTO = {
+  a: '/ferie/avatars/camilla.jpg',
+  b: '/ferie/avatars/jonas.jpg',
+} as const;
+
+/** One person's photo, cropped round; their initial in a pale tint stands in if the photo is missing. */
 export function Avatar({ k, name, className }: { k: 'a' | 'b'; name: string; className?: string }) {
+  const [broken, setBroken] = useState(false);
+  const base = 'flex size-6 shrink-0 items-center justify-center overflow-hidden rounded-full text-[11px] font-semibold ring-2 ring-card';
+  if (!broken) {
+    return (
+      <span className={cn(base, 'bg-muted', className)} aria-hidden>
+        <img src={PERSON_PHOTO[k]} alt="" className="size-full object-cover" loading="lazy" decoding="async" onError={() => setBroken(true)} />
+      </span>
+    );
+  }
   return (
-    <span
-      className={cn('flex size-6 shrink-0 items-center justify-center rounded-full text-[11px] font-semibold ring-2 ring-card', PERSON_TONE[k], className)}
-      aria-hidden
-    >
+    <span className={cn(base, PERSON_TONE[k], className)} aria-hidden>
       {name.trim().charAt(0).toUpperCase() || (k === 'a' ? 'A' : 'B')}
     </span>
   );
