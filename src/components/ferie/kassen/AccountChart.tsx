@@ -1,3 +1,4 @@
+import { FoldBody, FoldButton, useFold } from '../fold';
 import { useMemo, useState } from 'react';
 import { DAY, MONTHS_SHORT, fmtShort, toTime } from '../lib/dates';
 import { analyze, cap, eventLabel, idxOf, kr, krAxis, moneyModel } from '../lib/kasse';
@@ -17,6 +18,7 @@ export function AccountChart({
   scen: number | null; setScen: (v: number | null) => void; onUse: (total: number) => void;
 }) {
   const [ref, W] = useWidth<HTMLDivElement>();
+  const fold = useFold('account-chart');
   const [hover, setHover] = useState<number | null>(null);
   const cur = useMemo(() => moneyModel(state, today), [state, today]);
   const req = useMemo(() => analyze(state, today).cReq, [state, today]);
@@ -84,13 +86,14 @@ export function AccountChart({
   return (
     <Card variant="sheet" className="gap-3">
       <CardHeader className="sm:grid-cols-[1fr_auto]">
-        <CardTitle>Kontoen over tid</CardTitle>
-        <ul className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground sm:justify-end">
+        <CardTitle><FoldButton folded={fold.folded} onToggle={fold.toggle} controls="account-chart-body">Kontoen over tid</FoldButton></CardTitle>
+        {!fold.folded && <ul className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground sm:justify-end">
           <li className="inline-flex items-center gap-1.5"><i className="h-0.5 w-4 rounded bg-data" />{hasSteps(state) ? 'Med jeres trappeplan' : `Med ${kr(D)} om måneden`}</li>
           {sc && <li className="inline-flex items-center gap-1.5"><i className="w-4 border-t-2 border-dashed border-foreground" />Med {kr(scen ?? 0)} om måneden</li>}
           <li className="inline-flex items-center gap-1.5"><i className="size-2 rounded-full border-[1.5px] border-foreground bg-card" />Betaling fra kontoen</li>
-        </ul>
+        </ul>}
       </CardHeader>
+      <FoldBody id="account-chart-body" folded={fold.folded}>
       <div ref={ref} className="relative w-full">
         <svg viewBox={`0 0 ${W} ${H}`} width={W} height={H} role="img" aria-label={`Rejsekassens saldo over tid. Laveste saldo ${kr(cur.min)} d. ${fmtShort(cur.minT, true)}.`} className="block h-auto w-full touch-pan-y select-none overflow-visible">
           <defs>
@@ -178,6 +181,7 @@ export function AccountChart({
           <p className="text-sm text-muted-foreground">Træk i skyderen for at se, hvad et andet beløb betyder for kontoen.</p>
         )}
       </div>
+      </FoldBody>
     </Card>
   );
 }

@@ -1,3 +1,4 @@
+import { FoldBody, FoldButton, useFold } from '../fold';
 import { settlement } from '../lib/kasse';
 import type { FerieState } from '../lib/types';
 import { Money } from '../page';
@@ -6,19 +7,21 @@ import { personName } from './helpers';
 
 /** Who owes whom for what one of them paid with their own card. */
 export function Settle({ state }: { state: FerieState }) {
+  const fold = useFold('settle');
   const { net, rows } = settlement(state);
   const even = Math.abs(net) < 1;
   const [from, to] = net > 0 ? ['b', 'a'] as const : ['a', 'b'] as const;
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Hvem har lagt ud?</CardTitle>
-        {rows.length === 0 && (
+        <CardTitle><FoldButton folded={fold.folded} onToggle={fold.toggle} controls="settle-body">Hvem har lagt ud?</FoldButton></CardTitle>
+        {!fold.folded && rows.length === 0 && (
           <CardDescription>
             Betaler en af jer noget med sit eget kort, så vælg det under “Betales af”. Så holder planen styr på, hvem der skylder hvem.
           </CardDescription>
         )}
       </CardHeader>
+      <FoldBody id="settle-body" folded={fold.folded}>
       {rows.length > 0 && (
         <>
           <p className="text-lg leading-7">
@@ -35,6 +38,7 @@ export function Settle({ state }: { state: FerieState }) {
           <p className="text-xs text-muted-foreground">Udgifter til fælles rejser deles 50/50.</p>
         </>
       )}
+      </FoldBody>
     </Card>
   );
 }

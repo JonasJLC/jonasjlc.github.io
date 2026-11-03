@@ -1,3 +1,4 @@
+import { FoldBody, FoldButton, useFold } from '../fold';
 import { LabeledField } from '../labeled-field';
 import { monthOf, hasSteps } from '../lib/kasse';
 import { fmtShort, toTime } from '../lib/dates';
@@ -18,6 +19,7 @@ export function AccountCard({
 }: {
   state: FerieState; dispatch: React.Dispatch<Action>; onChange: () => void; onEdit: () => void;
 }) {
+  const fold = useFold('account');
   const k = state.kasse;
   const day = +k.depDay === 31 ? 'Sidste dag i måneden' : `D. ${+k.depDay || 1}. i måneden`;
   const rows: [string, React.ReactNode][] = [
@@ -31,9 +33,10 @@ export function AccountCard({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Kontoen</CardTitle>
-        <CardAction className="row-span-1 self-center"><Button variant="ghost" size="sm" className="-my-1 -mr-2" onClick={onEdit}>Ret</Button></CardAction>
+        <CardTitle><FoldButton folded={fold.folded} onToggle={fold.toggle} controls="account-body">Kontoen</FoldButton></CardTitle>
+        {!fold.folded && <CardAction className="row-span-1 self-center"><Button variant="ghost" size="sm" className="-my-1 -mr-2" onClick={onEdit}>Ret</Button></CardAction>}
       </CardHeader>
+      <FoldBody id="account-body" folded={fold.folded}>
       <dl className="flex flex-col text-sm">
         {rows.map(([l, v]) => (
           <div key={l} className="flex min-h-8 items-center justify-between gap-3">
@@ -66,6 +69,7 @@ export function AccountCard({
           </Button>
         </div>
       )}
+      </FoldBody>
     </Card>
   );
 }

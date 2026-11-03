@@ -1,3 +1,4 @@
+import { FoldBody, FoldButton, useFold } from '../fold';
 import { sortedTrips, whoKeys } from '../lib/balance';
 import { MONTHS_SHORT, fmtN, fmtRange, fmtShort, toTime, todayTime } from '../lib/dates';
 import { countdown } from '../lib/plan';
@@ -17,15 +18,19 @@ export function TripList({
   const today = todayTime();
   const { year } = state.settings;
 
+  const fold = useFold('trips');
   const next = trips.find((t) => toTime(t.to) >= today);
   const names = { a: personName(state, 'a'), b: personName(state, 'b') };
   const tone = (t: Trip) => (t.who === 'a' ? 'bg-person-a-tint text-person-a' : t.who === 'b' ? 'bg-person-b-tint text-person-b' : 'bg-data-tint text-data-ink');
 
   return (
     <section aria-labelledby="trips-h">
-      <h2 id="trips-h" className="mb-3 text-[15px] leading-6 font-semibold">
-        Rejser{trips.length > 0 && <span className="ml-1.5 font-normal text-muted-foreground">{trips.length}</span>}
+      <h2 id="trips-h" className={`text-[15px] leading-6 font-semibold ${fold.folded ? '' : 'mb-3'}`}>
+        <FoldButton folded={fold.folded} onToggle={fold.toggle} controls="trips-body">
+          Rejser{trips.length > 0 && <span className="ml-1.5 font-normal text-muted-foreground">{trips.length}</span>}
+        </FoldButton>
       </h2>
+      <FoldBody id="trips-body" folded={fold.folded}>
       {trips.length === 0 ? (
         <p className="rounded-panel bg-panel p-5 text-sm text-muted-foreground">Ingen rejser endnu. Tryk på første og sidste dag i kalenderen, eller på “Ny rejse”.</p>
       ) : (
@@ -86,6 +91,7 @@ export function TripList({
           })}
         </ul>
       )}
+      </FoldBody>
     </section>
   );
 }

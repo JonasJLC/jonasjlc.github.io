@@ -1,3 +1,4 @@
+import { FoldBody, FoldButton, useFold } from '../fold';
 import type { Bridge } from '../lib/bridges';
 import { fmtRange } from '../lib/dates';
 
@@ -8,10 +9,14 @@ const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one :
  * through each year. Uses the same list as the calendar marks and the pop-up.
  */
 export function BridgeList({ bridges, year, onUse }: { bridges: Bridge[]; year: number; onUse: (from: number, to: number) => void }) {
+  const fold = useFold('bridges');
   if (!bridges.length) return null;
   return (
     <section aria-labelledby="bridge-h" className="mt-4 rounded-panel bg-panel p-5">
-      <h2 id="bridge-h" className="text-[15px] leading-6 font-semibold">Forslag til ferieperioder</h2>
+      <h2 id="bridge-h" className="text-[15px] leading-6 font-semibold">
+        <FoldButton folded={fold.folded} onToggle={fold.toggle} controls="bridge-body" hint={`${bridges.length} skjult`}>Forslag til ferieperioder</FoldButton>
+      </h2>
+      <FoldBody id="bridge-body" folded={fold.folded}>
       <p className="mb-3 text-sm text-muted-foreground">Mange fridage i træk for få feriedage. Markeret med lilla i kalenderen.</p>
       <ul className="flex flex-col gap-1.5">
         {bridges.map((b) => (
@@ -32,6 +37,7 @@ export function BridgeList({ bridges, year, onUse }: { bridges: Bridge[]; year: 
           </li>
         ))}
       </ul>
+      </FoldBody>
     </section>
   );
 }

@@ -1,3 +1,4 @@
+import { FoldBody, FoldButton, useFold } from '../fold';
 import { useState } from 'react';
 import { whoKeys } from '../lib/balance';
 import { fmtLong, fmtN, todayTime } from '../lib/dates';
@@ -14,6 +15,7 @@ import { whoOptions } from './helpers';
 export function Finder({ state, dispatch, onCreate }: { state: FerieState; dispatch: React.Dispatch<Action>; onCreate: (from: number, days: number, who: Who) => void }) {
   const [raw, setRaw] = useState('5');
   const [who, setWho] = useState<Who>('both');
+  const fold = useFold('finder');
   const { unit } = state.settings;
   const days = parseDays(raw, unit, state.settings);
   const valid = raw.trim() !== '' && !Number.isNaN(days) && days > 0;
@@ -22,9 +24,12 @@ export function Finder({ state, dispatch, onCreate }: { state: FerieState; dispa
   return (
     <section aria-labelledby="finder-h" className="flex flex-col gap-4 rounded-panel bg-panel p-5">
       <div>
-        <h2 id="finder-h" className="text-[15px] leading-6 font-semibold">Hvornår har vi råd?</h2>
-        <p className="text-sm text-muted-foreground">Den første arbejdsdag, hvor turen kan lade sig gøre uden at gå ud over de planlagte rejser.</p>
+        <h2 id="finder-h" className="text-[15px] leading-6 font-semibold">
+          <FoldButton folded={fold.folded} onToggle={fold.toggle} controls="finder-body">Hvornår har vi råd?</FoldButton>
+        </h2>
+        {!fold.folded && <p className="text-sm text-muted-foreground">Den første arbejdsdag, hvor turen kan lade sig gøre uden at gå ud over de planlagte rejser.</p>}
       </div>
+      <FoldBody id="finder-body" folded={fold.folded}>
       <div className="flex flex-col gap-2">
         <div className="flex items-center gap-2">
           <label htmlFor="finder-n" className="sr-only">{unit === 'hours' ? 'Antal ferietimer' : 'Antal feriedage'}</label>
@@ -48,6 +53,7 @@ export function Finder({ state, dispatch, onCreate }: { state: FerieState; dispa
           </div>
         )}
       </div>
+      </FoldBody>
     </section>
   );
 }

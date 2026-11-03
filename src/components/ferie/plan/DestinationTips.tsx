@@ -1,3 +1,4 @@
+import { FoldBody, FoldButton, useFold } from '../fold';
 import { ExternalLinkIcon, GlobeIcon } from 'lucide-react';
 import { useState } from 'react';
 import { askTips, cachedTips, TOPIC_LABEL, type TipTopic, type Tips } from '../lib/tips';
@@ -33,13 +34,17 @@ export function DestinationTips({ tripName }: { tripName: string }) {
     }
   };
 
+  const fold = useFold('tips');
   const tips = result?.type === 'tips' ? result : null;
   return (
     <section aria-labelledby="tips-h" className="rounded-panel bg-panel p-5">
-      <div className="mb-3 flex items-center gap-2">
+      <div className={`flex items-center gap-2 ${fold.folded ? '' : 'mb-3'}`}>
         <GlobeIcon className="size-4 text-muted-foreground" aria-hidden />
-        <h2 id="tips-h" className="text-[15px] leading-6 font-semibold">Praktiske forhold</h2>
+        <h2 id="tips-h" className="text-[15px] leading-6 font-semibold">
+          <FoldButton folded={fold.folded} onToggle={fold.toggle} controls="tips-body">Praktiske forhold</FoldButton>
+        </h2>
       </div>
+      <FoldBody id="tips-body" folded={fold.folded}>
       <form onSubmit={fetchTips} className="flex flex-wrap gap-2">
         <Input
           aria-label="Land eller destination"
@@ -85,6 +90,7 @@ export function DestinationTips({ tripName }: { tripName: string }) {
           {tips.updated && <>, opdateret {tips.updated}</>}. Tipsene er en kort AI-opsummering og erstatter ikke de officielle kilder. Tjek altid visum, vaccinationer og regler hos Udenrigsministeriet og landets ambassade, før I rejser.
         </p>
       )}
+      </FoldBody>
     </section>
   );
 }

@@ -1,3 +1,4 @@
+import { FoldBody, FoldButton, useFold } from '../fold';
 import { fmtShort, toISO } from '../lib/dates';
 import { routeGroups, sortPlan, tripDates } from '../lib/plan';
 import type { PlanItem, Trip, TripDay } from '../lib/types';
@@ -12,6 +13,7 @@ export function Route({
 }: {
   trip: Trip; items: PlanItem[]; tdays: TripDay[]; onGoto: (ds: string) => void;
 }) {
+  const fold = useFold('route');
   const dates = tripDates(trip);
   if (!dates.length) return null;
   const nights = dates.length > 1 ? dates.slice(0, -1) : [];
@@ -25,10 +27,13 @@ export function Route({
 
   return (
     <section aria-labelledby="route-h" className="rounded-panel bg-panel p-5">
-      <div className="mb-4 flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-        <h2 id="route-h" className="text-[15px] leading-6 font-semibold">Ruten</h2>
+      <div className={`flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 ${fold.folded ? '' : 'mb-4'}`}>
+        <h2 id="route-h" className="text-[15px] leading-6 font-semibold">
+          <FoldButton folded={fold.folded} onToggle={fold.toggle} controls="route-body">Ruten</FoldButton>
+        </h2>
         <p className="text-xs text-muted-foreground">{nights.length} {nights.length === 1 ? 'nat' : 'nætter'} · {places} {places === 1 ? 'sted' : 'steder'}</p>
       </div>
+      <FoldBody id="route-body" folded={fold.folded}>
       <div className="-mx-5 overflow-x-auto px-5">
         <ol className="flex min-w-[560px] items-stretch gap-1" aria-label="Rute">
           <li className="w-24 shrink-0 pr-2">
@@ -66,6 +71,7 @@ export function Route({
       {none && (
         <p className="mt-4 text-sm text-muted-foreground">Skriv, hvor I sover hver nat under Dag for dag, så tegnes jeres rute her. Transport på de dage, hvor I skifter sted, vises på strækningen.</p>
       )}
+      </FoldBody>
     </section>
   );
 }
