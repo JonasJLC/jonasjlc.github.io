@@ -8,7 +8,8 @@ import { toTime } from '../lib/dates';
 import { DAYS_OFF } from '../lib/holidays';
 import { DaysHoursField, UnitToggle } from '../days-hours-field';
 import { toInput } from '../lib/units';
-import { personColor, personName } from './helpers';
+import { Avatar } from '../page';
+import { personName } from './helpers';
 
 const fyLabel = (y: number) => `${y}/${String((y + 1) % 100).padStart(2, '0')}`;
 
@@ -44,7 +45,7 @@ export function SettingsSheet({
             <fieldset key={k} className="rounded-2xl bg-panel p-4">
               <legend className="sr-only">{personName(state, k)}</legend>
               <p aria-hidden className="mb-3 flex items-center gap-2 text-[15px] font-semibold">
-                <span className="flex size-6 items-center justify-center rounded-full text-xs" style={{ background: `var(--person-${k}-tint)`, color: personColor(k) }}>{personName(state, k).charAt(0)}</span>{personName(state, k)}
+                <Avatar k={k} name={personName(state, k)} className="ring-0" />{personName(state, k)}
               </p>
               <div className="grid grid-cols-2 gap-3">
                 <Field label="Navn" className="col-span-2">
