@@ -13,6 +13,8 @@ import { personName } from './helpers';
 
 const fyLabel = (y: number) => `${y}/${String((y + 1) % 100).padStart(2, '0')}`;
 
+const MONTHS = ['januar', 'februar', 'marts', 'april', 'maj', 'juni', 'juli', 'august', 'september', 'oktober', 'november', 'december'];
+
 const num = (v: string) => (v.trim() === '' ? 0 : Number(v.replace(',', '.')) || 0);
 
 export function SettingsSheet({
@@ -58,6 +60,15 @@ export function SettingsSheet({
                 <DaysHoursField label={`Optjent i ferieår ${fyLabel(fy)}`} days={p.curr} settings={state.settings} onDays={(d) => set(k, { curr: d })} />
                 <DaysHoursField label="Optjening pr. måned" days={p.rate} settings={state.settings} onDays={(d) => set(k, { rate: d })} />
                 <DaysHoursField label="Feriefridage pr. år" days={p.ff} settings={state.settings} onDays={(d) => set(k, { ff: d })} />
+                <Field label="Feriefridage tildeles" hint="Den 1. i måneden, hvert år.">
+                  <select
+                    value={p.ffMonth}
+                    onChange={(e) => set(k, { ffMonth: Number(e.target.value) })}
+                    className="h-9 w-full rounded-md border border-input bg-transparent px-2 text-sm"
+                  >
+                    {MONTHS.map((m, i) => <option key={m} value={i + 1}>1. {m}</option>)}
+                  </select>
+                </Field>
                 <DaysHoursField label={`Feriefridage tilbage i ${asY}`} days={p.ffOpen} settings={state.settings} onDays={(d) => set(k, { ffOpen: d })} className="col-span-2" />
               </div>
               <div className="mt-4 flex flex-col gap-2">
@@ -79,8 +90,9 @@ export function SettingsSheet({
         })}
         <p className="text-xs text-muted-foreground">
           Ferie optjenes 1. sep.–31. aug. og kan holdes, mens den optjenes, og frem til 31. dec. året efter.
-          Feriefridage tildeles 1. jan. og skal holdes samme år. Ferie trækkes fra det, der udløber først,
-          og ved samme dato bruges feriefridagene først. Det, der ikke er holdt ved udløb, går tabt.
+          Feriefridage tildeles på den valgte dato og udløber 31. dec. samme år. Ferie trækkes fra det, der udløber først,
+          og ved samme dato bruges feriefridagene først. Det, der ikke er holdt ved udløb, regnes som udløbet,
+          også selv om op til 5 dage kan overføres til næste år (det er ikke med i beregningen).
           Næste optjening lægges til ved udgangen af måneden efter saldodatoen.
         </p>
       </div>

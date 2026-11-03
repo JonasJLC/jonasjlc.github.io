@@ -101,9 +101,10 @@ function events(state: FerieState, k: PersonKey, excludeId: string | undefined, 
     }
   }
   const ff = +p.ff || 0;
+  const ffMonth = Math.min(12, Math.max(1, Math.round(+p.ffMonth) || 1));
   for (let y = asY; y <= endY; y++) {
-    const jan1 = Date.UTC(y, 0, 1);
-    if (ff > 0 && jan1 > asOf) ev.push({ t: jan1, ord: 0, amt: ff, pot: () => pot('ff', y) });
+    const grant = Date.UTC(y, ffMonth - 1, 1);
+    if (ff > 0 && grant > asOf) ev.push({ t: grant, ord: 0, amt: ff, pot: () => pot('ff', y) });
     const dec31 = Date.UTC(y, 11, 31);
     if (dec31 >= asOf) {
       ev.push({ t: dec31, ord: 2, amt: 0, pot: () => pot('ff', y) });
@@ -132,13 +133,14 @@ function build(state: FerieState, k: PersonKey, excludeId?: string, add?: Span):
   if (Number.isNaN(asOf)) asOf = Date.UTC(state.settings.year, 0, 1);
 
   const pots = new Map<string, Pot>();
+  const ffMonth = Math.min(12, Math.max(1, Math.round(+p.ffMonth) || 1));
   const pot = (kind: 'fy' | 'ff', y: number): Pot => {
     const key = kind + y;
     let x = pots.get(key);
     if (!x) {
       x = kind === 'fy'
         ? { kind, y, start: Date.UTC(y, 8, 1), expires: Date.UTC(y + 1, 11, 31), bal: 0, expired: false }
-        : { kind, y, start: Date.UTC(y, 0, 1), expires: Date.UTC(y, 11, 31), bal: 0, expired: false };
+        : { kind, y, start: Date.UTC(y, ffMonth - 1, 1), expires: Date.UTC(y, 11, 31), bal: 0, expired: false };
       pots.set(key, x);
     }
     return x;
@@ -146,7 +148,12 @@ function build(state: FerieState, k: PersonKey, excludeId?: string, add?: Span):
   const Y = fyOf(asOf);
   pot('fy', Y - 1).bal = +p.prev || 0;
   pot('fy', Y).bal = +p.curr || 0;
-  if (+p.ffOpen > 0) pot('ff', new Date(asOf).getUTCFullYear()).bal = +p.ffOpen;
+  if (+p.ffOpen > 0) {
+    // Already granted before the balance date, so usable from the start.
+    const open = pot('ff', new Date(asOf).getUTCFullYear());
+    open.bal = +p.ffOpen;
+    open.start = Math.min(open.start, asOf);
+  }
 
   let total = 0;
   for (const x of pots.values()) total += x.bal;
