@@ -58,7 +58,7 @@ function PersonCard({
       ? { key: 'over', label: 'For meget', v: -yearEnd, w: over, fill: 'bg-warn', tone: 'warn' }
       : { key: 'left', label: 'Tilbage', v: yearEnd, w: yearEnd, fill: cn(solid, 'opacity-20') },
   ];
-  if (lost > 1e-9) parts.push({ key: 'lost', label: 'Går tabt', v: lost, w: lost, fill: 'bg-caution', tone: 'caution' });
+  if (lost > 1e-9) parts.push({ key: 'lost', label: 'Udløber', v: lost, w: lost, fill: 'bg-caution', tone: 'caution' });
   const total = parts.reduce((s, p) => s + Math.max(0, p.w), 0);
 
   const label = `${personName(state, k)} i ${Y}: ` + parts.map((p) => `${p.label.toLowerCase()} ${fmtN(p.v)} dage`).join(', ');
@@ -103,7 +103,7 @@ function PersonCard({
           ))}
         </div>
         <p className="mt-1.5 text-xs text-muted-foreground">
-          {over > 1e-9 ? 'For meget planlagt' : lost > 1e-9 ? 'Tilbage og går tabt' : 'Tilbage'} pr. 31. dec. {Y}, med alle planlagte rejser.
+          {over > 1e-9 ? 'For meget planlagt' : lost > 1e-9 ? 'Tilbage og udløber' : 'Tilbage'} pr. 31. dec. {Y}, med alle planlagte rejser.
         </p>
         {dip && (
           <p className="mt-1.5 text-xs text-warn">

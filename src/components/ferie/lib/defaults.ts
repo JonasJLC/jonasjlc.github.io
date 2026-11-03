@@ -2,13 +2,14 @@ import { toISO, todayTime } from './dates';
 import { HOURS_PER_DAY } from './units';
 import type { FerieState, Kasse, Person, Settings } from './types';
 
-export const defaultPerson = (name: string): Person => ({
+export const defaultPerson = (name: string, ffMonth = 1): Person => ({
   name,
   asOf: '2026-10-31',
   prev: 0,
   curr: 0,
   rate: 2.08,
   ff: 5,
+  ffMonth,
   ffOpen: 0,
   daysOff: [],
 });
@@ -17,7 +18,7 @@ export const defaultSettings = (): Settings => ({
   year: 2027,
   hoursPerDay: HOURS_PER_DAY,
   unit: 'days',
-  people: { a: defaultPerson('Camilla'), b: defaultPerson('Jonas') },
+  people: { a: defaultPerson('Camilla', 5), b: defaultPerson('Jonas', 1) },
 });
 
 export const defaultKasse = (): Kasse => ({

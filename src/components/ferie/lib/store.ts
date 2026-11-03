@@ -156,6 +156,7 @@ function person(raw: unknown, base: Person, legacyOff: boolean): Person {
     curr: legacy ? n(r.start, base.curr) : n(r.curr, 0),
     rate: n(r.rate, base.rate),
     ff: legacy ? n(r.extra, base.ff) : n(r.ff, 0),
+    ffMonth: Math.min(12, Math.max(1, Math.round(n(r.ffMonth, base.ffMonth)))),
     ffOpen: n(r.ffOpen, 0),
     daysOff: Array.isArray(r.daysOff)
       ? valid.filter((d) => (r.daysOff as unknown[]).includes(d))

@@ -143,7 +143,7 @@ function Finding({ state }: { state: FerieState }) {
   if (lost.length) {
     return (
       <span className="text-caution">
-        {lost.map((x) => `${personName(state, x.k)} mister ${fmtN(x.v)} ${x.v === 1 ? 'dag' : 'dage'}`).join(' og ')} 31. dec. {Y}, hvis de ikke bliver holdt.
+        {lost.map((x) => `${personName(state, x.k)} har ${fmtN(x.v)} ${x.v === 1 ? 'dag' : 'dage'}, der udløber 31. dec. ${Y}`).join(' og ')}, hvis de ikke bliver holdt eller overført.
       </span>
     );
   }

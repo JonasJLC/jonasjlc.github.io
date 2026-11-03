@@ -8,7 +8,7 @@ export type DayOff = '05-01' | '06-05' | '12-24' | '12-31';
 
 /**
  * One person's vacation balance, Danish rules: ferie is earned 1 Sep–31 Aug and can be
- * held until 31 Dec the year after; feriefridage are granted 1 Jan and expire 31 Dec.
+ * held until 31 Dec the year after; feriefridage are granted on the 1st of a month of choice and expire 31 Dec.
  * All amounts are in days.
  */
 export interface Person {
@@ -21,8 +21,10 @@ export interface Person {
   curr: number;
   /** Earned at the end of every month after `asOf`. */
   rate: number;
-  /** Feriefridage granted every 1 January. */
+  /** Feriefridage granted every year, on the 1st of `ffMonth`. They expire 31 December the same year. */
   ff: number;
+  /** Month (1-12) the feriefridage are granted. */
+  ffMonth: number;
   /** Feriefridage left in the `asOf` calendar year. */
   ffOpen: number;
   /** Fixed days off that do not cost vacation. */
