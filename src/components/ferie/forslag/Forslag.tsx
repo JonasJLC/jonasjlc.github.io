@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { remoteEnabled } from '../lib/remote';
-import { loadBoard, subscribeRequests, type Board } from '../lib/forslag';
+import { loadBoard, loadIssueStates, subscribeRequests, type Board, type IssueStates } from '../lib/forslag';
 import type { SyncStatus } from '../lib/use-sync';
 import { PageTitle, SectionTitle } from '../page';
 import { Chat } from './Chat';
@@ -11,11 +11,14 @@ import { RequestList } from './RequestList';
 export function Forslag({ status }: { status: SyncStatus }) {
   const [board, setBoard] = useState<Board | null>(null);
   const [failed, setFailed] = useState(false);
+  const [issues, setIssues] = useState<IssueStates>({});
   const live = remoteEnabled && (status === 'synced' || status === 'saving');
 
   const reload = useCallback(async () => {
     try {
-      setBoard(await loadBoard());
+      const [b, i] = await Promise.all([loadBoard(), loadIssueStates()]);
+      setBoard(b);
+      setIssues(i);
       setFailed(false);
     } catch {
       setFailed(true);
@@ -60,7 +63,7 @@ export function Forslag({ status }: { status: SyncStatus }) {
           <section aria-labelledby="forslag-list">
             <SectionTitle><span id="forslag-list">Alle forslag</span></SectionTitle>
             {failed && <p role="alert" className="mb-3 text-sm text-warn">Kunne ikke hente forslagene. Prøv at genindlæse siden.</p>}
-            <RequestList board={board} onChanged={() => void reload()} />
+            <RequestList board={board} issues={issues} onChanged={() => void reload()} />
           </section>
         </div>
       )}

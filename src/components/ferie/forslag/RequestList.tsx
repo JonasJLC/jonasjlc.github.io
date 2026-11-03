@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { toast } from 'sonner';
 import {
-  AREA_LABEL, STATUS_LABEL, triage,
-  type Board, type FeatureRequest, type RequestStatus,
+  AREA_LABEL, STATUS_LABEL, effectiveStatus, triage,
+  type Board, type FeatureRequest, type IssueStates, type RequestStatus,
 } from '../lib/forslag';
 import { Badge } from '../ui/badge';
 import { Button } from '../ui/button';
@@ -15,25 +15,25 @@ const VARIANT: Record<RequestStatus, 'caution' | 'secondary' | 'ok' | 'outline' 
 
 const dateFmt = new Intl.DateTimeFormat('da-DK', { day: 'numeric', month: 'short', year: 'numeric' });
 
-export function RequestList({ board, onChanged }: { board: Board | null; onChanged: () => void }) {
+export function RequestList({ board, issues, onChanged }: { board: Board | null; issues: IssueStates; onChanged: () => void }) {
   if (!board) return <p role="status" className="text-sm text-muted-foreground">Henter forslag …</p>;
   if (board.requests.length === 0) {
     return <p className="rounded-panel bg-panel p-5 text-sm text-muted-foreground">Ingen forslag endnu. Det første kan blive dit.</p>;
   }
   // Open requests first; within each group the newest stays on top.
   const sorted = [...board.requests].sort(
-    (a, b) => Number(OPEN.includes(b.status)) - Number(OPEN.includes(a.status)),
+    (a, b) => Number(OPEN.includes(effectiveStatus(b, issues))) - Number(OPEN.includes(effectiveStatus(a, issues))),
   );
   return (
     <ul className="flex flex-col gap-3">
       {sorted.map((r) => (
-        <li key={r.id}><Item r={r} owner={board.isOwner} onChanged={onChanged} /></li>
+        <li key={r.id}><Item r={r} status={effectiveStatus(r, issues)} owner={board.isOwner} onChanged={onChanged} /></li>
       ))}
     </ul>
   );
 }
 
-function Item({ r, owner, onChanged }: { r: FeatureRequest; owner: boolean; onChanged: () => void }) {
+function Item({ r, status, owner, onChanged }: { r: FeatureRequest; status: RequestStatus; owner: boolean; onChanged: () => void }) {
   const [note, setNote] = useState(r.owner_note ?? '');
   const [busy, setBusy] = useState(false);
   const d = r.details ?? {};
@@ -54,7 +54,7 @@ function Item({ r, owner, onChanged }: { r: FeatureRequest; owner: boolean; onCh
     <article className="flex flex-col gap-2 rounded-panel bg-panel p-4 sm:p-5">
       <div className="flex items-start justify-between gap-3">
         <h3 className="text-[15px] leading-6 font-semibold">{r.title}</h3>
-        <Badge variant={VARIANT[r.status]}>{STATUS_LABEL[r.status]}</Badge>
+        <Badge variant={VARIANT[status]}>{STATUS_LABEL[status]}</Badge>
       </div>
       <p className="text-xs text-muted-foreground">
         {[d.area ? AREA_LABEL[d.area] : null, r.created_by_name || null, dateFmt.format(new Date(r.created_at))]
@@ -87,8 +87,8 @@ function Item({ r, owner, onChanged }: { r: FeatureRequest; owner: boolean; onCh
               <Button
                 key={s}
                 size="sm"
-                variant={r.status === s ? 'default' : 'outline'}
-                aria-pressed={r.status === s}
+                variant={status === s ? 'default' : 'outline'}
+                aria-pressed={status === s}
                 disabled={busy || r.status === s}
                 onClick={() => void run({ status: s })}
               >

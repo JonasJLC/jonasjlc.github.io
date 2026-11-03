@@ -66,6 +66,39 @@ export async function askChat(messages: ChatMessage[]): Promise<ChatReply> {
   return data as ChatReply;
 }
 
+/** State of the mirrored GitHub issue, keyed by issue number. */
+export type IssueStates = Record<number, 'done' | 'declined' | 'open'>;
+
+/**
+ * Reads the public issue list (one unauthenticated call) so a request whose issue has been closed
+ * stops saying "Ny". Best effort: on any failure the stored statuses are shown as they are.
+ */
+export async function loadIssueStates(): Promise<IssueStates> {
+  try {
+    const res = await fetch(
+      'https://api.github.com/repos/JonasJLC/jonasjlc.github.io/issues?labels=forslag&state=all&per_page=100',
+      { headers: { Accept: 'application/vnd.github+json' }, signal: AbortSignal.timeout(8000) },
+    );
+    if (!res.ok) return {};
+    const issues = (await res.json()) as { number: number; state: string; state_reason?: string | null; pull_request?: unknown }[];
+    const out: IssueStates = {};
+    for (const i of issues) {
+      if (i.pull_request) continue;
+      out[i.number] = i.state === 'closed' ? (i.state_reason === 'not_planned' ? 'declined' : 'done') : 'open';
+    }
+    return out;
+  } catch {
+    return {};
+  }
+}
+
+/** The owner's own choice wins; an untouched "Ny" follows the GitHub issue. */
+export function effectiveStatus(r: FeatureRequest, issues: IssueStates): RequestStatus {
+  if (r.status !== 'new' || r.github_issue_number == null) return r.status;
+  const s = issues[r.github_issue_number];
+  return s === 'done' || s === 'declined' ? s : r.status;
+}
+
 export interface Board {
   householdId: string;
   isOwner: boolean;
