@@ -1,3 +1,4 @@
+import { FoldBody, FoldButton, useFold } from '../fold';
 import { memo, useMemo } from 'react';
 import { DAY, MONTHS, fmtLong, isoWeek, isWeekend, toTime, todayTime } from '../lib/dates';
 import { dayOffName, holidayName } from '../lib/holidays';
@@ -58,13 +59,17 @@ export function YearCalendar({ state, selection, bridges, onPick }: Props) {
   const hi = selection.from === null ? null : Math.max(selection.from, selection.to ?? selection.from);
   const today = todayTime();
 
+  const fold = useFold('calendar');
   const swatch = 'inline-block h-3.5 w-5 rounded';
   return (
     <section aria-labelledby="cal-h" className="rounded-panel bg-panel p-5">
-      <div className="mb-4 flex flex-col gap-1">
-        <h2 id="cal-h" className="text-[15px] leading-6 font-semibold">Kalender {Y}</h2>
-        <p className="text-sm text-muted-foreground">Tryk på første og sidste dag for at lave en rejse. Tryk på en rejse for at rette den.</p>
+      <div className={`flex flex-col gap-1 ${fold.folded ? '' : 'mb-4'}`}>
+        <h2 id="cal-h" className="text-[15px] leading-6 font-semibold">
+          <FoldButton folded={fold.folded} onToggle={fold.toggle} controls="cal-body">Kalender {Y}</FoldButton>
+        </h2>
+        {!fold.folded && <p className="text-sm text-muted-foreground">Tryk på første og sidste dag for at lave en rejse. Tryk på en rejse for at rette den.</p>}
       </div>
+      <FoldBody id="cal-body" folded={fold.folded}>
       <ul className="mb-5 flex flex-wrap gap-x-4 gap-y-1.5 text-xs text-muted-foreground" aria-label="Forklaring">
         <li className="inline-flex items-center gap-1.5"><i className={swatch} style={{ background: band(['a']) }} />{nameA}</li>
         <li className="inline-flex items-center gap-1.5"><i className={swatch} style={{ background: band(['b']) }} />{nameB}</li>
@@ -79,6 +84,7 @@ export function YearCalendar({ state, selection, bridges, onPick }: Props) {
           <Month key={m} Y={Y} m={m} name={name} byDay={byDay} bridgeDays={bridgeDays} offA={offA} offB={offB} nameA={nameA} nameB={nameB} lo={lo} hi={hi} today={today} onPick={onPick} />
         ))}
       </div>
+      </FoldBody>
     </section>
   );
 }

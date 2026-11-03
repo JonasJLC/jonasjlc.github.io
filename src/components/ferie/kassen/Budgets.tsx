@@ -1,3 +1,4 @@
+import { FoldButton, useFold } from '../fold';
 import { CheckIcon, ChevronDownIcon, PlusIcon } from 'lucide-react';
 import { sortedTrips, whoKeys } from '../lib/balance';
 import { fmtRange, fmtShort, toTime, todayTime } from '../lib/dates';
@@ -82,12 +83,17 @@ export function Budgets({ state, m, onAdd, onEdit }: Props) {
   const others = state.money
     .filter((it) => !it.tripId || !state.trips.some((t) => t.id === it.tripId))
     .sort((a, b) => (a.date || '').localeCompare(b.date || '') || a.created - b.created);
+  const fold = useFold('budgets');
   const buf = +state.kasse.buffer || 0;
 
   return (
     <section aria-labelledby="budget-h" className="mt-10">
-      <SectionTitle><span id="budget-h">Budget for hver rejse</span></SectionTitle>
-      <div className="grid gap-4 md:grid-cols-2">
+      <SectionTitle>
+        <FoldButton folded={fold.folded} onToggle={fold.toggle} controls="budget-body" hint={`${trips.length + 1} skjult`}>
+          <span id="budget-h">Budget for hver rejse</span>
+        </FoldButton>
+      </SectionTitle>
+      <div id="budget-body" className={`${fold.folded ? 'hidden' : 'grid'} gap-4 md:grid-cols-2`}>
         {trips.length === 0 && (
           <Card className="md:col-span-2">
             <p className="text-sm text-muted-foreground">Ingen rejser endnu. Læg rejser ind under Feriedage, så kan I give dem et budget her.</p>

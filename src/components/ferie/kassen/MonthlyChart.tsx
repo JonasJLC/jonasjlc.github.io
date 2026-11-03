@@ -1,3 +1,4 @@
+import { FoldBody, FoldButton, useFold } from '../fold';
 import { DAY, MONTHS_SHORT } from '../lib/dates';
 import { cap, kr, krShort, monthOf, type MoneyModel, type Segment } from '../lib/kasse';
 import { useWidth } from '../lib/use-width';
@@ -8,6 +9,7 @@ interface Month { t: number; tEnd: number; exp: number; dep: number; rec: number
 
 export function MonthlyChart({ state, m, rec }: { state: FerieState; m: MoneyModel; rec: Segment[] | null }) {
   const [ref, W] = useWidth<HTMLDivElement>();
+  const fold = useFold('monthly-chart');
   const outs = m.ev.filter((e) => e.amt < 0);
   if (!outs.length) return null;
 
@@ -52,13 +54,14 @@ export function MonthlyChart({ state, m, rec }: { state: FerieState; m: MoneyMod
   return (
     <Card className="gap-3">
       <CardHeader className="sm:grid-cols-[1fr_auto]">
-        <CardTitle>Måned for måned</CardTitle>
-        <ul className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground sm:justify-end">
+        <CardTitle><FoldButton folded={fold.folded} onToggle={fold.toggle} controls="monthly-chart-body">Måned for måned</FoldButton></CardTitle>
+        {!fold.folded && <ul className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground sm:justify-end">
           <li className="inline-flex items-center gap-1.5"><i className="size-2.5 bg-data" />{rec ? 'Anbefalet indskud' : 'Jeres indskud'}</li>
           {rec && <li className="inline-flex items-center gap-1.5"><i className="w-4 border-t-2 border-dashed border-foreground" />Det, I sætter ind nu</li>}
           <li className="inline-flex items-center gap-1.5"><i className="size-2.5 bg-foreground/75" />Udgifter fra kontoen</li>
-        </ul>
+        </ul>}
       </CardHeader>
+      <FoldBody id="monthly-chart-body" folded={fold.folded}>
       <div ref={ref} className="w-full">
         <svg viewBox={`0 0 ${W} ${H}`} width={W} height={H} role="img" aria-label="Indskud og udgifter måned for måned" className="block h-auto w-full overflow-visible">
           <text x={0} y={zeroY - 6} fontSize="11" fill="var(--muted-foreground)">Ind</text>
@@ -98,6 +101,7 @@ export function MonthlyChart({ state, m, rec }: { state: FerieState; m: MoneyMod
           <line x1={L} x2={W - R} y1={zeroY} y2={zeroY} stroke="var(--muted-foreground)" />
         </svg>
       </div>
+      </FoldBody>
     </Card>
   );
 }
