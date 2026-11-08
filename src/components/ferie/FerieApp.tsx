@@ -73,7 +73,7 @@ export default function FerieApp() {
           <div className="min-h-[calc(100dvh-3.5rem)] bg-background lg:min-h-[calc(100dvh-1rem)] lg:rounded-[20px] lg:shadow-card">
             <main className="mx-auto w-full max-w-[1148px] px-4 pt-6 pb-32 sm:px-6 lg:pt-10 lg:pb-16">
               {view === 'feriedage' && (
-                <Feriedage state={state} dispatch={dispatch} />
+                <Feriedage state={state} dispatch={dispatch} onEditBalance={() => setSettingsOpen(true)} />
               )}
               {view === 'rejsekassen' && <Kassen state={state} dispatch={dispatch} />}
               {view === 'rejseplan' && <Plan state={state} dispatch={dispatch} />}
