@@ -22,9 +22,9 @@ import { TripSheet, draftFromTrip, type Draft } from './TripSheet';
 import { YearCalendar, type Selection } from './YearCalendar';
 
 export function Feriedage({
-  state, dispatch,
+  state, dispatch, onEditBalance,
 }: {
-  state: FerieState; dispatch: React.Dispatch<Action>;
+  state: FerieState; dispatch: React.Dispatch<Action>; onEditBalance: () => void;
 }) {
   const [sel, setSel] = useState<Selection>({ from: null, to: null });
   const [draft, setDraft] = useState<Draft | null>(null);
@@ -90,7 +90,7 @@ export function Feriedage({
       </PageTitle>
       <div className="flex flex-col gap-4">
         <div className="grid gap-4 md:grid-cols-2">
-          <PeopleSummary state={state} />
+          <PeopleSummary state={state} onEditBalance={onEditBalance} />
         </div>
         <div className="grid items-start gap-4 lg:grid-cols-12">
           <div className="min-w-0 lg:col-span-8">

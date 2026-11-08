@@ -38,6 +38,10 @@ export function SettingsSheet({
             />
           </Field>
         </div>
+        <p className="rounded-2xl bg-panel p-4 text-sm">
+          <strong className="font-medium">Sådan retter du en forkert saldo:</strong> vælg datoen på lønsedlen under
+          &quot;Saldo gælder pr.&quot;, og skriv restferie og optjent ferie fra lønsedlen ind. Saldoen opdateres med det samme.
+        </p>
         {PERSON_KEYS.map((k) => {
           const p = state.settings.people[k];
           const asOf = toTime(p.asOf);

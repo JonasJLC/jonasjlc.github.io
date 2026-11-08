@@ -8,7 +8,7 @@ import { Avatar } from '../page';
 import { personName } from './helpers';
 
 /** One panel per person: today's balance leads, then the year as one stacked bar with its legend. */
-export function PeopleSummary({ state }: { state: FerieState }) {
+export function PeopleSummary({ state, onEditBalance }: { state: FerieState; onEditBalance: () => void }) {
   const Y = state.settings.year;
   const st = Date.UTC(Y, 0, 1);
   const en = Date.UTC(Y, 11, 31);
@@ -16,7 +16,7 @@ export function PeopleSummary({ state }: { state: FerieState }) {
   return (
     <>
       {PERSON_KEYS.map((k) => (
-        <PersonCard key={k} k={k} state={state} Y={Y} st={st} en={en} today={today} />
+        <PersonCard key={k} k={k} state={state} Y={Y} st={st} en={en} today={today} onEditBalance={onEditBalance} />
       ))}
     </>
   );
@@ -35,9 +35,9 @@ interface Part {
 }
 
 function PersonCard({
-  k, state, Y, st, en, today,
+  k, state, Y, st, en, today, onEditBalance,
 }: {
-  k: PersonKey; state: FerieState; Y: number; st: number; en: number; today: number;
+  k: PersonKey; state: FerieState; Y: number; st: number; en: number; today: number; onEditBalance: () => void;
 }) {
   const now = balanceAt(state, k, today);
   const yearEnd = balanceAt(state, k, en);
@@ -77,6 +77,14 @@ function PersonCard({
           <AnimatedNumber value={now} /><span className="ml-1.5 text-sm text-muted-foreground">dage</span>
         </p>
         <p className="text-xs text-muted-foreground tabular-nums">{h(now)}</p>
+        <p className="mt-1 text-xs text-muted-foreground">Passer saldoen ikke?</p>
+        <button
+          type="button"
+          onClick={onEditBalance}
+          className="text-xs font-medium underline underline-offset-2 hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2"
+        >
+          Ret saldo for {personName(state, k)}
+        </button>
       </div>
       <dl className={cn('grid gap-3 border-t border-rule pt-3 lg:border-t-0 lg:border-l lg:pt-0 lg:pl-6', parts.length > 3 ? 'grid-cols-2 sm:grid-cols-4' : 'grid-cols-3')}>
         {parts.map((p) => (
