@@ -1,11 +1,9 @@
 name: Security audit
 
 on:
+  # No path filter: a required check that is skipped by a filter never reports
+  # a status and would block unrelated PRs from merging.
   pull_request:
-    paths:
-      - package.json
-      - pnpm-lock.yaml
-      - .github/workflows/**
   push:
     branches: [main]
   schedule:
