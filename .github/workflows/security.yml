@@ -1,0 +1,54 @@
+name: Security audit
+
+on:
+  # No path filter: a required check that is skipped by a filter never reports
+  # a status and would block unrelated PRs from merging.
+  pull_request:
+  push:
+    branches: [main]
+  schedule:
+    # Weekly, so newly published advisories are caught without a code change.
+    - cron: "0 6 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: security-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  pnpm-audit:
+    name: pnpm audit
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v6
+        with:
+          version: 10.33.2
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22
+
+      # Reads the lockfile only; no install needed.
+      - name: Audit dependencies
+        run: pnpm audit --audit-level=high
+
+  osv-scanner:
+    name: OSV-Scanner
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Scan lockfile
+        uses: google/osv-scanner-action/osv-scanner-action@v2.7.0
+        with:
+          scan-args: |-
+            --lockfile=pnpm-lock.yaml
