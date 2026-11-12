@@ -300,10 +300,10 @@ test -s dist/ferie/index.html && test -s dist/gave/index.html && test -s dist/st
 
 **Files:** `ui/chip.tsx`, `ui/segmented-control.tsx`.
 
-- [ ] **Step 1:** `Chip`: `<button aria-pressed>`, pill, `min-h` 44, 16 px side padding, 14 px 600. Unselected is surface and ink; selected is primary and white.
-- [ ] **Step 2:** `SegmentedControl` on Radix Tabs (`Tabs.List` and `Tabs.Trigger`, giving `role=tablist` and arrow-key navigation). Track pill on `--sp-track` with 4 px padding, segments at least 44 px. Active is surface, `shadow-sp-seg` and ink; inactive is muted. It takes `aria-label` and works with 2 or 3 segments (`Alle | Aftensmadsidéer`, `Ingredienser | Fremgangsmåde | Næring`, `Én butik | Maks. 2 | Pr. vare`).
-- [ ] **Verify:** standard checks and token guard. Keyboard: arrow keys move between segments and Tab leaves the list. Inactive muted text on the track passes the contrast test (4.91:1, already covered in Task 5).
-- [ ] **Commit:** `feat(strandparken): add Chip and SegmentedControl`
+- [x] **Step 1:** `Chip`: `<button aria-pressed>`, pill, `min-h` 44, 16 px side padding, 14 px 600. Unselected is surface and ink; selected is primary and white.
+- [x] **Step 2:** `SegmentedControl` on Radix Tabs (`Tabs.List` and `Tabs.Trigger`, giving `role=tablist` and arrow-key navigation). Track pill on `--sp-track` with 4 px padding, segments at least 44 px. Active is surface, `shadow-sp-seg` and ink; inactive is muted. It takes `aria-label` and works with 2 or 3 segments (`Alle | Aftensmadsidéer`, `Ingredienser | Fremgangsmåde | Næring`, `Én butik | Maks. 2 | Pr. vare`).
+- [x] **Verify:** standard checks and token guard. Keyboard: arrow keys move between segments and Tab leaves the list. Inactive muted text on the track passes the contrast test (4.91:1, already covered in Task 5).
+- [x] **Commit:** `feat(strandparken): add Chip and SegmentedControl`
 
 ### Task 11: Checkbox, round and square (U2)
 
@@ -489,3 +489,9 @@ Each question names its default. The plan above assumes the default.
 - Measured: card white, radius 24px, padding 18px, no shadow, no border; rows 2 and 3 have a 1px `--sp-line-soft` top rule, row 1 none. Badges 24px high, 12.5px/600, colours match the token pairs. Avatars 44, 34, 30px with the photos from `/ferie/avatars/`; the avatar button is 44x44 with `aria-label="Indstillinger"` and a decorative avatar inside.
 - Photos blocked (`Network.setBlockedURLs` for `*/ferie/avatars/*`): all four avatars show the white initial on the person colour; no `<img>` is rendered, so no broken-image icon. Console clean.
 - /ferie: HTML identical; CSS differs only by unused rules (listed by the check script). §11 for this task: tokens only, person colour never alone (name or initial always present), letter fallback: pass.
+
+### Task 10
+- Files: `ui/chip.tsx` (`<button aria-pressed>`), `ui/segmented-control.tsx` (`SegmentedControl` on Radix Tabs with `options`, required `aria-label`; `SegmentedPanel` per option so `aria-controls` points at a real panel).
+- Measured: chips 44px high, 14px/600, selected primary with white text, unselected white with ink; track `--sp-track` with 4px padding and pill radius, segments 44px high (two segments 169px each at 390px; three segments 106/122/106), active white with the segment shadow and ink text, inactive muted. Muted on track is 4.91:1 (contrast test).
+- Keyboard (CDP): Tab lands on the active segment; ArrowRight/ArrowLeft move focus and selection and swap the panel; Tab leaves the list (to the panel); Space toggles a chip and flips `aria-pressed`. Focus ring 2px solid primary, 2px offset. `aria-controls` of every tab resolves to a panel. Console clean.
+- /ferie: HTML identical; CSS differs only by unused rules. §11: segmented control and chips are single components used everywhere; 44px targets; visible focus: pass.
