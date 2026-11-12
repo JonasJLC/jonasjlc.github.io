@@ -281,10 +281,10 @@ test -s dist/ferie/index.html && test -s dist/gave/index.html && test -s dist/st
 
 **Files:** `lib/utils.ts`, `ui/icon.tsx`, `ui/button.tsx`.
 
-- [ ] **Step 1:** `Icon` wraps a lucide component with `size` 22, `strokeWidth` 1.8, `aria-hidden`, and `currentColor`.
-- [ ] **Step 2:** `Button` uses cva with variants `primary` (fill, `min-h` 52 px; `inCard` → 46 px), `outline` (1.5 px primary border and text, transparent), `quiet` (primary text, 600, no fill, still a 44 px target), and `icon` (44 px circle, `size="lg"` 48 px; tone `ground` = white surface, tone `add` = primary fill; `aria-label` required by the type). Pressed: primary darkens through `color-mix(in oklab, var(--sp-primary) 96%, black)` defined as a token `--sp-primary-pressed` in CSS; outline, quiet and icon use a `--sp-track` wash. Focus uses the base ring. Disabled: `opacity-45 pointer-events-none`. `asChild` uses Radix `Slot`, so links can share the look.
-- [ ] **Verify:** standard checks and token guard. In the browser: Tab shows the 2 px ring with 2 px offset on every variant. A held pointer shows the pressed state. Disabled cannot be focused or clicked. Measured sizes are 52/46 and 44/48. Icon-only buttons fail `astro check` when `aria-label` is missing.
-- [ ] **Commit:** `feat(strandparken): add Button and Icon primitives`
+- [x] **Step 1:** `Icon` wraps a lucide component with `size` 22, `strokeWidth` 1.8, `aria-hidden`, and `currentColor`.
+- [x] **Step 2:** `Button` uses cva with variants `primary` (fill, `min-h` 52 px; `inCard` → 46 px), `outline` (1.5 px primary border and text, transparent), `quiet` (primary text, 600, no fill, still a 44 px target), and `icon` (44 px circle, `size="lg"` 48 px; tone `ground` = white surface, tone `add` = primary fill; `aria-label` required by the type). Pressed: primary darkens through `color-mix(in oklab, var(--sp-primary) 96%, black)` defined as a token `--sp-primary-pressed` in CSS; outline, quiet and icon use a `--sp-track` wash. Focus uses the base ring. Disabled: `opacity-45 pointer-events-none`. `asChild` uses Radix `Slot`, so links can share the look.
+- [x] **Verify:** standard checks and token guard. In the browser: Tab shows the 2 px ring with 2 px offset on every variant. A held pointer shows the pressed state. Disabled cannot be focused or clicked. Measured sizes are 52/46 and 44/48. Icon-only buttons fail `astro check` when `aria-label` is missing.
+- [x] **Commit:** `feat(strandparken): add Button and Icon primitives`
 
 ### Task 9: Card, Badge, Avatar (U2)
 
@@ -472,3 +472,14 @@ Each question names its default. The plan above assumes the default.
 - `tests/strandparken-token-guard.test.mjs` walks `src/components/strandparken/` and `src/dev/strandparken/` (when present) and fails on hex colours, `rgb()`/`hsl()`, arbitrary values with a unit or colour, `font-family`/`fontFamily` and the font names. No allowlist. A rules self-test proves each rule fires and that `dvh`, token classes and `#hjem` hrefs pass.
 - Scratch file with a raw arbitrary-colour class: guard failed naming file, line and both rules; after deleting it, 2/2 pass.
 - Leak found and fixed: sample class strings in the guard test leaked into the /ferie CSS (Tailwind scans `tests/`); the samples are now joined from fragments. /ferie CSS byte-identical again. Keep literal utility class names out of tests and docs.
+
+### Task 8
+- Files: `lib/utils.ts` (local `cn`), `ui/icon.tsx` (22px, stroke 1.8, `aria-hidden`, `currentColor`), `ui/button.tsx` (cva; variants `primary`, `outline`, `quiet`, `icon`; `inCard`; icon `tone` ground/add and `size` md/lg; `asChild` through Radix `Slot`; default `type="button"`).
+- Supporting CSS: named sizes exposed to Tailwind (`--spacing-sp-target` etc., `--container-sp-column`), `--sp-primary-pressed` token (with a test), and a `sp-border-strong` utility for the 1.5px outline. Component sizes use tokens or Tailwind's spacing scale only, so the guard stays strict.
+- Measured in headless Chrome (CDP): primary 52px high, in-card primary 46, outline 44, quiet 44, icon 44, large icon 48, link-as-button 44. Primary 16px/600, in-card and outline and quiet 14px/600.
+- Keyboard: Tab shows a 2px solid primary outline with 2px offset on every variant; the disabled button is skipped by Tab, shows 0.45 opacity and ignores clicks (0 click events).
+- Pressed (`:active` forced): primary and large add icon use `--sp-primary-pressed`; outline, quiet and ground icon use `--sp-track` (`rgb(233,227,212)`).
+- Type check: an icon `Button` without `aria-label` fails `astro check` (`Property 'aria-label' is missing`).
+- Decisions: no colour transitions (spec §8: motion only answers an action; a transition also made the focus ring fade in). The 1.5px border is 1.5px at 2x DPR (Chrome snaps it to whole device pixels at 1x and 3x); that is browser behaviour, not a bug.
+- /ferie: HTML identical and 16/16 screenshots byte-identical, but the CSS is **no longer byte-identical** (the Q4 = no consequence): it gained 5 rules (`size-12`, `min-h-11.5` and three disabled/aria-disabled variants), none of whose class names appear in /ferie sources, so they are dead rules. The check script now lists added selectors and tests them against /ferie sources. Closing the leak needs the three-line `@source not` change in `ferie.css` (Q4 = yes); flagged for your decision.
+- §11 for this task: tokens only (guard passes), 44px targets, visible focus, reduced motion (no transitions), Danish labels: pass.

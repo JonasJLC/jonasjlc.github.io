@@ -33,6 +33,7 @@
   --sp-camilla-tint: #F5ECF0;
   --sp-camilla-ink: #7A3856;
   --sp-scrim: rgba(27, 38, 32, 0.45);
+  --sp-primary-pressed: color-mix(in oklab, var(--sp-primary) 96%, black); /* UI spec §5.2: pressed is 4% darker */
 
   /* §3.3 shape and depth */
   --sp-r-card: 24px;
@@ -108,6 +109,7 @@
   --color-sp-camilla-tint: var(--sp-camilla-tint);
   --color-sp-camilla-ink: var(--sp-camilla-ink);
   --color-sp-scrim: var(--sp-scrim);
+  --color-sp-primary-pressed: var(--sp-primary-pressed);
 
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -138,6 +140,20 @@
   --shadow-sp-float: var(--sp-shadow-float);
   --shadow-sp-seg: var(--sp-shadow-seg);
 
+  /* Named sizes: touch target, rows, bar, page and card spacing, column width. Other sizes use Tailwind's spacing scale. */
+  --spacing-sp-target: var(--sp-target);
+  --spacing-sp-row: var(--sp-row-min);
+  --spacing-sp-bar: var(--sp-bar-h);
+  --spacing-sp-page-top: var(--sp-page-top);
+  --spacing-sp-page-x: var(--sp-page-x);
+  --spacing-sp-page-bottom: var(--sp-page-bottom);
+  --spacing-sp-gap-home: var(--sp-gap-home);
+  --spacing-sp-gap: var(--sp-gap);
+  --spacing-sp-pad-card: var(--sp-pad-card);
+  --spacing-sp-gap-grid: var(--sp-gap-grid);
+  --spacing-sp-gap-row: var(--sp-gap-row);
+  --container-sp-column: var(--sp-column);
+
   --font-sp-serif: 'Fraunces Variable', Georgia, serif;
   --font-sp-sans: 'Figtree Variable', system-ui, sans-serif;
 
@@ -155,6 +171,9 @@
   @keyframes sp-scrim-out { from { opacity: 1; } to { opacity: 0; } }
   @keyframes sp-tick { from { opacity: 0; transform: scale(0.6); } to { opacity: 1; transform: scale(1); } }
 }
+
+/* Strong outline used by outline buttons, unchecked boxes and dashed empty slots (1.5 px). Plain `border` is the 1 px rule. */
+@utility sp-border-strong { border-width: 1.5px; }
 
 /* Typography roles (UI spec §3.2). Sizes in rem (px / 16) so the layout follows the user's text size. Serif is for names of things only. */
 @utility sp-title-page { font-family: var(--font-sp-serif); font-weight: 500; font-size: 2rem; line-height: 1.1; letter-spacing: -0.01em; }
