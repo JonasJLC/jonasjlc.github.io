@@ -264,10 +264,10 @@ test -s dist/ferie/index.html && test -s dist/gave/index.html && test -s dist/st
 
 **Files:** `src/styles/strandparken.css`.
 
-- [ ] **Step 1:** Add the `@utility sp-*` typography roles from the table, the scoped base layer (body, focus ring, `input { font-size: 1rem }`), the keyframes used later (sheet-up 220 ms, scrim-fade 220 ms, tick 120 ms) and the reduced-motion block.
-- [ ] **Step 2:** Temporarily render one sample of each role in `StrandparkenApp.tsx`.
-- [ ] **Verify:** compare computed styles for each sample with the table. Fraunces headings show `font-variation-settings` / optical size auto. With browser text size at 130 % (Chrome → Settings → Font size), the samples scale. With DevTools "Emulate prefers-reduced-motion: reduce", the keyframes resolve to about 0 ms. Remove the samples. Run the standard checks and the /ferie check.
-- [ ] **Commit:** `feat(strandparken): add typography roles and motion base`
+- [x] **Step 1:** Add the `@utility sp-*` typography roles from the table, the scoped base layer (body, focus ring, `input { font-size: 1rem }`), the keyframes used later (sheet-up 220 ms, scrim-fade 220 ms, tick 120 ms) and the reduced-motion block.
+- [x] **Step 2:** Temporarily render one sample of each role in `StrandparkenApp.tsx`.
+- [x] **Verify:** compare computed styles for each sample with the table. Fraunces headings show `font-variation-settings` / optical size auto. With browser text size at 130 % (Chrome → Settings → Font size), the samples scale. With DevTools "Emulate prefers-reduced-motion: reduce", the keyframes resolve to about 0 ms. Remove the samples. Run the standard checks and the /ferie check.
+- [x] **Commit:** `feat(strandparken): add typography roles and motion base`
 
 ### Task 7: Token guard (U1)
 
@@ -460,3 +460,10 @@ Each question names its default. The plan above assumes the default.
 - Tests written first (6 failing), then passing: `tests/strandparken-tokens.test.mjs` (all §3.1/§3.3 values, shadcn mapping, resets, utilities) and `tests/strandparken-contrast.test.mjs` (16 text pairs at least 4.5:1, dash at least 3:1 on surface and ground). Shared parser in `tests/helpers/strandparken-css.mjs`. Full suite 27/27.
 - Browser probe (temporary, removed): `bg-sp-surface` is `rgb(255,255,255)`, `rounded-sp-row` 20px, hero shadow and `Fraunces Variable, Georgia, serif` resolve, the shadcn `--primary` resolves to `#1f4d3a`; `bg-red-500` and `rounded-lg` generate no CSS (computed transparent and 0px).
 - /ferie CSS byte-identical, HTML identical.
+
+### Task 6
+- Added the 15 `sp-*` typography utilities, scoped base layer (ground, ink, antialiasing, 2px focus ring with 2px offset, 16px inputs), keyframes inside `@theme inline` (`animate-sp-sheet-in/out`, `scrim-in/out`, `tick`; closing variants added so Radix can animate out) and the reduced-motion block.
+- Temporary probe in headless Chrome (removed): all 15 roles match the table exactly (e.g. `title-page` Fraunces 500, 32px, 35.2px, -0.32px; `input` 16px); page ground `rgb(245,241,232)`; `document.fonts` reports both `Fraunces Variable` and `Figtree Variable` latin woff2 loaded from the site (closes the Task 3 browser check).
+- Reduced motion (`--force-prefers-reduced-motion`): sheet animation 0.22s becomes 1e-05s. Text size: with a 20px root (125%) `title-page` is 40px and `body` 18.75px, so sizes follow the user's text size.
+- Probe lesson: Tailwind only sees literal class names, so the sample used a literal map.
+- /ferie: CSS byte-identical, HTML identical, **all 16 screenshots byte-identical** to the Task 1 baseline.

@@ -140,4 +140,69 @@
 
   --font-sp-serif: 'Fraunces Variable', Georgia, serif;
   --font-sp-sans: 'Figtree Variable', system-ui, sans-serif;
+
+  /* Motion (UI spec §8): sheets 220 ms, tick 120 ms. Only answers an action; no entrance animations. */
+  --animate-*: initial;
+  --animate-sp-sheet-in: sp-sheet-in 220ms ease-out;
+  --animate-sp-sheet-out: sp-sheet-out 220ms ease-in;
+  --animate-sp-scrim-in: sp-scrim-in 220ms ease-out;
+  --animate-sp-scrim-out: sp-scrim-out 220ms ease-in;
+  --animate-sp-tick: sp-tick 120ms ease-out;
+
+  @keyframes sp-sheet-in { from { transform: translateY(100%); } to { transform: translateY(0); } }
+  @keyframes sp-sheet-out { from { transform: translateY(0); } to { transform: translateY(100%); } }
+  @keyframes sp-scrim-in { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes sp-scrim-out { from { opacity: 1; } to { opacity: 0; } }
+  @keyframes sp-tick { from { opacity: 0; transform: scale(0.6); } to { opacity: 1; transform: scale(1); } }
+}
+
+/* Typography roles (UI spec §3.2). Sizes in rem (px / 16) so the layout follows the user's text size. Serif is for names of things only. */
+@utility sp-title-page { font-family: var(--font-sp-serif); font-weight: 500; font-size: 2rem; line-height: 1.1; letter-spacing: -0.01em; }
+@utility sp-title-recipe { font-family: var(--font-sp-serif); font-weight: 500; font-size: 1.875rem; line-height: 1.12; letter-spacing: -0.01em; }
+@utility sp-title-card { font-family: var(--font-sp-serif); font-weight: 500; font-size: 1.5rem; line-height: 1.15; }
+@utility sp-title-section { font-family: var(--font-sp-serif); font-weight: 500; font-size: 1.25rem; line-height: 1.2; }
+@utility sp-title-group { font-family: var(--font-sp-serif); font-weight: 500; font-size: 1.125rem; line-height: 1.2; }
+@utility sp-stat-lg { font-family: var(--font-sp-serif); font-weight: 400; font-size: 2.5rem; line-height: 1.1; }
+@utility sp-stat-sm { font-family: var(--font-sp-serif); font-weight: 400; font-size: 1.625rem; line-height: 1.1; }
+@utility sp-body { font-family: var(--font-sp-sans); font-weight: 400; font-size: 0.9375rem; line-height: 1.4; }
+@utility sp-body-strong { font-family: var(--font-sp-sans); font-weight: 600; font-size: 0.9375rem; line-height: 1.4; }
+@utility sp-small { font-family: var(--font-sp-sans); font-weight: 400; font-size: 0.84375rem; line-height: 1.4; }
+@utility sp-caption { font-family: var(--font-sp-sans); font-weight: 400; font-size: 0.78125rem; line-height: 1.35; }
+@utility sp-nav { font-family: var(--font-sp-sans); font-weight: 600; font-size: 0.71875rem; line-height: 1; }
+@utility sp-button { font-family: var(--font-sp-sans); font-weight: 600; font-size: 1rem; line-height: 1.2; }
+@utility sp-button-sm { font-family: var(--font-sp-sans); font-weight: 600; font-size: 0.875rem; line-height: 1.2; }
+@utility sp-input { font-family: var(--font-sp-sans); font-weight: 400; font-size: 1rem; line-height: 1.3; } /* 16 px stops iOS zooming on focus */
+
+/* Base layer, scoped to the Strandparken root. */
+@layer base {
+  :root[data-app='strandparken'] body {
+    background-color: var(--sp-bg);
+    color: var(--sp-ink);
+    font-family: var(--font-sp-sans);
+    font-size: 0.9375rem;
+    line-height: 1.4;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  :root[data-app='strandparken'] :focus-visible {
+    outline: 2px solid var(--sp-primary);
+    outline-offset: 2px;
+  }
+  :root[data-app='strandparken'] input,
+  :root[data-app='strandparken'] textarea,
+  :root[data-app='strandparken'] select {
+    font-size: 1rem;
+  }
+}
+
+/* Reduced motion: everything is instant (UI spec §8). 0.01ms keeps animationend firing for Radix. */
+@media (prefers-reduced-motion: reduce) {
+  :root[data-app='strandparken'] *,
+  :root[data-app='strandparken'] *::before,
+  :root[data-app='strandparken'] *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
