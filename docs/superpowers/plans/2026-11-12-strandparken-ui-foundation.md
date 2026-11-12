@@ -387,11 +387,11 @@ test -s dist/ferie/index.html && test -s dist/gave/index.html && test -s dist/st
 
 **Files:** `public/strandparken/manifest.webmanifest`, icons, `src/pages/strandparken/index.astro`.
 
-- [ ] **Step 1:** Manifest: `name` and `short_name` "Strandparken", `start_url` and `scope` `/strandparken/`, `display: standalone`, `background_color` and `theme_color` `#F5F1E8`, `lang: da`, and 192/512 icons (plus a 512 `maskable`).
-- [ ] **Step 2:** Icons per Q10. Rasterize the SVG to 192, 512, 180 (`apple-touch-icon`) and 32 with a one-off command that is not committed (for example a scratchpad script using the `sharp` that Astro already installs). Check that each PNG is small (≤ 20 kB).
-- [ ] **Step 3:** Head links: `icon` (svg and png 32), `apple-touch-icon`, `manifest`, and `apple-mobile-web-app-title` "Strandparken".
-- [ ] **Verify:** standard checks. DevTools → Application → Manifest shows no errors and the icons render. Chrome offers "Install app". On iOS "Føj til hjemmeskærm" shows the name and icon. The installed app opens on `#hjem` and keeps the view on reopen when the URL has a hash. No service worker is registered (Q15).
-- [ ] **Commit:** `feat(strandparken): add PWA manifest and icons`
+- [x] **Step 1:** Manifest: `name` and `short_name` "Strandparken", `start_url` and `scope` `/strandparken/`, `display: standalone`, `background_color` and `theme_color` `#F5F1E8`, `lang: da`, and 192/512 icons (plus a 512 `maskable`).
+- [x] **Step 2:** Icons per Q10. Rasterize the SVG to 192, 512, 180 (`apple-touch-icon`) and 32 with a one-off command that is not committed (for example a scratchpad script using the `sharp` that Astro already installs). Check that each PNG is small (≤ 20 kB).
+- [x] **Step 3:** Head links: `icon` (svg and png 32), `apple-touch-icon`, `manifest`, and `apple-mobile-web-app-title` "Strandparken".
+- [x] **Verify:** standard checks. DevTools → Application → Manifest shows no errors and the icons render. Chrome offers "Install app". On iOS "Føj til hjemmeskærm" shows the name and icon. The installed app opens on `#hjem` and keeps the view on reopen when the URL has a hash. No service worker is registered (Q15).
+- [x] **Commit:** `feat(strandparken): add PWA manifest and icons`
 
 ### Task 21: Final verification and documentation
 
@@ -557,3 +557,10 @@ Each question names its default. The plan above assumes the default.
 - 130% text (21px root, 360px wide): the title scales to 42px, nothing overflows or overlaps; the bar labels are close (`Sundhed` and `Opskrifter` nearly touch) but fit their cells.
 - Copy I drafted (Q16, for your review): Godmorgen/Goddag/Godaften; Hjem: "Aftensmad, ugen og dagens opgaver samles her, når de er sat op."; Madplan: "Ugens aftensmad dukker op her, når I begynder at planlægge."; Indkøb: "Indkøbslisten er tom. Varer kommer til, når I laver en liste."; Sundhed: "Sundhed er ikke sat op endnu."; Opskrifter: "Opskrifterne dukker op her, når I har tilføjet nogle."; settings sheet: "Her samles profil, mål og forbindelser, når de er sat op."; page description "Madplan, indkøb og hverdag for to."; noscript "Strandparken kræver JavaScript."
 - /ferie: HTML identical; CSS only dead rules; screenshots 15/16 byte-identical. The one that differs (`rejsekassen-1280x800-light`) is flaky: re-shooting the same build four times gave the baseline image three times and the other image once.
+
+### Task 20 (Q10 and Q15 defaults)
+- Files in `public/strandparken/`: `manifest.webmanifest` (name and short name Strandparken, `start_url` and `scope` `/strandparken/`, standalone, `background_color` and `theme_color` `#F5F1E8`, `lang` da, icons 192, 512 and a 512 maskable), `icon.svg`, `icon-192.png`, `icon-512.png`, `icon-maskable-512.png`, `apple-touch-icon.png` (180), `favicon-32.png`; head links added to the page (icon svg and png, apple-touch-icon, manifest, `apple-mobile-web-app-title`).
+- Icon (Q10 default): a serif S in Fraunces weight 500, white on `#1F4D3A`, rounded square (full-bleed for the maskable and Apple icons, S inside the safe zone at 54% of the height). `fontkitten` (Astro's font parser) cannot decode this font's composite glyphs, so the S was rendered with the real font in headless Chrome and its contour traced into a 177-point SVG path with a one-off script in the scratchpad (not committed). Sizes: svg 2.2kB, PNGs 0.7 to 7.4kB (all under 20kB).
+- Chrome (CDP `Page.getAppManifest` and `Page.getInstallabilityErrors`): no manifest errors, no installability errors; all six icon URLs return 200 with the right content types; no service worker is registered (Q15). Console clean.
+- Not verifiable here: Chrome's "Install app" prompt and iOS "Føj til hjemmeskærm" with the name and icon, and what the installed app does on reopen, need your phones. Per the manifest the installed app always opens at `/strandparken/` and lands on `#hjem`.
+- Untouched: `public/ferie/`, `src/components/ferie/`, `src/pages/ferie/`, `src/styles/ferie.css`, `components.json` (git shows no change in any of them).
