@@ -397,11 +397,11 @@ test -s dist/ferie/index.html && test -s dist/gave/index.html && test -s dist/st
 
 **Files:** `README.md`, this plan.
 
-- [ ] **Step 1:** README: add a `/strandparken/` paragraph (unlisted, where code and styles live, `pnpm exec astro dev` then `/strandparken/galleri` for the gallery, and that tokens live only in `strandparken.css`).
-- [ ] **Step 2:** Run the standard checks and the full /ferie check (all baseline screenshots).
-- [ ] **Step 3:** Walk the UI spec §11 items that apply to U1–U4: no raw values (guard test), bottom bar equal items, checkboxes, stepper and segmented control identical in the gallery, letter placeholder, 44 px targets with visible focus, reduced motion, /ferie unchanged, Danish copy. Record pass/fail per item.
-- [ ] **Step 4:** Record commands, outputs and manual checks under `## Verification`, then stop and show the gallery and the shell (UI spec §12.2).
-- [ ] **Commit:** `docs(strandparken): document UI foundation`
+- [x] **Step 1:** README: add a `/strandparken/` paragraph (unlisted, where code and styles live, `pnpm exec astro dev` then `/strandparken/galleri` for the gallery, and that tokens live only in `strandparken.css`).
+- [x] **Step 2:** Run the standard checks and the full /ferie check (all baseline screenshots).
+- [x] **Step 3:** Walk the UI spec §11 items that apply to U1–U4: no raw values (guard test), bottom bar equal items, checkboxes, stepper and segmented control identical in the gallery, letter placeholder, 44 px targets with visible focus, reduced motion, /ferie unchanged, Danish copy. Record pass/fail per item.
+- [x] **Step 4:** Record commands, outputs and manual checks under `## Verification`, then stop and show the gallery and the shell (UI spec §12.2).
+- [x] **Commit:** `docs(strandparken): document UI foundation`
 
 ---
 
@@ -564,3 +564,36 @@ Each question names its default. The plan above assumes the default.
 - Chrome (CDP `Page.getAppManifest` and `Page.getInstallabilityErrors`): no manifest errors, no installability errors; all six icon URLs return 200 with the right content types; no service worker is registered (Q15). Console clean.
 - Not verifiable here: Chrome's "Install app" prompt and iOS "Føj til hjemmeskærm" with the name and icon, and what the installed app does on reopen, need your phones. Per the manifest the installed app always opens at `/strandparken/` and lands on `#hjem`.
 - Untouched: `public/ferie/`, `src/components/ferie/`, `src/pages/ferie/`, `src/styles/ferie.css`, `components.json` (git shows no change in any of them).
+
+### Task 21: final verification (U1 to U4)
+
+Commands run on the final tree: `pnpm install --frozen-lockfile` (up to date), `pnpm build` (`astro check` 0 errors, 5 pages built), `node --test tests/*.test.*` (44/44), `test -s` on `dist/ferie`, `dist/gave` and `dist/strandparken` index files, the raw-value grep over `src/components/strandparken` and `src/dev/strandparken` (clean), and a production-build search that finds no gallery in `dist/`.
+
+**/ferie proof.** `git` shows no change in `public/ferie/`, `src/components/ferie/`, `src/pages/ferie/`, `src/styles/ferie.css` or `components.json`. `dist/ferie/index.html` is identical to the Task 1 baseline after normalising hashed asset names. All 16 baseline screenshots (4 tabs x 390 and 1280px x light and dark) are byte-identical on the final run (one earlier run showed a single different image, proven flaky: the same build reproduced both versions). The /ferie CSS is **not** byte-identical any more: it carries 23 dead rules from Strandparken class names (Q4 = no, per your rule not to touch `/ferie`); none is used by a /ferie class. Adding the three-line `@source not` change to `ferie.css` (Q4 = yes) would make it byte-identical again and keep it so.
+
+**UI spec §11 for U1 to U4**
+
+| Item | Result |
+|---|---|
+| No component contains a raw colour, radius or font value | Pass: guard test (44/44) and a clean grep. The one deliberate token deviation is `--sp-dash` `#8C8676` (Q6). |
+| Bottom bar: five items of equal size and shape, active marked only by colour and the top indicator | Pass: cells identical in width, height, fill, radius, shadow and type at 360, 390, 768 and 1280px; only text and indicator colour differ. |
+| 390x844: Hjem shows tonight's dinner and Madplan shows seven days and `Lav indkøbsliste` without scrolling | Not applicable yet (U5 to U6); the shell has placeholders only. |
+| Stepper, checkboxes and segmented control look and behave the same everywhere | Pass for U1 to U4: one component each, all states in the gallery. |
+| A dish without a photo shows the letter placeholder, never a broken image | Pass: no photo and failing URL both give the letter; 0 broken images in the gallery and in all five views. |
+| Every interactive element is at least 44x44 and keyboard reachable with a visible focus ring | Pass: no target under 44px in the gallery and in all five views at 360px; 2px primary ring with 2px offset (white on the stepper pill, inset in the bar). |
+| Every view has loading, empty and error states | Not applicable yet (U8); views show an empty-state sentence only. |
+| Nothing moves under `prefers-reduced-motion` | Pass: every animation and transition computes to ~0s (1e-05s); at normal motion only the three spec keyframes run (0.12s, 0.22s) and there are no colour transitions. |
+| /ferie looks and behaves exactly as before | Pass visually and behaviourally; CSS has dead rules (see above). |
+| All UI copy is Danish and matches the spec and reference | Pass for the labels taken from them; the copy I drafted is listed under Task 19 for your review. |
+| Side by side with the mockup at 390px | Not applicable yet (no screens before U6). |
+
+**Not verified here.** A real screen reader, the Chrome "Install app" prompt, iOS "Føj til hjemmeskærm" and the installed app on a phone need your devices. Everything else above was measured in headless Chrome.
+
+**Deviations from the plan and specs, for your decision**
+1. Q4 = no: dead rules in the /ferie CSS (see above).
+2. Q6: `--sp-dash` is `#8C8676`, not the spec's `#A8A291`.
+3. Reference primary button is 54px; the spec says 52 and the spec was followed.
+4. Stepper: the live region is the label ("3 personer") rather than the bare number; the buttons use `aria-disabled` and a white focus ring.
+5. Commit subjects follow the repo convention and name the U-step (`feat(strandparken): U2 add Button and Icon primitives`), not the bare "U2: primitives".
+6. CI also gained a `Run tests` step (Q11 default); nothing is pushed.
+7. At 130% text on a 360px phone the bottom-bar labels `Sundhed` and `Opskrifter` nearly touch.
