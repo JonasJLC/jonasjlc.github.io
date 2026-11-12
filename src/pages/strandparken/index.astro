@@ -1,0 +1,29 @@
+---
+import StrandparkenApp from '../../components/strandparken/StrandparkenApp';
+
+const title = 'Strandparken';
+const description = 'Madplan, indkøb og hverdag for to.';
+---
+
+<!doctype html>
+<html lang="da" data-app="strandparken">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="description" content={description} />
+    <meta name="theme-color" content="#F5F1E8" />
+    <meta name="robots" content="noindex, nofollow" />
+    <link rel="canonical" href="https://jonasjlc.github.io/strandparken/" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://jonasjlc.github.io/strandparken/" />
+    <title>{title}</title>
+  </head>
+  <body>
+    <StrandparkenApp client:only="react" />
+    <noscript>
+      <p>Strandparken kræver JavaScript.</p>
+    </noscript>
+  </body>
+</html>

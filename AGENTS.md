@@ -2,11 +2,13 @@
 
 ## Project
 
-This is a static Astro 5 site deployed to GitHub Pages from `main`. Read `README.md` before changes. Keep changes dependency free unless the task explicitly requires a dependency.
+This is a static Astro 7 site deployed to GitHub Pages from `main`. Read `README.md` before changes. Keep changes dependency free unless the task explicitly requires a dependency.
 
 The public landing page is `src/pages/index.astro`; its editable content is `src/content/site.ts`. Shared components and styles are in `src/components/` and `src/styles/`. The private gift reveal is `src/pages/gave/index.astro`, with editable content in `src/content/gift.ts`, browser behavior in `src/scripts/gave.ts`, and page-specific styling in `src/styles/gave.css`.
 
 The Ferieplan app lives at `/ferie/`: page in `src/pages/ferie/index.astro`, React code in `src/components/ferie/`, styles in `src/styles/ferie.css`. It is unlisted (noindex) and must not be linked from the homepage unless asked.
+
+The Strandparken household app lives at `/strandparken/`: page in `src/pages/strandparken/index.astro`, React code in `src/components/strandparken/`, styles and design tokens in `src/styles/strandparken.css` (the only place raw colours, radii, shadows and fonts may appear). It is unlisted (noindex) and must not be linked from the homepage unless asked. Design source of truth: `docs/superpowers/specs/2026-11-12-strandparken-ui-design.md`.
 
 `public/jeopardy/` contains generated output from the sibling Jeopardy project. Do not edit it directly. Optional gift images belong in `public/gave/assets/` and must be locally hosted and optimized.
 
@@ -15,9 +17,9 @@ The Ferieplan app lives at `/ferie/`: page in `src/pages/ferie/index.astro`, Rea
 - Preserve the Astro static-hosting layout and use generated Astro asset URLs instead of hardcoded bundle names.
 - Keep HTML semantic, responsive, and accessible. Every page needs a viewport tag and descriptive metadata.
 - Do not link the public homepage to `/gave/` unless explicitly asked.
-- Do not add frameworks, client islands, runtime dependencies, secrets, private URLs, generated debug output, or unrelated assets. The one exception is `/ferie/`, which is a React island (`src/pages/ferie/index.astro`, `src/components/ferie/`) using Tailwind and shadcn/ui; keep React and Tailwind confined to that route and to `src/styles/ferie.css`. `/ferie/` also uses `@supabase/supabase-js` for shared storage; only the public URL and publishable key may be committed (`src/components/ferie/lib/supabase-config.ts`), never a service_role or secret key. Schema changes go in `supabase/migrations/`.
+- Do not add frameworks, client islands, runtime dependencies, secrets, private URLs, generated debug output, or unrelated assets. The one exception is `/ferie/`, which is a React island (`src/pages/ferie/index.astro`, `src/components/ferie/`) using Tailwind and shadcn/ui; keep React and Tailwind confined to that route and to `src/styles/ferie.css`. `/strandparken/` is the second exception, built the same way (`src/pages/strandparken/index.astro`, `src/components/strandparken/`, `src/styles/strandparken.css`); React, Tailwind and shadcn/ui stay confined to `/ferie/` and `/strandparken/`. `/ferie/` also uses `@supabase/supabase-js` for shared storage; only the public URL and publishable key may be committed (`src/components/ferie/lib/supabase-config.ts`), never a service_role or secret key. Schema changes go in `supabase/migrations/`.
 - Preserve unrelated working-tree changes. Stage only files belonging to the task.
-- Read `.github/workflows/pages.yml` when changing CI; it installs with the frozen lockfile, runs the Astro build, and verifies `dist/gave/index.html` and `dist/ferie/index.html`.
+- Read `.github/workflows/pages.yml` when changing CI; it installs with the frozen lockfile, runs the Astro build, and verifies `dist/gave/index.html`, `dist/ferie/index.html` and `dist/strandparken/index.html`.
 
 ## Git and deployment
 
