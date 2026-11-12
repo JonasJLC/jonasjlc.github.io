@@ -369,9 +369,9 @@ test -s dist/ferie/index.html && test -s dist/gave/index.html && test -s dist/st
 
 **Files:** `shell/BottomBar.tsx`.
 
-- [ ] **Step 1:** `<nav aria-label="Hovedmenu">` is fixed to the bottom with the full-width `--sp-bg` ground and a 1 px `--sp-line` top border, no shadow and no radius. Its height is `--sp-bar-h` plus `env(safe-area-inset-bottom)`. Inside, the five equal columns are constrained to the centred column width (Q9). Each item is an `<a href>` filling its cell: an anchor, because each item changes the URL, and the spec allows `<a>` (§9). The icon (22 px; Home, CalendarDays, ShoppingBasket, Heart, BookOpen) sits above the `sp-nav` label with a 4 px gap. Inactive is muted. The active item is primary, has `aria-current="page"` and a 2 px primary indicator along its top edge (an inset box-shadow, as in the reference). Nothing else differs between items.
-- [ ] **Verify:** standard checks and token guard. At 360, 390 and 768 px the five cells are equal width (measure in DevTools). Only colour and the indicator change on the active item. Keyboard Tab reaches all five. A screen reader announces "nuværende side".
-- [ ] **Commit:** `feat(strandparken): add bottom bar`
+- [x] **Step 1:** `<nav aria-label="Hovedmenu">` is fixed to the bottom with the full-width `--sp-bg` ground and a 1 px `--sp-line` top border, no shadow and no radius. Its height is `--sp-bar-h` plus `env(safe-area-inset-bottom)`. Inside, the five equal columns are constrained to the centred column width (Q9). Each item is an `<a href>` filling its cell: an anchor, because each item changes the URL, and the spec allows `<a>` (§9). The icon (22 px; Home, CalendarDays, ShoppingBasket, Heart, BookOpen) sits above the `sp-nav` label with a 4 px gap. Inactive is muted. The active item is primary, has `aria-current="page"` and a 2 px primary indicator along its top edge (an inset box-shadow, as in the reference). Nothing else differs between items.
+- [x] **Verify:** standard checks and token guard. At 360, 390 and 768 px the five cells are equal width (measure in DevTools). Only colour and the indicator change on the active item. Keyboard Tab reaches all five. A screen reader announces "nuværende side".
+- [x] **Commit:** `feat(strandparken): add bottom bar`
 
 ### Task 19: App shell (U4, Q8)
 
@@ -540,3 +540,10 @@ Each question names its default. The plan above assumes the default.
 - `lib/routes.ts` (pure): views `hjem · madplan · indkob · sundhed · opskrifter`, Danish labels `Hjem · Madplan · Indkøb · Sundhed · Opskrifter`, `parseHash`, `hrefFor`. Empty, `#`, unknown and `#/madplan` give `hjem`; a query after the view is ignored (`#madplan?code=…`); `#indkøb`, percent-encoded `ind%6B%C3%B8b` and capital letters are accepted; a malformed percent escape falls back to `hjem` instead of throwing.
 - `lib/use-route.ts`: reads the hash on mount and on `hashchange`, replaces an empty or unknown hash with the canonical one through `history.replaceState`, and scrolls to the top on a view change. Browser behaviour is verified in Task 19 with the shell.
 - /ferie unchanged (HTML identical; CSS only dead rules).
+
+### Task 18 (Q9 default: full-width ground, centred items)
+- File: `shell/BottomBar.tsx`; two stylesheet utilities for the safe-area maths (`h-sp-bar-safe`, `pb-sp-safe`). `<nav aria-label="Hovedmenu">`, fixed, ground `--sp-bg`, 1px `--sp-line` top rule, no shadow, no radius; five `<a href>` cells in a five-column grid constrained to the centred column; icon 22px above an `sp-nav` label with a 4px gap (Home, CalendarDays, ShoppingBasket, Heart, BookOpen). The current item has `aria-current="page"`.
+- Measured at 360, 390, 768 and 1280px (2x DPR): the bar is 76px high; the five cells are exactly equal (72, 78, 104, 104px) and span the screen up to 560px, then a centred 520px column; icons 22x22.
+- Active versus inactive: width, height, background, radius, shadow, font size and weight, line height, padding, indicator width and opacity are **identical**; only the text colour (primary vs muted) and the 2px top indicator colour (primary vs transparent) differ. No item is raised, enlarged or filled (UI spec §5.1).
+- Keyboard and routing: Tab visits Hjem, Madplan, Indkøb, Sundhed, Opskrifter in order with a 2px primary ring (inset, so the outer cells are not clipped by the screen edge); Enter on a focused link changes the hash and the current item; `#ukendt` is replaced by `#hjem`; Back returns to the previous view (replaceState added no entry). Console clean. A real screen reader was not run; `aria-current="page"` is verified in the DOM.
+- /ferie unchanged (HTML identical; CSS only dead rules). §11: bottom bar has five items of equal size and shape, active marked only by colour and the top indicator: pass.

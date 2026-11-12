@@ -182,6 +182,10 @@
 /* Sheet bottom padding (26 px) plus the home-indicator safe area. */
 @utility pb-sp-sheet { padding-bottom: calc(1.625rem + env(safe-area-inset-bottom, 0px)); }
 
+/* Bottom bar: 76 px plus the home-indicator safe area (UI spec §5.1). */
+@utility h-sp-bar-safe { height: calc(var(--sp-bar-h) + env(safe-area-inset-bottom, 0px)); }
+@utility pb-sp-safe { padding-bottom: env(safe-area-inset-bottom, 0px); }
+
 /* Typography roles (UI spec §3.2). Sizes in rem (px / 16) so the layout follows the user's text size. Serif is for names of things only. */
 @utility sp-title-page { font-family: var(--font-sp-serif); font-weight: 500; font-size: 2rem; line-height: 1.1; letter-spacing: -0.01em; }
 @utility sp-title-recipe { font-family: var(--font-sp-serif); font-weight: 500; font-size: 1.875rem; line-height: 1.12; letter-spacing: -0.01em; }
