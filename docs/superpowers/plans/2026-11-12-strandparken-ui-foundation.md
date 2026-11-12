@@ -245,10 +245,10 @@ test -s dist/ferie/index.html && test -s dist/gave/index.html && test -s dist/st
 
 **Files:** `src/styles/strandparken.css`, plus `src/styles/ferie.css` if Q4 = yes.
 
-- [ ] **Step 1:** Add `@import 'tailwindcss' source(none)` and the three `@source` lines (see "How the §3 tokens are mapped").
-- [ ] **Step 2 (Q4 = yes):** In `ferie.css`, directly after `@import 'tailwindcss';`, add `@source not '../components/strandparken'; @source not '../pages/strandparken'; @source not '../dev/strandparken';`.
-- [ ] **Verify:** put a sentinel class `sp-sentinel-x` in `StrandparkenApp.tsx` and build. It appears in the Strandparken CSS and not in the /ferie CSS. A `/ferie`-only class such as `bg-cat-mad-tint` does not appear in the Strandparken CSS. Remove the sentinel. Run the /ferie check (CSS byte-identical).
-- [ ] **Commit:** `feat(strandparken): isolate Tailwind sources per app`
+- [x] **Step 1:** Add `@import 'tailwindcss' source(none)` and the three `@source` lines (see "How the §3 tokens are mapped").
+- [x] **Step 2 (Q4 = yes):** In `ferie.css`, directly after `@import 'tailwindcss';`, add `@source not '../components/strandparken'; @source not '../pages/strandparken'; @source not '../dev/strandparken';`.
+- [x] **Verify:** put a sentinel class `sp-sentinel-x` in `StrandparkenApp.tsx` and build. It appears in the Strandparken CSS and not in the /ferie CSS. A `/ferie`-only class such as `bg-cat-mad-tint` does not appear in the Strandparken CSS. Remove the sentinel. Run the /ferie check (CSS byte-identical).
+- [x] **Commit:** `feat(strandparken): isolate Tailwind sources per app`
 
 ### Task 5: Colour, shape, depth and spacing tokens with Tailwind and shadcn mapping (U1)
 
@@ -449,3 +449,8 @@ Each question names its default. The plan above assumes the default.
 - Added `@fontsource-variable/fraunces` and `@fontsource-variable/figtree` 5.3.0 (exact versions; the only new dependencies). Family names confirmed: `'Fraunces Variable'`, `'Figtree Variable'`.
 - `dist/_astro/` holds Fraunces (latin, latin-ext, vietnamese, opsz) and Figtree (latin, latin-ext) woff2; `grep googleapis dist/strandparken` = 0. /ferie CSS byte-identical, HTML identical.
 - In-browser "Rendered fonts" check is done in Task 6, when text first uses the faces.
+
+### Task 4 (Q4 = no)
+- `strandparken.css` imports `tailwindcss` with `source(none)` plus three `@source` lines. `ferie.css` is not touched.
+- Sentinel `w-[137px]` in `StrandparkenApp.tsx`: present in the Strandparken CSS, and also in the /ferie CSS (the leak Q4 = yes would have closed); `bg-cat-mad-tint` (/ferie-only) is absent from the Strandparken CSS. Sentinel removed; /ferie CSS is byte-identical again.
+- Consequence to watch: Strandparken utilities that are also valid in /ferie's theme can add unused rules to the /ferie CSS. Each later task reports the selector diff; the rendered /ferie is unaffected.

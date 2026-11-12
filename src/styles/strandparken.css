@@ -1,3 +1,7 @@
 /* Strandparken design foundation. Imported only by /strandparken pages. */
 @import '@fontsource-variable/fraunces/opsz.css'; /* weight + optical-size axes */
 @import '@fontsource-variable/figtree';
+@import 'tailwindcss' source(none);
+@source '../components/strandparken';
+@source '../pages/strandparken';
+@source '../dev/strandparken';
