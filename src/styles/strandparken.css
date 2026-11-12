@@ -5,3 +5,139 @@
 @source '../components/strandparken';
 @source '../pages/strandparken';
 @source '../dev/strandparken';
+
+/*
+ * Design tokens (UI spec §3). This file is the only place raw colours, radii, shadows and
+ * font names may appear. They sit on <html> rather than on the island wrapper so that
+ * Radix portals (sheet, toast), which render into <body>, are styled too.
+ */
+:root[data-app='strandparken'] {
+  /* §3.1 colour. --sp-dash is darker than the spec's #A8A291 so the unchecked-box border reaches 3:1 (plan Q6). */
+  --sp-bg: #F5F1E8;
+  --sp-surface: #FFFFFF;
+  --sp-ink: #1B2620;
+  --sp-muted: #5C6259;
+  --sp-primary: #1F4D3A;
+  --sp-on-primary: #FFFFFF;
+  --sp-primary-tint: #E8EFE6;
+  --sp-track: #E9E3D4;
+  --sp-line: #E6E0D2;
+  --sp-line-soft: #EFEADD;
+  --sp-dash: #8C8676;
+  --sp-danger: #7A2A16;
+  --sp-danger-tint: #F6DFD6;
+  --sp-jonas: #2F6690;
+  --sp-jonas-tint: #EDF2F6;
+  --sp-jonas-ink: #24506F;
+  --sp-camilla: #96486A;
+  --sp-camilla-tint: #F5ECF0;
+  --sp-camilla-ink: #7A3856;
+  --sp-scrim: rgba(27, 38, 32, 0.45);
+
+  /* §3.3 shape and depth */
+  --sp-r-card: 24px;
+  --sp-r-row: 20px;
+  --sp-r-inset: 16px;
+  --sp-r-sheet: 30px;
+  --sp-r-pill: 999px;
+  --sp-shadow-hero: 0 12px 30px rgba(52, 60, 40, 0.12);
+  --sp-shadow-float: 0 4px 12px rgba(40, 30, 15, 0.18);
+  --sp-shadow-seg: 0 1px 3px rgba(0, 0, 0, 0.12);
+
+  /* §3.3 spacing, named so components never hold raw px */
+  --sp-page-top: 28px;
+  --sp-page-x: 20px;
+  --sp-page-bottom: 40px;
+  --sp-gap-home: 22px;
+  --sp-gap: 16px;
+  --sp-pad-card: 18px;
+  --sp-gap-grid: 12px;
+  --sp-gap-row: 8px;
+  --sp-row-min: 52px;
+  --sp-target: 44px;
+  --sp-bar-h: 76px;
+  --sp-column: 520px;
+
+  /* shadcn/ui theme variables point at the Strandparken tokens */
+  --background: var(--sp-bg);
+  --foreground: var(--sp-ink);
+  --card: var(--sp-surface);
+  --card-foreground: var(--sp-ink);
+  --popover: var(--sp-surface);
+  --popover-foreground: var(--sp-ink);
+  --primary: var(--sp-primary);
+  --primary-foreground: var(--sp-on-primary);
+  --secondary: var(--sp-track);
+  --secondary-foreground: var(--sp-ink);
+  --muted: var(--sp-track);
+  --muted-foreground: var(--sp-muted);
+  --accent: var(--sp-track);
+  --accent-foreground: var(--sp-ink);
+  --destructive: var(--sp-danger);
+  --border: var(--sp-line);
+  --input: var(--sp-dash);
+  --ring: var(--sp-primary);
+
+  color-scheme: light; /* D29: no dark mode */
+}
+
+/* Tailwind theme: the default palette, radius, shadow and font scales are removed, so a raw design value cannot be written as a utility. */
+@theme inline {
+  --color-*: initial;
+  --radius-*: initial;
+  --shadow-*: initial;
+  --font-*: initial;
+
+  --color-sp-bg: var(--sp-bg);
+  --color-sp-surface: var(--sp-surface);
+  --color-sp-ink: var(--sp-ink);
+  --color-sp-muted: var(--sp-muted);
+  --color-sp-primary: var(--sp-primary);
+  --color-sp-on-primary: var(--sp-on-primary);
+  --color-sp-primary-tint: var(--sp-primary-tint);
+  --color-sp-track: var(--sp-track);
+  --color-sp-line: var(--sp-line);
+  --color-sp-line-soft: var(--sp-line-soft);
+  --color-sp-dash: var(--sp-dash);
+  --color-sp-danger: var(--sp-danger);
+  --color-sp-danger-tint: var(--sp-danger-tint);
+  --color-sp-jonas: var(--sp-jonas);
+  --color-sp-jonas-tint: var(--sp-jonas-tint);
+  --color-sp-jonas-ink: var(--sp-jonas-ink);
+  --color-sp-camilla: var(--sp-camilla);
+  --color-sp-camilla-tint: var(--sp-camilla-tint);
+  --color-sp-camilla-ink: var(--sp-camilla-ink);
+  --color-sp-scrim: var(--sp-scrim);
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --radius-sp-card: var(--sp-r-card);
+  --radius-sp-row: var(--sp-r-row);
+  --radius-sp-inset: var(--sp-r-inset);
+  --radius-sp-sheet: var(--sp-r-sheet);
+  --radius-sp-pill: var(--sp-r-pill);
+
+  --shadow-sp-hero: var(--sp-shadow-hero);
+  --shadow-sp-float: var(--sp-shadow-float);
+  --shadow-sp-seg: var(--sp-shadow-seg);
+
+  --font-sp-serif: 'Fraunces Variable', Georgia, serif;
+  --font-sp-sans: 'Figtree Variable', system-ui, sans-serif;
+}

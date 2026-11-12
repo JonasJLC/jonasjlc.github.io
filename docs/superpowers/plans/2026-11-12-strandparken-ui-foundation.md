@@ -254,11 +254,11 @@ test -s dist/ferie/index.html && test -s dist/gave/index.html && test -s dist/st
 
 **Files:** `src/styles/strandparken.css`, `tests/strandparken-tokens.test.mjs`, `tests/strandparken-contrast.test.mjs`.
 
-- [ ] **Step 1: Failing tests.** `strandparken-tokens.test.mjs` reads `strandparken.css` and checks that every token in UI spec §3.1 and §3.3 is declared inside `:root[data-app='strandparken']` with the exact value, and that every shadcn variable listed in the mapping points at a `--sp-*` token. `strandparken-contrast.test.mjs` computes WCAG ratios from those values: text pairs ≥ 4.5 (ink, muted on bg, surface and track; on-primary on primary; primary on primary-tint; danger on danger-tint; white on jonas and camilla; jonas-ink on jonas-tint; camilla-ink on camilla-tint). Non-text boundary `--sp-dash` must be ≥ 3 on surface and on bg (WCAG 1.4.11). The dash case is expected to fail today (Q6).
-- [ ] **Step 2:** Run `node --test tests/` and confirm the failures.
-- [ ] **Step 3:** Write the `:root[data-app='strandparken']` block and the `@theme inline` block, including the `initial` resets.
-- [ ] **Verify:** the tests pass, except the dash case until Q6 is answered (a decision recorded in the test either way). Build and confirm `bg-red-500` produces no rule. In the browser, the page ground is `#F5F1E8` and `getComputedStyle(document.documentElement).getPropertyValue('--primary')` resolves to the green. Run the /ferie check.
-- [ ] **Commit:** `feat(strandparken): add design tokens and Tailwind mapping`
+- [x] **Step 1: Failing tests.** `strandparken-tokens.test.mjs` reads `strandparken.css` and checks that every token in UI spec §3.1 and §3.3 is declared inside `:root[data-app='strandparken']` with the exact value, and that every shadcn variable listed in the mapping points at a `--sp-*` token. `strandparken-contrast.test.mjs` computes WCAG ratios from those values: text pairs ≥ 4.5 (ink, muted on bg, surface and track; on-primary on primary; primary on primary-tint; danger on danger-tint; white on jonas and camilla; jonas-ink on jonas-tint; camilla-ink on camilla-tint). Non-text boundary `--sp-dash` must be ≥ 3 on surface and on bg (WCAG 1.4.11). The dash case is expected to fail today (Q6).
+- [x] **Step 2:** Run `node --test tests/` and confirm the failures.
+- [x] **Step 3:** Write the `:root[data-app='strandparken']` block and the `@theme inline` block, including the `initial` resets.
+- [x] **Verify:** the tests pass, except the dash case until Q6 is answered (a decision recorded in the test either way). Build and confirm `bg-red-500` produces no rule. In the browser, the page ground is `#F5F1E8` and `getComputedStyle(document.documentElement).getPropertyValue('--primary')` resolves to the green. Run the /ferie check.
+- [x] **Commit:** `feat(strandparken): add design tokens and Tailwind mapping`
 
 ### Task 6: Typography utilities, base layer and motion (U1)
 
@@ -452,5 +452,11 @@ Each question names its default. The plan above assumes the default.
 
 ### Task 4 (Q4 = no)
 - `strandparken.css` imports `tailwindcss` with `source(none)` plus three `@source` lines. `ferie.css` is not touched.
-- Sentinel `w-[137px]` in `StrandparkenApp.tsx`: present in the Strandparken CSS, and also in the /ferie CSS (the leak Q4 = yes would have closed); `bg-cat-mad-tint` (/ferie-only) is absent from the Strandparken CSS. Sentinel removed; /ferie CSS is byte-identical again.
-- Consequence to watch: Strandparken utilities that are also valid in /ferie's theme can add unused rules to the /ferie CSS. Each later task reports the selector diff; the rendered /ferie is unaffected.
+- A sentinel arbitrary-width utility in `StrandparkenApp.tsx`: present in the Strandparken CSS, and also in the /ferie CSS (the leak Q4 = yes would have closed); `bg-cat-mad-tint` (/ferie-only) is absent from the Strandparken CSS. Sentinel removed; /ferie CSS is byte-identical again.
+- Consequence to watch: Strandparken utilities that are also valid in /ferie's theme can add unused rules to the /ferie CSS. Each later task reports the selector diff; the rendered /ferie is unaffected. Tailwind also scans `docs/`, so do not write real utility class names into plan or spec text (one such mention leaked into the /ferie CSS and was reworded).
+
+### Task 5 (Q6 decided: darken `--sp-dash`)
+- Q6 answer: `--sp-dash` is `#8C8676` (3.63:1 on white, 3.22:1 on the ground) instead of the spec's `#A8A291`. This is the one deliberate deviation from UI spec §3.1; all dashed outlines and the unchecked-box border use it.
+- Tests written first (6 failing), then passing: `tests/strandparken-tokens.test.mjs` (all §3.1/§3.3 values, shadcn mapping, resets, utilities) and `tests/strandparken-contrast.test.mjs` (16 text pairs at least 4.5:1, dash at least 3:1 on surface and ground). Shared parser in `tests/helpers/strandparken-css.mjs`. Full suite 27/27.
+- Browser probe (temporary, removed): `bg-sp-surface` is `rgb(255,255,255)`, `rounded-sp-row` 20px, hero shadow and `Fraunces Variable, Georgia, serif` resolve, the shadcn `--primary` resolves to `#1f4d3a`; `bg-red-500` and `rounded-lg` generate no CSS (computed transparent and 0px).
+- /ferie CSS byte-identical, HTML identical.
