@@ -343,9 +343,9 @@ test -s dist/ferie/index.html && test -s dist/gave/index.html && test -s dist/st
 
 **Files:** `ui/dish-image.tsx`.
 
-- [ ] **Step 1:** Props are `src?`, `name`, `shape: 'round' | 'cover'`, and `size: 52 | 56 | 64` (round only). `cover` fills its box with `object-cover object-center`. When there is no `src` or the image fails (`onError`), it shows a `--sp-track` fill with the first letter of `name` in Fraunces and primary, `aria-hidden`, because the dish name is always shown next to it. `DishSlot` (empty) is a dashed `--sp-dash` circle (1.5 px) with a `Plus` icon. Images get `loading="lazy"`, `decoding="async"`, and `alt=""` when decorative.
-- [ ] **Verify:** standard checks and token guard. A broken URL shows the letter and never a broken-image icon. Round sizes measure 52, 56 and 64.
-- [ ] **Commit:** `feat(strandparken): add DishImage`
+- [x] **Step 1:** Props are `src?`, `name`, `shape: 'round' | 'cover'`, and `size: 52 | 56 | 64` (round only). `cover` fills its box with `object-cover object-center`. When there is no `src` or the image fails (`onError`), it shows a `--sp-track` fill with the first letter of `name` in Fraunces and primary, `aria-hidden`, because the dish name is always shown next to it. `DishSlot` (empty) is a dashed `--sp-dash` circle (1.5 px) with a `Plus` icon. Images get `loading="lazy"`, `decoding="async"`, and `alt=""` when decorative.
+- [x] **Verify:** standard checks and token guard. A broken URL shows the letter and never a broken-image icon. Round sizes measure 52, 56 and 64.
+- [x] **Commit:** `feat(strandparken): add DishImage`
 
 ### Task 16: Dev-only UI gallery (U3)
 
@@ -522,3 +522,8 @@ Each question names its default. The plan above assumes the default.
 - Sonner is unstyled and restyled with token classes: ink pill, white text, `sp-small`; position bottom-centre, `visibleToasts={1}`, 4000ms, Danish region label `Beskeder`. `notify` dismisses the current toast first.
 - Measured at 390px with a 76px mock bar: two notifications 100ms apart leave exactly one visible; the toast is 12px above the bar, `rgb(27,38,32)` with white text, 999px radius, 13.5px; the live region is `aria-live="polite"`. It is gone after about 5s. `Fortryd` is 79x44, 14px/600, calls the callback once and dismisses the toast; a plain `notify` has no action button. Console clean.
 - /ferie: HTML identical; CSS differs only by unused rules. §11: undo for destructive actions, one toast at a time, above the bar: pass.
+
+### Task 15
+- Files: `ui/dish-image.tsx` (`DishImage` with `shape` round or cover, round sizes 52, 56, 64 enforced by the type; `DishSlot` for an empty day). The fallback is a `--sp-track` tile with the first letter (Danish upper-casing) in Fraunces, primary colour, `aria-hidden` because the name is always shown next to it. Photos are `loading="lazy"`, `decoding="async"`, `alt=""`.
+- Measured: round 52/56/64px circles; cover fills its box (192x132 in the probe) with `object-fit: cover` and `50% 50%`; photo-less and failing-URL dishes show the letter (20px round, 40px cover) with no `<img>` rendered, so zero broken images in the document; the slot is a 1.5px dashed `#8C8676` circle with a plus. The only console line is the browser's own 404 for the deliberately broken URL.
+- /ferie: HTML identical; CSS differs only by unused rules. §11: a dish without a photo shows the letter placeholder, never a broken image: pass.
