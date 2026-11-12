@@ -13,18 +13,20 @@ const sizes = {
 type AvatarProps = Omit<ComponentProps<'span'>, 'children'> & {
   person: Person;
   size?: keyof typeof sizes;
+  /** Override the photo; `null` shows the initial fallback (used by the gallery). */
+  photo?: string | null;
   /** Hide from assistive tech when a visible name or a labelled button already says who this is. */
   decorative?: boolean;
 };
 
 /** The person's photo, or their initial in white on their colour when the photo is missing or fails to load. */
-export function Avatar({ person, size = 44, decorative = false, className, ...props }: AvatarProps) {
+export function Avatar({ person, size = 44, photo, decorative = false, className, ...props }: AvatarProps) {
   const p = people[person];
   const s = sizes[size];
   const a11y = decorative ? { 'aria-hidden': true } : { role: 'img', 'aria-label': p.name };
   return (
     <AvatarPrimitive.Root data-slot="avatar" className={cn('relative inline-flex shrink-0 overflow-hidden rounded-full', s.box, p.fill, className)} {...a11y} {...props}>
-      <AvatarPrimitive.Image src={p.photo} alt="" className="size-full object-cover" />
+      {photo !== null && <AvatarPrimitive.Image src={photo ?? p.photo} alt="" className="size-full object-cover" />}
       <AvatarPrimitive.Fallback className={cn('flex size-full items-center justify-center text-sp-on-primary', s.text)}>{p.initial}</AvatarPrimitive.Fallback>
     </AvatarPrimitive.Root>
   );

@@ -351,10 +351,10 @@ test -s dist/ferie/index.html && test -s dist/gave/index.html && test -s dist/st
 
 **Files:** `astro.config.mjs`, `src/dev/strandparken/gallery.astro`, `src/dev/strandparken/Gallery.tsx`.
 
-- [ ] **Step 1:** In `astro.config.mjs`, add an inline integration: on `astro:config:setup`, if `command === 'dev'`, call `injectRoute({ pattern: '/strandparken/galleri', entrypoint: './src/dev/strandparken/gallery.astro' })`. The file lives outside `src/pages`, so a production build never sees it.
-- [ ] **Step 2:** The gallery page uses the same `<html data-app="strandparken">` head as the route, plus `noindex`. `Gallery.tsx` shows, on the real ground colour, one section per primitive: every variant and every static state (default, selected or checked, disabled, photo or fallback, empty slot, 1 and 8 persons), plus buttons that open a sheet and fire both toast types. Focus and pressed states are shown by interaction; the section says "Tab / hold for at se fokus og tryk".
-- [ ] **Verify:** `pnpm exec astro dev`, then `/strandparken/galleri` renders every section with no console errors. After `astro build`: `test ! -e dist/strandparken/galleri` and `grep -rl "Gallery\|galleri" dist/` return nothing. Token guard covers `src/dev/strandparken/`.
-- [ ] **Commit:** `feat(strandparken): add dev-only UI gallery`
+- [x] **Step 1:** In `astro.config.mjs`, add an inline integration: on `astro:config:setup`, if `command === 'dev'`, call `injectRoute({ pattern: '/strandparken/galleri', entrypoint: './src/dev/strandparken/gallery.astro' })`. The file lives outside `src/pages`, so a production build never sees it.
+- [x] **Step 2:** The gallery page uses the same `<html data-app="strandparken">` head as the route, plus `noindex`. `Gallery.tsx` shows, on the real ground colour, one section per primitive: every variant and every static state (default, selected or checked, disabled, photo or fallback, empty slot, 1 and 8 persons), plus buttons that open a sheet and fire both toast types. Focus and pressed states are shown by interaction; the section says "Tab / hold for at se fokus og tryk".
+- [x] **Verify:** `pnpm exec astro dev`, then `/strandparken/galleri` renders every section with no console errors. After `astro build`: `test ! -e dist/strandparken/galleri` and `grep -rl "Gallery\|galleri" dist/` return nothing. Token guard covers `src/dev/strandparken/`.
+- [x] **Commit:** `feat(strandparken): add dev-only UI gallery`
 
 ### Task 17: Hash routing (U4)
 
@@ -527,3 +527,10 @@ Each question names its default. The plan above assumes the default.
 - Files: `ui/dish-image.tsx` (`DishImage` with `shape` round or cover, round sizes 52, 56, 64 enforced by the type; `DishSlot` for an empty day). The fallback is a `--sp-track` tile with the first letter (Danish upper-casing) in Fraunces, primary colour, `aria-hidden` because the name is always shown next to it. Photos are `loading="lazy"`, `decoding="async"`, `alt=""`.
 - Measured: round 52/56/64px circles; cover fills its box (192x132 in the probe) with `object-fit: cover` and `50% 50%`; photo-less and failing-URL dishes show the letter (20px round, 40px cover) with no `<img>` rendered, so zero broken images in the document; the slot is a 1.5px dashed `#8C8676` circle with a plus. The only console line is the browser's own 404 for the deliberately broken URL.
 - /ferie: HTML identical; CSS differs only by unused rules. §11: a dish without a photo shows the letter placeholder, never a broken image: pass.
+
+### Task 16
+- Files: `astro.config.mjs` (inline integration `strandparken-gallery`: `injectRoute` for `/strandparken/galleri` only when `command === 'dev'`), `src/dev/strandparken/gallery.astro` (same `<html data-app>` head, `noindex`), `src/dev/strandparken/Gallery.tsx`. Avatar gained `photo` (`null` shows the fallback) so the gallery can show that state on purpose.
+- The gallery has 12 sections (Knapper, Kort og rækker, Badges, Avatarer, Chips, Segmenteret kontrol, Afkrydsning, Antal personer, Felter, Ark, Beskeder, Retbilleder) covering every variant and static state: all four button variants and disabled, round and square checkboxes unchecked/checked/disabled, the stepper at 1, 2 and 8, avatars with and without photo, dish images round/cover with photo, no photo and a failing photo, the empty slot, a short and a tall sheet, and both toast types. Heading note: "Tab for at se fokus, hold nede for at se tryk".
+- Dev run at 390px: 12 sections render on the ground colour, no horizontal overflow, `noindex`, **no interactive element under 44x44**, console clean. Token guard covers `src/dev/strandparken/` (34/34 tests pass).
+- Production: `dist/strandparken/` holds only `index.html`; `dist/strandparken/galleri` does not exist; 0 files in `dist/` mention gallery or galleri.
+- /ferie: HTML identical; CSS still differs only by dead rules. Prose leaks too: an English word in these notes (a utility name) added a dead rule. Q4 = yes would end this for good.
