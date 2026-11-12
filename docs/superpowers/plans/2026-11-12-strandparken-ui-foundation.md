@@ -317,11 +317,11 @@ test -s dist/ferie/index.html && test -s dist/gave/index.html && test -s dist/st
 
 **Files:** `lib/stepper.ts`, `tests/strandparken-stepper.test.ts`, `ui/stepper.tsx`, `ui/field.tsx`.
 
-- [ ] **Step 1: Failing test.** `step(value, delta, {min: 1, max: 8})` clamps the result. `canDecrement` and `canIncrement` report the limits. The limits 1 and 8 come from the reference.
-- [ ] **Step 2:** `Stepper`: primary pill with 3 px padding, 44 px round `−` and `+` buttons (`aria-label` `Færre personer` / `Flere personer`, disabled at the limits), and the number between them in 17 px 700 white with `aria-live="polite"`. The label (`2 personer`, `1 person`) sits to its left and comes from a pure `personsLabel(n)`.
-- [ ] **Step 3:** `Field`: `<label>` with a visually hidden label text, a surface pill input (50 px), `sp-input`, and a placeholder. Optional `action` renders a 50 px primary round icon `Button` beside it (`Tilføj vare` / `aria-label="Tilføj varen"`).
-- [ ] **Verify:** `node --test tests/` passes. Standard checks and token guard. A screen reader announces the new count. The input does not zoom on iOS (16 px).
-- [ ] **Commit:** `feat(strandparken): add Stepper and Field`
+- [x] **Step 1: Failing test.** `step(value, delta, {min: 1, max: 8})` clamps the result. `canDecrement` and `canIncrement` report the limits. The limits 1 and 8 come from the reference.
+- [x] **Step 2:** `Stepper`: primary pill with 3 px padding, 44 px round `−` and `+` buttons (`aria-label` `Færre personer` / `Flere personer`, disabled at the limits), and the number between them in 17 px 700 white with `aria-live="polite"`. The label (`2 personer`, `1 person`) sits to its left and comes from a pure `personsLabel(n)`.
+- [x] **Step 3:** `Field`: `<label>` with a visually hidden label text, a surface pill input (50 px), `sp-input`, and a placeholder. Optional `action` renders a 50 px primary round icon `Button` beside it (`Tilføj vare` / `aria-label="Tilføj varen"`).
+- [x] **Verify:** `node --test tests/` passes. Standard checks and token guard. A screen reader announces the new count. The input does not zoom on iOS (16 px).
+- [x] **Commit:** `feat(strandparken): add Stepper and Field`
 
 ### Task 13: Sheet (U2, Q7)
 
@@ -501,3 +501,12 @@ Each question names its default. The plan above assumes the default.
 - Measured at 2x DPR: root 44x44, visible box 26px; round is a full circle, square has a 9px radius; unchecked is white with a 1.5px `#8C8676` border, checked is primary with a white check icon at 16px, stroke 2.6. Tasks and habits differ by shape alone.
 - Keyboard: Tab focuses the 44px target with a 2px primary ring at 2px offset; Space toggles on and off; click toggles; `aria-labelledby` resolves to its label; a disabled checkbox is dimmed to 0.45 and not clickable. Tick animation is 0.12s, and 1e-05s under `prefers-reduced-motion: reduce`. Console clean.
 - /ferie: HTML identical; CSS differs only by unused rules. §11: checkboxes consistent, 44px targets, focus, reduced motion: pass.
+
+### Task 12
+- Test first: `tests/strandparken-stepper.test.ts` failed (module missing), then passed 4/4 with `lib/stepper.ts` (`step`, `canDecrement`, `canIncrement`, `personsLabel`, limits 1 to 8 from the reference). Node runs the `.ts` test natively.
+- Files: `ui/stepper.tsx`, `ui/field.tsx`; Button gained icon size `field` (50px); new role `sp-stepper-value` (17px/700).
+- Stepper measured: pill 124x50 on primary with 3px padding, 44x44 minus and plus with Danish labels, number 17px/700 white with a 22px minimum width, label `2 personer` / `1 person` on the left. Minus at 1 and plus at 8 are `aria-disabled` and dimmed to 0.45 but keep focus; values never leave 1 to 8.
+- Two deliberate deviations: (1) the live region (`aria-live="polite"`) is the label ("3 personer") rather than the bare number, which is what a screen reader should say; the number is `aria-hidden`. (2) The stepper buttons use a white 2px focus ring (offset 0), because the default primary ring is invisible on the primary pill.
+- Field measured: input 50px high, white, 999px radius, 16px text (no iOS zoom), a real `<label>` with visually hidden text (`label.control` is the input), action button 50x50 primary with `aria-label="Tilføj varen"`; typing and clicking the action adds the item. Console clean. I cannot run a screen reader here; the announcement is verified by the live region and text change in the DOM.
+- CI: added a `Run tests` step (`node --test tests/*.test.*`) to `pages.yml` (Q11 default). The plan's `node --test tests/` does not work on Node 24.
+- /ferie: HTML identical; CSS differs only by unused rules. §11: stepper identical everywhere (one component), 44px targets, focus: pass.

@@ -27,7 +27,7 @@ const iconButton = cva(base, {
       ground: 'bg-sp-surface text-sp-ink active:bg-sp-track',
       add: 'bg-sp-primary text-sp-on-primary active:bg-sp-primary-pressed',
     },
-    size: { md: 'size-sp-target', lg: 'size-12' },
+    size: { md: 'size-sp-target', lg: 'size-12', field: 'size-12.5' },
   },
   defaultVariants: { tone: 'ground', size: 'md' },
 });
@@ -45,7 +45,7 @@ type IconButtonProps = Shared & {
   variant: 'icon';
   'aria-label': string;
   tone?: 'ground' | 'add';
-  size?: 'md' | 'lg';
+  size?: 'md' | 'lg' | 'field';
 };
 
 export type ButtonProps = TextButtonProps | IconButtonProps;

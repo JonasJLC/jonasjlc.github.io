@@ -190,6 +190,7 @@
 @utility sp-small { font-family: var(--font-sp-sans); font-weight: 400; font-size: 0.84375rem; line-height: 1.4; }
 @utility sp-caption { font-family: var(--font-sp-sans); font-weight: 400; font-size: 0.78125rem; line-height: 1.35; }
 @utility sp-caption-strong { font-family: var(--font-sp-sans); font-weight: 600; font-size: 0.78125rem; line-height: 1.35; }
+@utility sp-stepper-value { font-family: var(--font-sp-sans); font-weight: 700; font-size: 1.0625rem; line-height: 1; }
 @utility sp-nav { font-family: var(--font-sp-sans); font-weight: 600; font-size: 0.71875rem; line-height: 1; }
 @utility sp-button { font-family: var(--font-sp-sans); font-weight: 600; font-size: 1rem; line-height: 1.2; }
 @utility sp-button-sm { font-family: var(--font-sp-sans); font-weight: 600; font-size: 0.875rem; line-height: 1.2; }
