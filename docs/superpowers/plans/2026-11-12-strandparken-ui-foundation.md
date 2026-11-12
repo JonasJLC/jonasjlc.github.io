@@ -335,9 +335,9 @@ test -s dist/ferie/index.html && test -s dist/gave/index.html && test -s dist/st
 
 **Files:** `ui/toast.tsx`.
 
-- [ ] **Step 1:** `<Toaster>` wraps `sonner` with `position="bottom-center"`, `visibleToasts={1}`, `duration={4000}`, an `offset` equal to bar height plus safe area plus 12 px (from tokens via CSS variable), and `toastOptions.unstyled` with token classes (ink pill, white text, `sp-small`). `notify(message, { onUndo? })` adds a `Fortryd` action button (white, 600, 44 px target) when `onUndo` is given. Each new toast dismisses the previous one.
-- [ ] **Verify:** standard checks and token guard. Two quick notifications show one toast. `Fortryd` calls the callback and dismisses. The toast sits above the bar on a phone-sized viewport. The toast region is announced politely (sonner's `aria-live`).
-- [ ] **Commit:** `feat(strandparken): add toast with Fortryd`
+- [x] **Step 1:** `<Toaster>` wraps `sonner` with `position="bottom-center"`, `visibleToasts={1}`, `duration={4000}`, an `offset` equal to bar height plus safe area plus 12 px (from tokens via CSS variable), and `toastOptions.unstyled` with token classes (ink pill, white text, `sp-small`). `notify(message, { onUndo? })` adds a `Fortryd` action button (white, 600, 44 px target) when `onUndo` is given. Each new toast dismisses the previous one.
+- [x] **Verify:** standard checks and token guard. Two quick notifications show one toast. `Fortryd` calls the callback and dismisses. The toast sits above the bar on a phone-sized viewport. The toast region is announced politely (sonner's `aria-live`).
+- [x] **Commit:** `feat(strandparken): add toast with Fortryd`
 
 ### Task 15: DishImage (U2)
 
@@ -516,3 +516,9 @@ Each question names its default. The plan above assumes the default.
 - Measured on a 390x844 screen with a 30-row sheet: height 717px = 85%, bottom edge at 844, ground `rgb(245,241,232)`, top corners 30px, padding 22/20/26, scrolls inside, scrim `rgba(27,38,32,0.45)`. Title Fraunces 24px with an optional muted line, 44x44 white close button labelled `Luk`. Rendered through a portal into `<body>` and still fully styled, which confirms the `<html>` token scope.
 - Behaviour: Tab and Shift+Tab stayed inside the dialog for 40 presses; the page behind is `aria-hidden`; Escape, the close button and a scrim click all close it; focus returns to the opener each time; the first focus is the close button. Slide is `sp-sheet-in` 0.22s, and 1e-05s for both sheet and scrim under reduced motion. Console clean.
 - /ferie: HTML identical; CSS differs only by unused rules. §11: sheets trap focus, close on Escape, return focus (UI spec §9); never above about 85%: pass.
+
+### Task 14
+- Files: `ui/toast.tsx` (`Toaster` wrapping Sonner; `notify(message, { onUndo? })`). Two new tokens with a test written first: `--sp-toast-offset` (bar height + safe area + 12px) and `--sp-toast-width`, so the component holds no raw pixel values.
+- Sonner is unstyled and restyled with token classes: ink pill, white text, `sp-small`; position bottom-centre, `visibleToasts={1}`, 4000ms, Danish region label `Beskeder`. `notify` dismisses the current toast first.
+- Measured at 390px with a 76px mock bar: two notifications 100ms apart leave exactly one visible; the toast is 12px above the bar, `rgb(27,38,32)` with white text, 999px radius, 13.5px; the live region is `aria-live="polite"`. It is gone after about 5s. `Fortryd` is 79x44, 14px/600, calls the callback once and dismisses the toast; a plain `notify` has no action button. Console clean.
+- /ferie: HTML identical; CSS differs only by unused rules. §11: undo for destructive actions, one toast at a time, above the bar: pass.

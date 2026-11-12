@@ -55,6 +55,8 @@
   --sp-pad-card: 18px;
   --sp-gap-grid: 12px;
   --sp-gap-row: 8px;
+  --sp-toast-offset: calc(var(--sp-bar-h) + env(safe-area-inset-bottom, 0px) + 12px); /* above the bar, its safe area and 12 px */
+  --sp-toast-width: min(calc(100vw - 2 * var(--sp-page-x)), var(--sp-column));
   --sp-row-min: 52px;
   --sp-target: 44px;
   --sp-bar-h: 76px;

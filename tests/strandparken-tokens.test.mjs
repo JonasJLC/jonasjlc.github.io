@@ -19,6 +19,8 @@ const expected = {
   '--sp-shadow-seg': '0 1px 3px rgba(0, 0, 0, 0.12)',
   '--sp-page-top': '28px', '--sp-page-x': '20px', '--sp-page-bottom': '40px',
   '--sp-gap-home': '22px', '--sp-gap': '16px', '--sp-pad-card': '18px', '--sp-gap-grid': '12px', '--sp-gap-row': '8px',
+  '--sp-toast-offset': 'calc(var(--sp-bar-h) + env(safe-area-inset-bottom, 0px) + 12px)',
+  '--sp-toast-width': 'min(calc(100vw - 2 * var(--sp-page-x)), var(--sp-column))',
   '--sp-row-min': '52px', '--sp-target': '44px', '--sp-bar-h': '76px', '--sp-column': '520px',
 };
 
