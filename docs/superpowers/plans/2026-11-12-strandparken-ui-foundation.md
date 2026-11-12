@@ -327,9 +327,9 @@ test -s dist/ferie/index.html && test -s dist/gave/index.html && test -s dist/st
 
 **Files:** `ui/sheet.tsx`.
 
-- [ ] **Step 1 (default for Q7: Radix Dialog):** `Sheet`, `SheetContent` and `SheetHeader`. Content is fixed to the bottom on `--sp-bg` with `rounded-t-sp-sheet`, padding 22/20/26 plus the bottom safe area, and `max-h-[85dvh]` scrolling inside. The `85dvh` arbitrary value is allowed: it is a layout rule, not a design value, and the guard regex permits `dvh`. The scrim is `--sp-scrim` and fades over 220 ms. The sheet slides up over 220 ms. The header shows the title in `sp-title-card`, an optional small eyebrow line (the day in "Hvad skal I have?"), and a 44 px surface close button `aria-label="Luk"`. Focus trap, Escape and focus return come from Radix.
-- [ ] **Verify:** standard checks and token guard. Open from a button, Tab cycles inside, Escape closes, and focus returns to the opener. A tall sheet stops at 85 % height. Reduced motion makes it instant. The sheet is styled even though it is portalled (this confirms the `<html>` scope).
-- [ ] **Commit:** `feat(strandparken): add bottom Sheet`
+- [x] **Step 1 (default for Q7: Radix Dialog):** `Sheet`, `SheetContent` and `SheetHeader`. Content is fixed to the bottom on `--sp-bg` with `rounded-t-sp-sheet`, padding 22/20/26 plus the bottom safe area, and `max-h-[85dvh]` scrolling inside. The `85dvh` arbitrary value is allowed: it is a layout rule, not a design value, and the guard regex permits `dvh`. The scrim is `--sp-scrim` and fades over 220 ms. The sheet slides up over 220 ms. The header shows the title in `sp-title-card`, an optional small eyebrow line (the day in "Hvad skal I have?"), and a 44 px surface close button `aria-label="Luk"`. Focus trap, Escape and focus return come from Radix.
+- [x] **Verify:** standard checks and token guard. Open from a button, Tab cycles inside, Escape closes, and focus returns to the opener. A tall sheet stops at 85 % height. Reduced motion makes it instant. The sheet is styled even though it is portalled (this confirms the `<html>` scope).
+- [x] **Commit:** `feat(strandparken): add bottom Sheet`
 
 ### Task 14: Toast with undo (U2)
 
@@ -510,3 +510,9 @@ Each question names its default. The plan above assumes the default.
 - Field measured: input 50px high, white, 999px radius, 16px text (no iOS zoom), a real `<label>` with visually hidden text (`label.control` is the input), action button 50x50 primary with `aria-label="Tilføj varen"`; typing and clicking the action adds the item. Console clean. I cannot run a screen reader here; the announcement is verified by the live region and text change in the DOM.
 - CI: added a `Run tests` step (`node --test tests/*.test.*`) to `pages.yml` (Q11 default). The plan's `node --test tests/` does not work on Node 24.
 - /ferie: HTML identical; CSS differs only by unused rules. §11: stepper identical everywhere (one component), 44px targets, focus: pass.
+
+### Task 13 (Q7 default: Radix Dialog)
+- Files: `ui/sheet.tsx` (`Sheet`, `SheetTrigger`, `SheetClose`, `SheetContent`, `SheetHeader`). Safe-area padding lives in the stylesheet as `pb-sp-sheet` (26px plus `env(safe-area-inset-bottom)`), so there is no arbitrary pixel value in the component; `max-h-[85dvh]` is the one allowed layout value.
+- Measured on a 390x844 screen with a 30-row sheet: height 717px = 85%, bottom edge at 844, ground `rgb(245,241,232)`, top corners 30px, padding 22/20/26, scrolls inside, scrim `rgba(27,38,32,0.45)`. Title Fraunces 24px with an optional muted line, 44x44 white close button labelled `Luk`. Rendered through a portal into `<body>` and still fully styled, which confirms the `<html>` token scope.
+- Behaviour: Tab and Shift+Tab stayed inside the dialog for 40 presses; the page behind is `aria-hidden`; Escape, the close button and a scrim click all close it; focus returns to the opener each time; the first focus is the close button. Slide is `sp-sheet-in` 0.22s, and 1e-05s for both sheet and scrim under reduced motion. Console clean.
+- /ferie: HTML identical; CSS differs only by unused rules. §11: sheets trap focus, close on Escape, return focus (UI spec §9); never above about 85%: pass.
