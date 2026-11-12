@@ -41,6 +41,7 @@
   --sp-r-inset: 16px;
   --sp-r-sheet: 30px;
   --sp-r-pill: 999px;
+  --sp-r-check: 9px; /* square (habit) checkbox, UI spec §5.7 */
   --sp-shadow-hero: 0 12px 30px rgba(52, 60, 40, 0.12);
   --sp-shadow-float: 0 4px 12px rgba(40, 30, 15, 0.18);
   --sp-shadow-seg: 0 1px 3px rgba(0, 0, 0, 0.12);
@@ -135,6 +136,7 @@
   --radius-sp-inset: var(--sp-r-inset);
   --radius-sp-sheet: var(--sp-r-sheet);
   --radius-sp-pill: var(--sp-r-pill);
+  --radius-sp-check: var(--sp-r-check);
 
   --shadow-sp-hero: var(--sp-shadow-hero);
   --shadow-sp-float: var(--sp-shadow-float);

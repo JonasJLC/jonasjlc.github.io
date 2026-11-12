@@ -309,9 +309,9 @@ test -s dist/ferie/index.html && test -s dist/gave/index.html && test -s dist/st
 
 **Files:** `ui/checkbox.tsx`.
 
-- [ ] **Step 1:** Radix Checkbox. The root is the 44 px target and the indicator is 26 px. `shape="round"` is a circle; `shape="square"` has a 9 px radius (token `--sp-r-check: 9px` added to CSS). Unchecked: surface with a 1.5 px `--sp-dash` border. Checked: primary fill, white `Check` icon at 16 px and stroke 2.6 (from the reference), filling in over 120 ms. It needs a label through `aria-label` or `aria-labelledby`.
-- [ ] **Verify:** standard checks and token guard. Space toggles it. Focus shows the ring around the 44 px target. With reduced motion the tick is instant. Tasks and habits are told apart by shape alone.
-- [ ] **Commit:** `feat(strandparken): add round and square Checkbox`
+- [x] **Step 1:** Radix Checkbox. The root is the 44 px target and the indicator is 26 px. `shape="round"` is a circle; `shape="square"` has a 9 px radius (token `--sp-r-check: 9px` added to CSS). Unchecked: surface with a 1.5 px `--sp-dash` border. Checked: primary fill, white `Check` icon at 16 px and stroke 2.6 (from the reference), filling in over 120 ms. It needs a label through `aria-label` or `aria-labelledby`.
+- [x] **Verify:** standard checks and token guard. Space toggles it. Focus shows the ring around the 44 px target. With reduced motion the tick is instant. Tasks and habits are told apart by shape alone.
+- [x] **Commit:** `feat(strandparken): add round and square Checkbox`
 
 ### Task 12: Stepper and Field (U2)
 
@@ -495,3 +495,9 @@ Each question names its default. The plan above assumes the default.
 - Measured: chips 44px high, 14px/600, selected primary with white text, unselected white with ink; track `--sp-track` with 4px padding and pill radius, segments 44px high (two segments 169px each at 390px; three segments 106/122/106), active white with the segment shadow and ink text, inactive muted. Muted on track is 4.91:1 (contrast test).
 - Keyboard (CDP): Tab lands on the active segment; ArrowRight/ArrowLeft move focus and selection and swap the panel; Tab leaves the list (to the panel); Space toggles a chip and flips `aria-pressed`. Focus ring 2px solid primary, 2px offset. `aria-controls` of every tab resolves to a panel. Console clean.
 - /ferie: HTML identical; CSS differs only by unused rules. §11: segmented control and chips are single components used everywhere; 44px targets; visible focus: pass.
+
+### Task 11
+- Files: `ui/checkbox.tsx` (Radix Checkbox; `shape` round or square; the type requires `aria-label` or `aria-labelledby`). New token `--sp-r-check: 9px` with `--radius-sp-check` (test-first: the two token tests failed, then passed).
+- Measured at 2x DPR: root 44x44, visible box 26px; round is a full circle, square has a 9px radius; unchecked is white with a 1.5px `#8C8676` border, checked is primary with a white check icon at 16px, stroke 2.6. Tasks and habits differ by shape alone.
+- Keyboard: Tab focuses the 44px target with a 2px primary ring at 2px offset; Space toggles on and off; click toggles; `aria-labelledby` resolves to its label; a disabled checkbox is dimmed to 0.45 and not clickable. Tick animation is 0.12s, and 1e-05s under `prefers-reduced-motion: reduce`. Console clean.
+- /ferie: HTML identical; CSS differs only by unused rules. §11: checkboxes consistent, 44px targets, focus, reduced motion: pass.

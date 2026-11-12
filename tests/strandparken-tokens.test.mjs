@@ -13,7 +13,7 @@ const expected = {
   '--sp-camilla': '#96486A', '--sp-camilla-tint': '#F5ECF0', '--sp-camilla-ink': '#7A3856',
   '--sp-scrim': 'rgba(27, 38, 32, 0.45)',
   '--sp-primary-pressed': 'color-mix(in oklab, var(--sp-primary) 96%, black)',
-  '--sp-r-card': '24px', '--sp-r-row': '20px', '--sp-r-inset': '16px', '--sp-r-sheet': '30px', '--sp-r-pill': '999px',
+  '--sp-r-card': '24px', '--sp-r-row': '20px', '--sp-r-inset': '16px', '--sp-r-sheet': '30px', '--sp-r-pill': '999px', '--sp-r-check': '9px',
   '--sp-shadow-hero': '0 12px 30px rgba(52, 60, 40, 0.12)',
   '--sp-shadow-float': '0 4px 12px rgba(40, 30, 15, 0.18)',
   '--sp-shadow-seg': '0 1px 3px rgba(0, 0, 0, 0.12)',
@@ -53,7 +53,7 @@ test('Tailwind utilities exist for every colour, radius, shadow and font token',
   const theme = css.slice(css.indexOf('@theme inline'));
   for (const c of Object.keys(expected).filter((n) => /^--sp-(bg|surface|ink|muted|primary|on-primary|primary-tint|track|line|line-soft|dash|danger|danger-tint|jonas|jonas-tint|jonas-ink|camilla|camilla-tint|camilla-ink|scrim|primary-pressed)$/.test(n)))
     assert.ok(theme.includes(`--color-${c.slice(2)}: var(${c})`), c);
-  for (const r of ['card', 'row', 'inset', 'sheet', 'pill']) assert.ok(theme.includes(`--radius-sp-${r}: var(--sp-r-${r})`), r);
+  for (const r of ['card', 'row', 'inset', 'sheet', 'pill', 'check']) assert.ok(theme.includes(`--radius-sp-${r}: var(--sp-r-${r})`), r);
   for (const s of ['hero', 'float', 'seg']) assert.ok(theme.includes(`--shadow-sp-${s}: var(--sp-shadow-${s})`), s);
   assert.ok(theme.includes("--font-sp-serif: 'Fraunces Variable'"));
   assert.ok(theme.includes("--font-sp-sans: 'Figtree Variable'"));
