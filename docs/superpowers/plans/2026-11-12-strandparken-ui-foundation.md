@@ -290,11 +290,11 @@ test -s dist/ferie/index.html && test -s dist/gave/index.html && test -s dist/st
 
 **Files:** `ui/card.tsx`, `ui/badge.tsx`, `ui/avatar.tsx`.
 
-- [ ] **Step 1:** `Card`: surface, `rounded-sp-card`, card padding, no border or shadow. `CardRow` adds a top border in `--sp-line-soft` for every row except the first.
-- [ ] **Step 2:** `Badge`: pill, `sp-caption` 600, tones `positive` (primary-tint and primary), `danger` (danger-tint and danger), `neutral` (track), `person` (person colour, white; `Fælles` uses primary).
-- [ ] **Step 3:** `Avatar` (Radix Avatar): `person: 'jonas' | 'camilla'`, `size: 44 | 34 | 30`, image `/ferie/avatars/<person>.jpg`, fallback is the white initial on the person colour. Alt text is the name. When the avatar is a button, the wrapper sets `aria-label`.
-- [ ] **Verify:** standard checks and token guard. Block `/ferie/avatars/*` in DevTools and confirm the initial fallback appears with no broken-image icon.
-- [ ] **Commit:** `feat(strandparken): add Card, Badge and Avatar`
+- [x] **Step 1:** `Card`: surface, `rounded-sp-card`, card padding, no border or shadow. `CardRow` adds a top border in `--sp-line-soft` for every row except the first.
+- [x] **Step 2:** `Badge`: pill, `sp-caption` 600, tones `positive` (primary-tint and primary), `danger` (danger-tint and danger), `neutral` (track), `person` (person colour, white; `Fælles` uses primary).
+- [x] **Step 3:** `Avatar` (Radix Avatar): `person: 'jonas' | 'camilla'`, `size: 44 | 34 | 30`, image `/ferie/avatars/<person>.jpg`, fallback is the white initial on the person colour. Alt text is the name. When the avatar is a button, the wrapper sets `aria-label`.
+- [x] **Verify:** standard checks and token guard. Block `/ferie/avatars/*` in DevTools and confirm the initial fallback appears with no broken-image icon.
+- [x] **Commit:** `feat(strandparken): add Card, Badge and Avatar`
 
 ### Task 10: Chip and SegmentedControl (U2)
 
@@ -483,3 +483,9 @@ Each question names its default. The plan above assumes the default.
 - Decisions: no colour transitions (spec §8: motion only answers an action; a transition also made the focus ring fade in). The 1.5px border is 1.5px at 2x DPR (Chrome snaps it to whole device pixels at 1x and 3x); that is browser behaviour, not a bug.
 - /ferie: HTML identical and 16/16 screenshots byte-identical, but the CSS is **no longer byte-identical** (the Q4 = no consequence): it gained 5 rules (`size-12`, `min-h-11.5` and three disabled/aria-disabled variants), none of whose class names appear in /ferie sources, so they are dead rules. The check script now lists added selectors and tests them against /ferie sources. Closing the leak needs the three-line `@source not` change in `ferie.css` (Q4 = yes); flagged for your decision.
 - §11 for this task: tokens only (guard passes), 44px targets, visible focus, reduced motion (no transitions), Danish labels: pass.
+
+### Task 9
+- Files: `lib/people.ts` (person names, initials, photo paths and literal colour classes, shared by Badge and Avatar), `ui/card.tsx` (`Card`, `CardRow`), `ui/badge.tsx` (tones neutral, positive, danger, person incl. `Fælles`), `ui/avatar.tsx` (`Avatar` on Radix Avatar; `AvatarButton` for the 44px header button). New role `sp-caption-strong` (caption at 600) so badges do not depend on class order.
+- Measured: card white, radius 24px, padding 18px, no shadow, no border; rows 2 and 3 have a 1px `--sp-line-soft` top rule, row 1 none. Badges 24px high, 12.5px/600, colours match the token pairs. Avatars 44, 34, 30px with the photos from `/ferie/avatars/`; the avatar button is 44x44 with `aria-label="Indstillinger"` and a decorative avatar inside.
+- Photos blocked (`Network.setBlockedURLs` for `*/ferie/avatars/*`): all four avatars show the white initial on the person colour; no `<img>` is rendered, so no broken-image icon. Console clean.
+- /ferie: HTML identical; CSS differs only by unused rules (listed by the check script). §11 for this task: tokens only, person colour never alone (name or initial always present), letter fallback: pass.
