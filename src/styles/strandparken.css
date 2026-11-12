@@ -186,6 +186,10 @@
 @utility h-sp-bar-safe { height: calc(var(--sp-bar-h) + env(safe-area-inset-bottom, 0px)); }
 @utility pb-sp-safe { padding-bottom: env(safe-area-inset-bottom, 0px); }
 
+/* Page padding: top clears the status bar in the installed app; bottom clears the fixed bar (UI spec §4). */
+@utility pt-sp-top-safe { padding-top: calc(var(--sp-page-top) + env(safe-area-inset-top, 0px)); }
+@utility pb-sp-bar-clear { padding-bottom: calc(var(--sp-page-bottom) + var(--sp-bar-h) + env(safe-area-inset-bottom, 0px)); }
+
 /* Typography roles (UI spec §3.2). Sizes in rem (px / 16) so the layout follows the user's text size. Serif is for names of things only. */
 @utility sp-title-page { font-family: var(--font-sp-serif); font-weight: 500; font-size: 2rem; line-height: 1.1; letter-spacing: -0.01em; }
 @utility sp-title-recipe { font-family: var(--font-sp-serif); font-weight: 500; font-size: 1.875rem; line-height: 1.12; letter-spacing: -0.01em; }

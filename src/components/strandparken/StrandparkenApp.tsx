@@ -1,3 +1,5 @@
+import { AppShell } from './shell/AppShell';
+
 export default function StrandparkenApp() {
-  return <main>Strandparken</main>;
+  return <AppShell />;
 }
