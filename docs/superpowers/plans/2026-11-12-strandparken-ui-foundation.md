@@ -273,9 +273,9 @@ test -s dist/ferie/index.html && test -s dist/gave/index.html && test -s dist/st
 
 **Files:** `tests/strandparken-token-guard.test.mjs`.
 
-- [ ] **Step 1:** The test walks `src/components/strandparken/` and `src/dev/strandparken/`. It fails on `#[0-9a-f]{3,8}\b`, `rgba?\(`, `hsl\(`, any arbitrary Tailwind value carrying a unit or colour (`-\[[^\]]*(px|rem|#|rgb)`), `font-family`, `fontFamily`, and the literal names `Fraunces`, `Figtree`, `Georgia`. An allowlist comment is not supported, on purpose.
-- [ ] **Verify:** add a scratch file with `bg-[#fff]` and confirm the test fails. Delete it and confirm the test passes.
-- [ ] **Commit:** `test(strandparken): guard against raw design values`
+- [x] **Step 1:** The test walks `src/components/strandparken/` and `src/dev/strandparken/`. It fails on `#[0-9a-f]{3,8}\b`, `rgba?\(`, `hsl\(`, any arbitrary Tailwind value carrying a unit or colour (`-\[[^\]]*(px|rem|#|rgb)`), `font-family`, `fontFamily`, and the literal names `Fraunces`, `Figtree`, `Georgia`. An allowlist comment is not supported, on purpose.
+- [x] **Verify:** add a scratch file with `bg-[#fff]` and confirm the test fails. Delete it and confirm the test passes.
+- [x] **Commit:** `test(strandparken): guard against raw design values`
 
 ### Task 8: `cn`, Icon and Button (U2)
 
@@ -467,3 +467,8 @@ Each question names its default. The plan above assumes the default.
 - Reduced motion (`--force-prefers-reduced-motion`): sheet animation 0.22s becomes 1e-05s. Text size: with a 20px root (125%) `title-page` is 40px and `body` 18.75px, so sizes follow the user's text size.
 - Probe lesson: Tailwind only sees literal class names, so the sample used a literal map.
 - /ferie: CSS byte-identical, HTML identical, **all 16 screenshots byte-identical** to the Task 1 baseline.
+
+### Task 7
+- `tests/strandparken-token-guard.test.mjs` walks `src/components/strandparken/` and `src/dev/strandparken/` (when present) and fails on hex colours, `rgb()`/`hsl()`, arbitrary values with a unit or colour, `font-family`/`fontFamily` and the font names. No allowlist. A rules self-test proves each rule fires and that `dvh`, token classes and `#hjem` hrefs pass.
+- Scratch file with a raw arbitrary-colour class: guard failed naming file, line and both rules; after deleting it, 2/2 pass.
+- Leak found and fixed: sample class strings in the guard test leaked into the /ferie CSS (Tailwind scans `tests/`); the samples are now joined from fragments. /ferie CSS byte-identical again. Keep literal utility class names out of tests and docs.
