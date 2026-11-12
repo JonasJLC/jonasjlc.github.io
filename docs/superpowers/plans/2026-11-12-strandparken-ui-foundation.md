@@ -236,10 +236,10 @@ test -s dist/ferie/index.html && test -s dist/gave/index.html && test -s dist/st
 
 **Files:** `package.json` and `pnpm-lock.yaml`. Create `src/styles/strandparken.css` with the two font imports only, and import it from the page.
 
-- [ ] **Step 1:** `pnpm add @fontsource-variable/fraunces@5.3.0 @fontsource-variable/figtree@5.3.0`
-- [ ] **Step 2:** Import `@fontsource-variable/fraunces/opsz.css` (weight and optical-size axes) and `@fontsource-variable/figtree`. Confirm the family names in each package's CSS (`'Fraunces Variable'`, `'Figtree Variable'`) before using them in Task 5.
-- [ ] **Verify:** the standard checks pass. `dist/_astro/` contains Fraunces and Figtree latin woff2 files. `grep -r googleapis dist/strandparken` returns nothing. In the browser, DevTools → Network shows the woff2 files served from the site, and "Rendered fonts" for a test heading shows Fraunces. Run the /ferie check (fonts must not appear in the /ferie CSS).
-- [ ] **Commit:** `feat(strandparken): self-host Fraunces and Figtree`
+- [x] **Step 1:** `pnpm add @fontsource-variable/fraunces@5.3.0 @fontsource-variable/figtree@5.3.0`
+- [x] **Step 2:** Import `@fontsource-variable/fraunces/opsz.css` (weight and optical-size axes) and `@fontsource-variable/figtree`. Confirm the family names in each package's CSS (`'Fraunces Variable'`, `'Figtree Variable'`) before using them in Task 5.
+- [x] **Verify:** the standard checks pass. `dist/_astro/` contains Fraunces and Figtree latin woff2 files. `grep -r googleapis dist/strandparken` returns nothing. In the browser, DevTools → Network shows the woff2 files served from the site, and "Rendered fonts" for a test heading shows Fraunces. Run the /ferie check (fonts must not appear in the /ferie CSS).
+- [x] **Commit:** `feat(strandparken): self-host Fraunces and Figtree`
 
 ### Task 4: Tailwind entry and source isolation (U1, Q4)
 
@@ -444,3 +444,8 @@ Each question names its default. The plan above assumes the default.
 - `grep -c noindex dist/strandparken/index.html` = 1; no `strandparken` in sitemap files; 0 in `dist/index.html`.
 - /ferie: CSS byte-identical, `index.html` identical after normalising asset names.
 
+
+### Task 3
+- Added `@fontsource-variable/fraunces` and `@fontsource-variable/figtree` 5.3.0 (exact versions; the only new dependencies). Family names confirmed: `'Fraunces Variable'`, `'Figtree Variable'`.
+- `dist/_astro/` holds Fraunces (latin, latin-ext, vietnamese, opsz) and Figtree (latin, latin-ext) woff2; `grep googleapis dist/strandparken` = 0. /ferie CSS byte-identical, HTML identical.
+- In-browser "Rendered fonts" check is done in Task 6, when text first uses the faces.
