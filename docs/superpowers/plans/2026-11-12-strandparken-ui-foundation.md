@@ -360,10 +360,10 @@ test -s dist/ferie/index.html && test -s dist/gave/index.html && test -s dist/st
 
 **Files:** `lib/routes.ts`, `lib/use-route.ts`, `tests/strandparken-routes.test.ts`.
 
-- [ ] **Step 1: Failing test.** The views are `['hjem', 'madplan', 'indkob', 'sundhed', 'opskrifter']` (slug `indkob`, Q14). `parseHash('')`, `parseHash('#')` and `parseHash('#ukendt')` return `hjem`. `parseHash('#madplan')` returns `madplan`. `hrefFor(view)` returns `#<view>`. Labels map to `Hjem · Madplan · Indkøb · Sundhed · Opskrifter`. A query string (`?code=` from future PKCE) is ignored.
-- [ ] **Step 2:** `useRoute()` reads the hash on mount and on `hashchange`, scrolls to the top on change, and replaces an unknown hash with `#hjem` through `history.replaceState`.
-- [ ] **Verify:** `node --test tests/` passes. Standard checks.
-- [ ] **Commit:** `feat(strandparken): add hash routing`
+- [x] **Step 1: Failing test.** The views are `['hjem', 'madplan', 'indkob', 'sundhed', 'opskrifter']` (slug `indkob`, Q14). `parseHash('')`, `parseHash('#')` and `parseHash('#ukendt')` return `hjem`. `parseHash('#madplan')` returns `madplan`. `hrefFor(view)` returns `#<view>`. Labels map to `Hjem · Madplan · Indkøb · Sundhed · Opskrifter`. A query string (`?code=` from future PKCE) is ignored.
+- [x] **Step 2:** `useRoute()` reads the hash on mount and on `hashchange`, scrolls to the top on change, and replaces an unknown hash with `#hjem` through `history.replaceState`.
+- [x] **Verify:** `node --test tests/` passes. Standard checks.
+- [x] **Commit:** `feat(strandparken): add hash routing`
 
 ### Task 18: Bottom bar (U4)
 
@@ -534,3 +534,9 @@ Each question names its default. The plan above assumes the default.
 - Dev run at 390px: 12 sections render on the ground colour, no horizontal overflow, `noindex`, **no interactive element under 44x44**, console clean. Token guard covers `src/dev/strandparken/` (34/34 tests pass).
 - Production: `dist/strandparken/` holds only `index.html`; `dist/strandparken/galleri` does not exist; 0 files in `dist/` mention gallery or galleri.
 - /ferie: HTML identical; CSS still differs only by dead rules. Prose leaks too: an English word in these notes (a utility name) added a dead rule. Q4 = yes would end this for good.
+
+### Task 17 (Q14 default: `#indkob`)
+- Test first: `tests/strandparken-routes.test.ts` failed (module missing), then 7/7 pass. Suite 41/41.
+- `lib/routes.ts` (pure): views `hjem · madplan · indkob · sundhed · opskrifter`, Danish labels `Hjem · Madplan · Indkøb · Sundhed · Opskrifter`, `parseHash`, `hrefFor`. Empty, `#`, unknown and `#/madplan` give `hjem`; a query after the view is ignored (`#madplan?code=…`); `#indkøb`, percent-encoded `ind%6B%C3%B8b` and capital letters are accepted; a malformed percent escape falls back to `hjem` instead of throwing.
+- `lib/use-route.ts`: reads the hash on mount and on `hashchange`, replaces an empty or unknown hash with the canonical one through `history.replaceState`, and scrolls to the top on a view change. Browser behaviour is verified in Task 19 with the shell.
+- /ferie unchanged (HTML identical; CSS only dead rules).
