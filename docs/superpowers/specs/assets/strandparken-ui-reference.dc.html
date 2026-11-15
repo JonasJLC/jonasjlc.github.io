@@ -1,0 +1,636 @@
+<!doctype html>
+<html lang="da">
+<head>
+<meta charset="utf-8">
+<title>Strandparken – A Fotoforrest</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+*{box-sizing:border-box}
+button{font:inherit;color:inherit;background:none;border:0;padding:0;margin:0;cursor:pointer;text-align:left}
+input{font:inherit;color:inherit}
+button:focus-visible,input:focus-visible{outline:2px solid #1F4D3A;outline-offset:2px}
+.scr::-webkit-scrollbar{display:none}
+.ic{width:22px;height:22px;flex:none;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+</style>
+</helmet>
+<div style="position: relative; width: 390px; height: 844px; overflow: hidden; background: #F5F1E8; color: #1B2620; font-family: 'Figtree', system-ui, sans-serif; font-size: 15px; line-height: 1.4">
+
+<!-- HJEM -->
+<sc-if value="{{ isHjem }}" hint-placeholder-val="{{ true }}">
+<div class="scr" style="position: absolute; inset: 0 0 86px 0; overflow-y: auto">
+<div style="padding: 28px 20px 40px; display: flex; flex-direction: column; gap: 22px">
+  <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 12px">
+    <div>
+      <p style="margin: 0; color: #5C6259; font-size: 14px">Onsdag 11. november</p>
+      <h1 style="margin: 2px 0 0; font-family: 'Fraunces', Georgia, serif; font-weight: 500; font-size: 32px; line-height: 1.1; letter-spacing: -0.01em">Godaften, Jonas</h1>
+    </div>
+    <button aria-label="Indstillinger" style="width: 44px; height: 44px; border-radius: 50%; background: #2F6690; color: #fff; font-weight: 700; text-align: center">J</button>
+  </div>
+
+  <button onClick="{{ tonight.open }}" style="display: block; width: 100%; border-radius: 26px; overflow: hidden; background: #fff; box-shadow: 0 12px 30px rgba(52,60,40,0.12)">
+    <span style="display: flex; height: 196px; align-items: center; justify-content: center; background: {{ tonight.cloth }}">
+      <span style="display: block; width: 172px; height: 172px; border-radius: 50%; background: {{ tonight.art }}; box-shadow: 0 16px 26px rgba(40,30,15,0.30)"></span>
+    </span>
+    <span style="display: flex; justify-content: space-between; align-items: flex-end; gap: 12px; padding: 16px 18px 18px">
+      <span style="display: block">
+        <span style="display: block; font-size: 13px; font-weight: 600; color: #1F4D3A">I aften</span>
+        <span style="display: block; margin-top: 2px; font-family: 'Fraunces', Georgia, serif; font-weight: 500; font-size: 23px; line-height: 1.15">{{ tonight.t }}</span>
+        <span style="display: block; margin-top: 4px; font-size: 13.5px; color: #5C6259">{{ tonight.meta }}</span>
+      </span>
+      <span style="flex: none; padding: 10px 16px; border-radius: 999px; background: #1F4D3A; color: #fff; font-size: 14px; font-weight: 600">Se opskrift</span>
+    </span>
+  </button>
+
+  <section style="display: flex; flex-direction: column; gap: 12px">
+    <h2 style="margin: 0; font-family: 'Fraunces', Georgia, serif; font-weight: 500; font-size: 20px">Resten af ugen</h2>
+    <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px">
+      <sc-for list="{{ strip }}" as="d" hint-placeholder-count="4">
+        <button onClick="{{ d.tap }}" style="display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 10px 4px 12px; border-radius: 20px; background: #fff; text-align: center">
+          <span style="font-size: 12.5px; font-weight: 600; color: #5C6259">{{ d.l }} {{ d.n }}</span>
+          <span style="display: flex; align-items: center; justify-content: center; width: 56px; height: 56px; border-radius: 50%; font-family: 'Fraunces', Georgia, serif; font-size: 22px; color: #1F4D3A; {{ d.thumb }}">{{ d.letter }}</span>
+          <span style="font-size: 12.5px; line-height: 1.25; min-height: 31px">{{ d.short }}</span>
+        </button>
+      </sc-for>
+    </div>
+  </section>
+
+  <section style="padding: 18px; border-radius: 24px; background: #fff; display: flex; flex-direction: column; gap: 6px">
+    <div style="display: flex; justify-content: space-between; align-items: center">
+      <h2 style="margin: 0; font-family: 'Fraunces', Georgia, serif; font-weight: 500; font-size: 20px">I dag</h2>
+      <span style="padding: 4px 10px; border-radius: 999px; background: #F6DFD6; color: #7A2A16; font-size: 12.5px; font-weight: 600">1 forfalden</span>
+    </div>
+    <sc-for list="{{ tasks }}" as="t" hint-placeholder-count="3">
+      <div style="display: flex; align-items: center; gap: 10px; min-height: 52px; border-top: 1px solid #EFEADD">
+        <button onClick="{{ t.toggle }}" aria-label="Markér som udført" style="width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; flex: none">
+          <span style="display: flex; align-items: center; justify-content: center; width: 26px; height: 26px; border-radius: 50%; border: 1.5px solid; color: #fff; {{ t.box }}"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" style="width: 16px; height: 16px; stroke-width: 2.6"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg></span>
+        </button>
+        <div style="flex: 1; min-width: 0">
+          <div style="font-weight: 500; {{ t.nm }}">{{ t.t }}</div>
+          <div style="font-size: 12.5px; color: {{ t.dueColor }}">{{ t.due }}</div>
+        </div>
+        <sc-if value="{{ t.hasWho }}" hint-placeholder-val="{{ true }}">
+          <span style="width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 13px; font-weight: 700; background: {{ t.whoColor }}">{{ t.who }}</span>
+        </sc-if>
+        <sc-if value="{{ t.canClaim }}" hint-placeholder-val="{{ false }}">
+          <button onClick="{{ t.claim }}" style="min-height: 44px; padding: 0 14px; border-radius: 999px; border: 1.5px solid #1F4D3A; color: #1F4D3A; font-size: 13.5px; font-weight: 600">Tag opgaven</button>
+        </sc-if>
+      </div>
+    </sc-for>
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px">
+      <h3 style="margin: 0; font-size: 14px; font-weight: 600; color: #5C6259">Vaner</h3>
+      <button style="min-height: 44px; padding: 0 4px; color: #1F4D3A; font-size: 13.5px; font-weight: 600">Rediger</button>
+    </div>
+    <sc-for list="{{ habits }}" as="h" hint-placeholder-count="3">
+      <button onClick="{{ h.toggle }}" style="display: flex; align-items: center; gap: 12px; width: 100%; min-height: 48px; border-top: 1px solid #EFEADD">
+        <span style="display: flex; align-items: center; justify-content: center; width: 26px; height: 26px; margin-left: 9px; border-radius: 9px; border: 1.5px solid; color: #fff; {{ h.box }}"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" style="width: 16px; height: 16px; stroke-width: 2.6"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg></span>
+        <span style="flex: 1; font-weight: 500; {{ h.nm }}">{{ h.t }}</span>
+        <span style="padding: 3px 10px; border-radius: 999px; color: #fff; font-size: 12px; font-weight: 600; background: {{ h.whoColor }}">{{ h.whoName }}</span>
+      </button>
+    </sc-for>
+  </section>
+
+  <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px">
+    <button style="padding: 16px; border-radius: 22px; background: #fff; display: flex; flex-direction: column; gap: 2px; min-height: 84px">
+      <span style="font-family: 'Fraunces', Georgia, serif; font-size: 18px; font-weight: 500">Husholdning</span>
+      <span style="font-size: 13px; color: #5C6259">3 opgaver, 4 ønsker</span>
+    </button>
+    <button style="padding: 16px; border-radius: 22px; background: #fff; display: flex; flex-direction: column; gap: 2px; min-height: 84px">
+      <span style="font-family: 'Fraunces', Georgia, serif; font-size: 18px; font-weight: 500">Økonomi</span>
+      <span style="font-size: 13px; color: #5C6259">2 fornyelser inden for 30 dage</span>
+    </button>
+  </div>
+</div>
+</div>
+</sc-if>
+
+<!-- MADPLAN -->
+<sc-if value="{{ isMadplan }}" hint-placeholder-val="{{ false }}">
+<div class="scr" style="position: absolute; inset: 0 0 86px 0; overflow-y: auto">
+<div style="padding: 28px 20px 40px; display: flex; flex-direction: column; gap: 14px">
+  <div style="display: flex; justify-content: space-between; align-items: center">
+    <h1 style="margin: 0; font-family: 'Fraunces', Georgia, serif; font-weight: 500; font-size: 32px; line-height: 1.1">Madplan</h1>
+    <div style="display: flex; align-items: center; gap: 2px; background: #fff; border-radius: 999px; padding: 0 2px">
+      <button aria-label="Forrige uge" style="width: 44px; height: 44px; display: flex; align-items: center; justify-content: center"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"></path></svg></button>
+      <span style="font-weight: 600; font-size: 14px">Uge 46</span>
+      <button aria-label="Næste uge" style="width: 44px; height: 44px; display: flex; align-items: center; justify-content: center"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"></path></svg></button>
+    </div>
+  </div>
+  <div style="display: flex; flex-direction: column; gap: 8px">
+    <sc-for list="{{ week }}" as="d" hint-placeholder-count="7">
+      <div style="display: flex; align-items: center; gap: 10px">
+        <div style="width: 38px; flex: none; text-align: center">
+          <div style="font-weight: 700; font-size: 13.5px; color: {{ d.lc }}">{{ d.l }}</div>
+          <div style="font-size: 12.5px; color: #5C6259">{{ d.n }}</div>
+        </div>
+        <sc-if value="{{ d.filled }}" hint-placeholder-val="{{ true }}">
+          <button onClick="{{ d.tap }}" style="flex: 1; min-width: 0; min-height: 64px; display: flex; align-items: center; gap: 12px; padding: 6px 14px 6px 6px; border-radius: 20px; background: #fff; {{ d.ring }}">
+            <span style="display: flex; align-items: center; justify-content: center; width: 52px; height: 52px; flex: none; border-radius: 50%; font-family: 'Fraunces', Georgia, serif; font-size: 22px; color: #1F4D3A; {{ d.thumb }}">{{ d.letter }}</span>
+            <span style="flex: 1; min-width: 0">
+              <span style="display: block; font-weight: 600; line-height: 1.25">{{ d.title }}</span>
+              <span style="display: block; font-size: 12.5px; color: #5C6259">{{ d.sub }}</span>
+            </span>
+            <sc-if value="{{ d.today }}" hint-placeholder-val="{{ false }}">
+              <span style="flex: none; padding: 4px 10px; border-radius: 999px; background: #1F4D3A; color: #fff; font-size: 12px; font-weight: 600">I dag</span>
+            </sc-if>
+          </button>
+        </sc-if>
+        <sc-if value="{{ d.empty }}" hint-placeholder-val="{{ false }}">
+          <button onClick="{{ d.tap }}" style="flex: 1; min-height: 64px; display: flex; align-items: center; justify-content: center; gap: 8px; border: 1.5px dashed #A8A291; border-radius: 20px; color: #1F4D3A; font-weight: 600"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>Tilføj ret</button>
+        </sc-if>
+      </div>
+    </sc-for>
+  </div>
+  <button onClick="{{ go.indkob }}" style="margin-top: 6px; min-height: 54px; border-radius: 999px; background: #1F4D3A; color: #fff; font-weight: 600; font-size: 16px; text-align: center">Lav indkøbsliste</button>
+</div>
+</div>
+</sc-if>
+
+<!-- INDKØB -->
+<sc-if value="{{ isIndkob }}" hint-placeholder-val="{{ false }}">
+<div class="scr" style="position: absolute; inset: 0 0 86px 0; overflow-y: auto">
+<div style="padding: 28px 20px 48px; display: flex; flex-direction: column; gap: 16px">
+  <div style="display: flex; justify-content: space-between; align-items: flex-end; gap: 12px">
+    <div>
+      <h1 style="margin: 0; font-family: 'Fraunces', Georgia, serif; font-weight: 500; font-size: 32px; line-height: 1.1">Indkøb</h1>
+      <p style="margin: 4px 0 0; color: #5C6259; font-size: 14px">{{ countText }}</p>
+    </div>
+    <button onClick="{{ openOffers }}" style="min-height: 44px; padding: 0 16px; border-radius: 999px; background: #fff; color: #1F4D3A; font-weight: 600; display: flex; align-items: center; gap: 8px"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" style="width: 18px; height: 18px"><path d="M19 5L5 19"></path><circle cx="7" cy="7" r="2.5"></circle><circle cx="17" cy="17" r="2.5"></circle></svg>Tilbud</button>
+  </div>
+  <div style="display: flex; gap: 8px">
+    <label style="flex: 1; display: flex; align-items: center; min-height: 50px; padding: 0 16px; border-radius: 999px; background: #fff">
+      <span style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%)">Tilføj vare</span>
+      <input value="{{ newItem }}" onChange="{{ onNew }}" placeholder="Tilføj vare" style="width: 100%; border: 0; outline: 0; background: transparent; font-size: 16px">
+    </label>
+    <button onClick="{{ addItem }}" aria-label="Tilføj varen" style="width: 50px; height: 50px; flex: none; border-radius: 50%; background: #1F4D3A; color: #fff; display: flex; align-items: center; justify-content: center"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg></button>
+  </div>
+  <sc-for list="{{ groups }}" as="g" hint-placeholder-count="4">
+    <section style="display: flex; flex-direction: column; gap: 8px">
+      <h2 style="margin: 4px 4px 0; font-family: 'Fraunces', Georgia, serif; font-weight: 500; font-size: 18px">{{ g.name }}</h2>
+      <div style="border-radius: 20px; background: #fff; padding: 2px 14px 2px 4px">
+        <sc-for list="{{ g.items }}" as="it" hint-placeholder-count="3">
+          <button onClick="{{ it.toggle }}" style="display: flex; align-items: center; gap: 6px; width: 100%; min-height: 54px; border-top: {{ it.sep }}">
+            <span style="width: 44px; height: 44px; flex: none; display: flex; align-items: center; justify-content: center">
+              <span style="display: flex; align-items: center; justify-content: center; width: 26px; height: 26px; border-radius: 50%; border: 1.5px solid; color: #fff; {{ it.box }}"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" style="width: 16px; height: 16px; stroke-width: 2.6"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg></span>
+            </span>
+            <span style="flex: 1; min-width: 0">
+              <span style="display: block; font-weight: 500; {{ it.nm }}">{{ it.name }}</span>
+              <span style="display: block; font-size: 12.5px; color: #5C6259">{{ it.from }}</span>
+            </span>
+            <span style="flex: none; font-size: 14px; color: #5C6259">{{ it.amt }}</span>
+          </button>
+        </sc-for>
+      </div>
+    </section>
+  </sc-for>
+  <button onClick="{{ clearChecked }}" style="align-self: center; min-height: 44px; padding: 0 16px; color: #1F4D3A; font-weight: 600">Ryd afkrydsede</button>
+</div>
+</div>
+</sc-if>
+
+<!-- SUNDHED -->
+<sc-if value="{{ isSundhed }}" hint-placeholder-val="{{ false }}">
+<div class="scr" style="position: absolute; inset: 0 0 86px 0; overflow-y: auto">
+<div style="padding: 28px 20px 40px; display: flex; flex-direction: column; gap: 16px">
+  <h1 style="margin: 0; font-family: 'Fraunces', Georgia, serif; font-weight: 500; font-size: 32px; line-height: 1.1">Sundhed</h1>
+
+  <section style="padding: 18px; border-radius: 24px; background: #fff; display: flex; flex-direction: column; gap: 14px">
+    <div style="display: flex; align-items: center; gap: 10px">
+      <span style="width: 34px; height: 34px; border-radius: 50%; background: #96486A; color: #fff; font-weight: 700; font-size: 14px; display: flex; align-items: center; justify-content: center">C</span>
+      <div style="flex: 1">
+        <div style="font-weight: 600">Camilla</div>
+        <div style="font-size: 12.5px; color: #5C6259">Oura, opdateret i dag 07.12</div>
+      </div>
+      <span style="padding: 4px 10px; border-radius: 999px; background: #E8EFE6; color: #1F4D3A; font-size: 12px; font-weight: 600">Delt med Jonas</span>
+    </div>
+    <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0">
+      <div style="padding-right: 14px">
+        <div style="font-size: 13px; color: #5C6259">Readiness</div>
+        <div style="font-family: 'Fraunces', Georgia, serif; font-size: 40px; line-height: 1.1">78</div>
+        <div style="font-size: 13px; color: #5C6259">God</div>
+      </div>
+      <div style="padding-left: 14px; border-left: 1px solid #E6E0D2">
+        <div style="font-size: 13px; color: #5C6259">Cyklusdag</div>
+        <div style="font-family: 'Fraunces', Georgia, serif; font-size: 40px; line-height: 1.1">19</div>
+        <div style="font-size: 13px; color: #5C6259">Lutealfase</div>
+      </div>
+    </div>
+    <p style="margin: 0; padding: 14px; border-radius: 16px; background: #EEF2EA; font-size: 14.5px; line-height: 1.45">Til Jonas: I denne fase kan energien være lidt lavere sidst på dagen. En rolig aften og et mættende måltid er et godt bud.</p>
+  </section>
+
+  <section style="padding: 18px; border-radius: 24px; background: #fff; display: flex; flex-direction: column; gap: 14px">
+    <div style="display: flex; align-items: center; gap: 10px">
+      <span style="width: 34px; height: 34px; border-radius: 50%; background: #2F6690; color: #fff; font-weight: 700; font-size: 14px; display: flex; align-items: center; justify-content: center">J</span>
+      <div style="flex: 1">
+        <div style="font-weight: 600">Jonas</div>
+        <div style="font-size: 12.5px; color: #5C6259">Træning fra eksport, opdateret i dag 06.10</div>
+      </div>
+    </div>
+    <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr))">
+      <div><div style="font-family: 'Fraunces', Georgia, serif; font-size: 26px">3</div><div style="font-size: 13px; color: #5C6259">pas på 7 dage</div></div>
+      <div style="padding-left: 12px; border-left: 1px solid #E6E0D2"><div style="font-family: 'Fraunces', Georgia, serif; font-size: 26px">5 t 40</div><div style="font-size: 13px; color: #5C6259">træningstid</div></div>
+      <div style="padding-left: 12px; border-left: 1px solid #E6E0D2"><div style="font-family: 'Fraunces', Georgia, serif; font-size: 26px">7 t 05</div><div style="font-size: 13px; color: #5C6259">søvn i snit</div></div>
+    </div>
+    <p style="margin: 0; font-size: 14.5px; line-height: 1.45">Hård tur i morgen og en let ret på planen. Overvej en ekstra portion ris til torsdag.</p>
+  </section>
+
+  <section style="padding: 18px; border-radius: 24px; background: #fff; display: flex; flex-direction: column; gap: 4px">
+    <h2 style="margin: 0 0 6px; font-family: 'Fraunces', Georgia, serif; font-weight: 500; font-size: 20px">Mål</h2>
+    <div style="display: flex; align-items: center; gap: 12px; min-height: 60px; border-top: 1px solid #EFEADD">
+      <span style="width: 30px; height: 30px; border-radius: 50%; background: #2F6690; color: #fff; font-weight: 700; font-size: 13px; display: flex; align-items: center; justify-content: center">J</span>
+      <div style="flex: 1">
+        <div style="font-weight: 600">Tag på, 5 kg muskelmasse</div>
+        <div style="font-size: 13px; color: #5C6259">2.950 kcal og 150 g protein om dagen</div>
+      </div>
+    </div>
+    <div style="display: flex; align-items: center; gap: 12px; min-height: 60px; border-top: 1px solid #EFEADD">
+      <span style="width: 30px; height: 30px; border-radius: 50%; background: #96486A; color: #fff; font-weight: 700; font-size: 13px; display: flex; align-items: center; justify-content: center">C</span>
+      <div style="flex: 1">
+        <div style="font-weight: 600">Intet mål</div>
+        <div style="font-size: 13px; color: #5C6259">Standardportioner</div>
+      </div>
+      <button style="min-height: 44px; padding: 0 14px; border-radius: 999px; border: 1.5px solid #1F4D3A; color: #1F4D3A; font-size: 13.5px; font-weight: 600">Sæt mål</button>
+    </div>
+  </section>
+
+  <section style="padding: 18px; border-radius: 24px; background: #fff; display: flex; flex-direction: column; gap: 6px">
+    <h2 style="margin: 0; font-family: 'Fraunces', Georgia, serif; font-weight: 500; font-size: 20px">Næring i aften</h2>
+    <p style="margin: 0; font-size: 14.5px; line-height: 1.45">Tilføj ærter til pastaen. Retten mangler protein og fibre.</p>
+  </section>
+</div>
+</div>
+</sc-if>
+
+<!-- OPSKRIFTER -->
+<sc-if value="{{ isOpskrifter }}" hint-placeholder-val="{{ false }}">
+<div class="scr" style="position: absolute; inset: 0 0 86px 0; overflow-y: auto">
+<div style="padding: 28px 20px 40px; display: flex; flex-direction: column; gap: 16px">
+  <div style="display: flex; justify-content: space-between; align-items: center">
+    <h1 style="margin: 0; font-family: 'Fraunces', Georgia, serif; font-weight: 500; font-size: 32px; line-height: 1.1">Opskrifter</h1>
+    <button onClick="{{ openImport }}" aria-label="Tilføj opskrift" style="width: 48px; height: 48px; border-radius: 50%; background: #1F4D3A; color: #fff; display: flex; align-items: center; justify-content: center"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg></button>
+  </div>
+  <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px; padding: 4px; border-radius: 999px; background: #E9E3D4">
+    <button onClick="{{ pickAlle }}" style="min-height: 44px; border-radius: 999px; text-align: center; font-weight: 600; {{ segAlle }}">Alle</button>
+    <button onClick="{{ pickIdeer }}" style="min-height: 44px; border-radius: 999px; text-align: center; font-weight: 600; {{ segIdeer }}">Aftensmadsidéer</button>
+  </div>
+  <sc-if value="{{ isAlle }}" hint-placeholder-val="{{ true }}">
+    <div style="display: flex; gap: 8px; flex-wrap: wrap">
+      <sc-for list="{{ chips }}" as="c" hint-placeholder-count="4">
+        <button onClick="{{ c.pick }}" style="min-height: 44px; padding: 0 16px; border-radius: 999px; font-weight: 600; font-size: 14px; {{ c.st }}">{{ c.label }}</button>
+      </sc-for>
+    </div>
+  </sc-if>
+  <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px">
+    <sc-for list="{{ grid }}" as="r" hint-placeholder-count="6">
+      <button onClick="{{ r.open }}" style="display: flex; flex-direction: column; border-radius: 22px; overflow: hidden; background: #fff">
+        <span style="display: flex; align-items: center; justify-content: center; height: 132px; background: {{ r.cloth }}">
+          <span style="display: block; width: 104px; height: 104px; border-radius: 50%; background: {{ r.art }}; box-shadow: 0 10px 16px rgba(40,30,15,0.28)"></span>
+        </span>
+        <span style="display: block; padding: 10px 12px 12px">
+          <span style="display: block; font-weight: 600; line-height: 1.25; min-height: 38px">{{ r.t }}</span>
+          <span style="display: block; margin-top: 4px; font-size: 12.5px; color: #5C6259">{{ r.meta }}</span>
+        </span>
+      </button>
+    </sc-for>
+    <sc-if value="{{ isIdeer }}" hint-placeholder-val="{{ false }}">
+      <sc-for list="{{ ideas }}" as="i" hint-placeholder-count="3">
+        <div style="display: flex; flex-direction: column; justify-content: space-between; min-height: 204px; padding: 14px; border-radius: 22px; border: 1.5px dashed #A8A291">
+          <span style="align-self: flex-start; padding: 3px 10px; border-radius: 999px; background: #E9E3D4; font-size: 12px; font-weight: 600">Idé</span>
+          <span style="font-family: 'Fraunces', Georgia, serif; font-size: 21px; line-height: 1.2">{{ i.t }}</span>
+        </div>
+      </sc-for>
+    </sc-if>
+  </div>
+</div>
+</div>
+</sc-if>
+
+<!-- BUNDMENU -->
+<nav aria-label="Hovedmenu" style="position: absolute; left: 0; right: 0; bottom: 0; height: 76px; padding: 0 8px; background: #F5F1E8; border-top: 1px solid #E6E0D2; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr))">
+  <button onClick="{{ go.hjem }}" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; font-size: 11.5px; font-weight: 600; color: {{ nc.hjem }}; box-shadow: {{ nb.hjem }}"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"></path></svg>Hjem</button>
+  <button onClick="{{ go.madplan }}" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; font-size: 11.5px; font-weight: 600; color: {{ nc.madplan }}; box-shadow: {{ nb.madplan }}"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3v3M17 3v3M4 9h16M5 5h14a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1z"></path></svg>Madplan</button>
+  <button onClick="{{ go.indkob }}" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; font-size: 11.5px; font-weight: 600; color: {{ nc.indkob }}; box-shadow: {{ nb.indkob }}"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 9h14l-1.5 10a1 1 0 0 1-1 .9h-9a1 1 0 0 1-1-.9zM9 9l3-5 3 5"></path></svg>Indkøb</button>
+  <button onClick="{{ go.sundhed }}" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; font-size: 11.5px; font-weight: 600; color: {{ nc.sundhed }}; box-shadow: {{ nb.sundhed }}"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"></path></svg>Sundhed</button>
+  <button onClick="{{ go.opskrifter }}" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; font-size: 11.5px; font-weight: 600; color: {{ nc.opskrifter }}; box-shadow: {{ nb.opskrifter }}"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h9a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3zM17 20h2V7"></path></svg>Opskrifter</button>
+</nav>
+
+<!-- OPSKRIFT -->
+<sc-if value="{{ showRecipe }}" hint-placeholder-val="{{ false }}">
+<div style="position: absolute; inset: 0; z-index: 5; background: #F5F1E8">
+  <div class="scr" style="position: absolute; inset: 0 0 84px 0; overflow-y: auto">
+    <div style="display: flex; align-items: center; justify-content: center; height: 330px; background: {{ r.cloth }}">
+      <div style="width: 248px; height: 248px; margin-bottom: 20px; border-radius: 50%; background: {{ r.art }}; box-shadow: 0 22px 34px rgba(40,30,15,0.32)"></div>
+    </div>
+    <div style="position: relative; margin-top: -34px; padding: 26px 20px 28px; border-radius: 30px 30px 0 0; background: #fff; min-height: 480px; display: flex; flex-direction: column; gap: 18px">
+      <div>
+        <h1 style="margin: 0; font-family: 'Fraunces', Georgia, serif; font-weight: 500; font-size: 30px; line-height: 1.12; letter-spacing: -0.01em">{{ r.t }}</h1>
+        <p style="margin: 6px 0 0; color: #5C6259">{{ r.d }}</p>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); padding: 12px 0; border-top: 1px solid #E6E0D2; border-bottom: 1px solid #E6E0D2; text-align: center">
+        <div><div style="font-weight: 700">{{ r.m }} min</div><div style="font-size: 12.5px; color: #5C6259">i alt</div></div>
+        <div style="border-left: 1px solid #E6E0D2; border-right: 1px solid #E6E0D2"><div style="font-weight: 700">{{ r.k }} kcal</div><div style="font-size: 12.5px; color: #5C6259">pr. portion</div></div>
+        <div><div style="font-weight: 700">{{ r.c }}</div><div style="font-size: 12.5px; color: #5C6259">kategori</div></div>
+      </div>
+      <div style="display: flex; justify-content: space-between; align-items: center">
+        <span style="font-weight: 600">{{ personsText }}</span>
+        <div style="display: flex; align-items: center; gap: 4px; padding: 3px; border-radius: 999px; background: #1F4D3A; color: #fff">
+          <button onClick="{{ dec }}" aria-label="Færre personer" style="width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; border-radius: 50%"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"></path></svg></button>
+          <span style="min-width: 22px; text-align: center; font-weight: 700; font-size: 17px">{{ persons }}</span>
+          <button onClick="{{ inc }}" aria-label="Flere personer" style="width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; border-radius: 50%"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg></button>
+        </div>
+      </div>
+      <sc-if value="{{ showPortions }}" hint-placeholder-val="{{ true }}">
+        <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px">
+          <div style="padding: 12px; border-radius: 16px; background: #EDF2F6"><div style="font-size: 12.5px; font-weight: 600; color: #24506F">Jonas' portion</div><div style="font-weight: 700">ca. 480 g (58 %)</div></div>
+          <div style="padding: 12px; border-radius: 16px; background: #F5ECF0"><div style="font-size: 12.5px; font-weight: 600; color: #7A3856">Camillas portion</div><div style="font-weight: 700">ca. 350 g (42 %)</div></div>
+        </div>
+      </sc-if>
+      <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px; padding: 4px; border-radius: 999px; background: #EFEADD">
+        <button onClick="{{ pickIng }}" style="min-height: 44px; border-radius: 999px; text-align: center; font-weight: 600; {{ tabIng }}">Ingredienser</button>
+        <button onClick="{{ pickFrem }}" style="min-height: 44px; border-radius: 999px; text-align: center; font-weight: 600; {{ tabFrem }}">Fremgangsmåde</button>
+      </div>
+      <sc-if value="{{ isIng }}" hint-placeholder-val="{{ true }}">
+        <div>
+          <sc-for list="{{ rIng }}" as="i" hint-placeholder-count="6">
+            <div style="display: flex; gap: 12px; min-height: 46px; align-items: center; border-bottom: 1px solid #EFEADD">
+              <span style="width: 84px; flex: none; font-weight: 700">{{ i.amt }}</span>
+              <span>{{ i.name }}</span>
+            </div>
+          </sc-for>
+        </div>
+      </sc-if>
+      <sc-if value="{{ isFrem }}" hint-placeholder-val="{{ false }}">
+        <ol style="margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 16px">
+          <sc-for list="{{ rSteps }}" as="st" hint-placeholder-count="3">
+            <li style="display: flex; gap: 14px">
+              <span style="flex: none; width: 32px; height: 32px; border-radius: 50%; background: #E8EFE6; color: #1F4D3A; font-weight: 700; display: flex; align-items: center; justify-content: center">{{ st.n }}</span>
+              <span style="padding-top: 4px; line-height: 1.5">{{ st.text }}</span>
+            </li>
+          </sc-for>
+        </ol>
+      </sc-if>
+    </div>
+  </div>
+  <button onClick="{{ closeRecipe }}" aria-label="Tilbage" style="position: absolute; top: 18px; left: 16px; width: 46px; height: 46px; border-radius: 50%; background: #fff; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(40,30,15,0.18)"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"></path></svg></button>
+  <div style="position: absolute; left: 0; right: 0; bottom: 0; height: 84px; padding: 14px 16px; background: #fff; border-top: 1px solid #EFEADD; display: flex; gap: 10px">
+    <button onClick="{{ toPlan }}" style="flex: none; padding: 0 16px; border-radius: 999px; border: 1.5px solid #1F4D3A; color: #1F4D3A; font-weight: 600; text-align: center">Til madplan</button>
+    <button onClick="{{ toList }}" style="flex: 1; border-radius: 999px; background: #1F4D3A; color: #fff; font-weight: 600; text-align: center">Læg på indkøbslisten</button>
+  </div>
+</div>
+</sc-if>
+
+<!-- ARK: VÆLG RET -->
+<sc-if value="{{ showSheet }}" hint-placeholder-val="{{ false }}">
+<div style="position: absolute; inset: 0; z-index: 10">
+  <button onClick="{{ closeSheet }}" aria-label="Luk" style="position: absolute; inset: 0; width: 100%; background: rgba(27,38,32,0.45)"></button>
+  <div style="position: absolute; left: 0; right: 0; bottom: 0; padding: 22px 20px 26px; border-radius: 30px 30px 0 0; background: #F5F1E8; display: flex; flex-direction: column; gap: 14px">
+    <div style="display: flex; justify-content: space-between; align-items: center">
+      <div>
+        <p style="margin: 0; font-size: 13.5px; color: #5C6259">{{ sheetTitle }}</p>
+        <h2 style="margin: 0; font-family: 'Fraunces', Georgia, serif; font-weight: 500; font-size: 24px">Hvad skal I have?</h2>
+      </div>
+      <button onClick="{{ closeSheet }}" aria-label="Luk" style="width: 44px; height: 44px; border-radius: 50%; background: #fff; display: flex; align-items: center; justify-content: center"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg></button>
+    </div>
+    <label style="display: flex; align-items: center; min-height: 48px; padding: 0 16px; border-radius: 999px; background: #fff">
+      <span style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%)">Søg i opskrifter</span>
+      <input placeholder="Søg i opskrifter" style="width: 100%; border: 0; outline: 0; background: transparent; font-size: 16px">
+    </label>
+    <div>
+      <h3 style="margin: 0 0 8px; font-size: 14px; font-weight: 600; color: #5C6259">Fra aftensmadsidéer</h3>
+      <div class="scr" style="display: flex; gap: 10px; overflow-x: auto; margin: 0 -20px; padding: 0 20px">
+        <sc-for list="{{ picks }}" as="p" hint-placeholder-count="3">
+          <button onClick="{{ p.pick }}" style="flex: none; width: 112px; padding: 10px 8px 12px; border-radius: 20px; background: #fff; display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center">
+            <span style="display: block; width: 64px; height: 64px; border-radius: 50%; background: {{ p.art }}"></span>
+            <span style="font-size: 13px; font-weight: 600; line-height: 1.25">{{ p.t }}</span>
+          </button>
+        </sc-for>
+      </div>
+    </div>
+    <div>
+      <h3 style="margin: 0 0 8px; font-size: 14px; font-weight: 600; color: #5C6259">Skriv selv</h3>
+      <div style="display: flex; gap: 8px; flex-wrap: wrap">
+        <sc-for list="{{ ftChips }}" as="c" hint-placeholder-count="3">
+          <button onClick="{{ c.pick }}" style="min-height: 44px; padding: 0 16px; border-radius: 999px; background: #fff; font-weight: 600; font-size: 14px">{{ c.label }}</button>
+        </sc-for>
+      </div>
+    </div>
+    <sc-if value="{{ noSugg }}" hint-placeholder-val="{{ true }}">
+      <button onClick="{{ suggest }}" style="min-height: 52px; border-radius: 999px; border: 1.5px solid #1F4D3A; color: #1F4D3A; font-weight: 600; text-align: center">Foreslå ret</button>
+    </sc-if>
+    <sc-if value="{{ showSugg }}" hint-placeholder-val="{{ false }}">
+      <div style="padding: 14px; border-radius: 22px; background: #fff; display: flex; flex-direction: column; gap: 12px">
+        <div style="display: flex; gap: 12px; align-items: center">
+          <span style="display: flex; align-items: center; justify-content: center; width: 60px; height: 60px; flex: none; border-radius: 50%; font-family: 'Fraunces', Georgia, serif; font-size: 22px; color: #1F4D3A; {{ sg.thumb }}">{{ sg.letter }}</span>
+          <div>
+            <div style="font-weight: 700">{{ sg.t }}</div>
+            <div style="font-size: 13.5px; color: #5C6259; line-height: 1.35">{{ sg.why }}</div>
+          </div>
+        </div>
+        <div style="display: flex; gap: 8px">
+          <button onClick="{{ suggest }}" style="flex: 1; min-height: 46px; border-radius: 999px; border: 1.5px solid #1F4D3A; color: #1F4D3A; font-weight: 600; text-align: center">Nyt forslag</button>
+          <button onClick="{{ sg.pick }}" style="flex: 1; min-height: 46px; border-radius: 999px; background: #1F4D3A; color: #fff; font-weight: 600; text-align: center">Vælg</button>
+        </div>
+      </div>
+    </sc-if>
+  </div>
+</div>
+</sc-if>
+
+<!-- ARK: TILBUD -->
+<sc-if value="{{ showOffers }}" hint-placeholder-val="{{ false }}">
+<div style="position: absolute; inset: 0; z-index: 10">
+  <button onClick="{{ closeOffers }}" aria-label="Luk" style="position: absolute; inset: 0; width: 100%; background: rgba(27,38,32,0.45)"></button>
+  <div style="position: absolute; left: 0; right: 0; bottom: 0; max-height: 720px; padding: 22px 20px 24px; border-radius: 30px 30px 0 0; background: #F5F1E8; display: flex; flex-direction: column; gap: 14px">
+    <div style="display: flex; justify-content: space-between; align-items: center">
+      <h2 style="margin: 0; font-family: 'Fraunces', Georgia, serif; font-weight: 500; font-size: 24px">Tilbud på din liste</h2>
+      <button onClick="{{ closeOffers }}" aria-label="Luk" style="width: 44px; height: 44px; border-radius: 50%; background: #fff; display: flex; align-items: center; justify-content: center"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg></button>
+    </div>
+    <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; padding: 4px; border-radius: 999px; background: #E9E3D4">
+      <sc-for list="{{ ov }}" as="o" hint-placeholder-count="3">
+        <button onClick="{{ o.pick }}" style="min-height: 44px; border-radius: 999px; text-align: center; font-weight: 600; font-size: 13.5px; {{ o.st }}">{{ o.label }}</button>
+      </sc-for>
+    </div>
+    <div>
+      <div style="font-family: 'Fraunces', Georgia, serif; font-size: 22px; line-height: 1.2">{{ offerHead }}</div>
+      <div style="font-size: 14px; color: #5C6259">{{ offerSub }}</div>
+    </div>
+    <div class="scr" style="border-radius: 20px; background: #fff; padding: 2px 14px; overflow-y: auto">
+      <sc-for list="{{ offerRows }}" as="o" hint-placeholder-count="6">
+        <div style="display: flex; align-items: center; gap: 10px; min-height: 50px; border-bottom: 1px solid #EFEADD">
+          <span style="flex: 1; font-weight: 500">{{ o.name }}</span>
+          <span style="font-size: 12.5px; color: #5C6259">{{ o.store }}</span>
+          <span style="min-width: 62px; text-align: right; font-weight: 700">{{ o.price }}</span>
+        </div>
+      </sc-for>
+    </div>
+    <p style="margin: 0; font-size: 12.5px; line-height: 1.4; color: #5C6259">3 varer uden tilbud: hvidløg, røde linser og opvasketabs. Opdateret i dag 06.00. Priserne er eksempeldata.</p>
+  </div>
+</div>
+</sc-if>
+
+<!-- ARK: TILFØJ OPSKRIFT -->
+<sc-if value="{{ showImport }}" hint-placeholder-val="{{ false }}">
+<div style="position: absolute; inset: 0; z-index: 10">
+  <button onClick="{{ closeImport }}" aria-label="Luk" style="position: absolute; inset: 0; width: 100%; background: rgba(27,38,32,0.45)"></button>
+  <div style="position: absolute; left: 0; right: 0; bottom: 0; padding: 22px 20px 26px; border-radius: 30px 30px 0 0; background: #F5F1E8; display: flex; flex-direction: column; gap: 10px">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px">
+      <h2 style="margin: 0; font-family: 'Fraunces', Georgia, serif; font-weight: 500; font-size: 24px">Tilføj opskrift</h2>
+      <button onClick="{{ closeImport }}" aria-label="Luk" style="width: 44px; height: 44px; border-radius: 50%; background: #fff; display: flex; align-items: center; justify-content: center"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg></button>
+    </div>
+    <button style="padding: 14px 16px; border-radius: 20px; background: #fff"><span style="display: block; font-weight: 700">Indsæt link</span><span style="display: block; font-size: 13.5px; color: #5C6259">Hjemmeside, Instagram eller TikTok</span></button>
+    <button style="padding: 14px 16px; border-radius: 20px; background: #fff"><span style="display: block; font-weight: 700">Indsæt tekst</span><span style="display: block; font-size: 13.5px; color: #5C6259">En kopieret opskrift eller billedtekst</span></button>
+    <button style="padding: 14px 16px; border-radius: 20px; background: #fff"><span style="display: block; font-weight: 700">Upload skærmbilleder</span><span style="display: block; font-size: 13.5px; color: #5C6259">Ét eller flere billeder af opskriften</span></button>
+    <button style="padding: 14px 16px; border-radius: 20px; background: #fff"><span style="display: block; font-weight: 700">Skriv selv</span><span style="display: block; font-size: 13.5px; color: #5C6259">Start med en tom opskrift</span></button>
+  </div>
+</div>
+</sc-if>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  db() {
+    if (this._db) return this._db;
+    const art = (f, a, b) => 'radial-gradient(circle at 34% 38%, ' + a + ' 0 8%, transparent 9%), radial-gradient(circle at 64% 32%, ' + b + ' 0 6%, transparent 7%), radial-gradient(circle at 60% 66%, ' + a + ' 0 7%, transparent 8%), radial-gradient(circle at 37% 67%, ' + b + ' 0 5%, transparent 6%), radial-gradient(circle closest-side, ' + f + ' 0 62%, #FCFAF4 63% 86%, #E7E0D0 87% 89%, #FCFAF4 90%)';
+    this._db = {
+      T: { green: '#1F4D3A', muted: '#5C6259', box: '#A8A291', J: '#2F6690', C: '#96486A', tile: '#E9E3D4', seg: '#fff', chip: '#fff' },
+      D: {
+        pasta: { t: 'Cremet pasta alfredo', d: 'Cremet, ost og frisk citron', m: 30, k: 640, c: 'Aftensmad', cloth: '#D8CCB6', art: art('#EBDCA8', '#5E7F3B', '#F8F0D2'),
+          ing: [[250, 'g', 'tagliatelle'], [2.5, 'dl', 'piskefløde'], [80, 'g', 'parmesan'], [30, 'g', 'smør'], [2, 'fed', 'hvidløg'], [0.5, 'stk', 'citron'], [null, '', 'frisk persille']],
+          steps: ['Kog pastaen i letsaltet vand, til den har lidt bid. Gem en kop af kogevandet.', 'Smelt smørret ved middel varme, og lad hvidløget blive blødt uden at tage farve.', 'Tilsæt fløde og parmesan, og rør til saucen er glat. Spæd med kogevand.', 'Vend pastaen i saucen. Smag til med citron, salt og peber, og drys med persille.'] },
+        dahl: { t: 'Dahl med spinat og naan', d: 'Krydret, mættende og grøn', m: 35, k: 520, c: 'Aftensmad', cloth: '#CDBBA0', art: art('#D9983B', '#4E7A3A', '#F3E4BC'),
+          ing: [[200, 'g', 'røde linser'], [1, 'ds.', 'kokosmælk'], [200, 'g', 'spinat'], [1, 'stk', 'løg'], [2, 'tsk', 'karry'], [2, 'stk', 'naanbrød']],
+          steps: ['Svits løg og karry i en gryde.', 'Tilsæt linser, kokosmælk og 4 dl vand. Lad det simre i 20 minutter.', 'Vend spinaten i til sidst, og servér med lune naanbrød.'] },
+        laks: { t: 'Ovnbagt laks med citron', d: 'Let og syrlig med nye kartofler', m: 40, k: 580, c: 'Aftensmad', cloth: '#BECBC3', art: art('#E9A27C', '#E8D261', '#6C8F4A'),
+          ing: [[300, 'g', 'laksefilet'], [600, 'g', 'nye kartofler'], [1, 'stk', 'citron'], [150, 'g', 'grønne bønner'], [1, 'spsk', 'olivenolie']],
+          steps: ['Kog kartoflerne møre.', 'Læg laksen i et fad med citronskiver og olie. Bag i 15 minutter ved 200 °C.', 'Damp bønnerne i 3 minutter, og servér det hele sammen.'] },
+        tacos: { t: 'Tacos med sorte bønner', d: 'Sprød, frisk og lidt stærk', m: 25, k: 560, c: 'Aftensmad', cloth: '#DAC7A4', art: art('#3D302A', '#D5493B', '#86AB55'),
+          ing: [[1, 'ds.', 'sorte bønner'], [6, 'stk', 'tacoskaller'], [1, 'stk', 'avocado'], [2, 'stk', 'tomater'], [0.5, 'stk', 'rødløg'], [1, 'stk', 'lime']],
+          steps: ['Varm bønnerne med spidskommen og lidt vand.', 'Skær avocado, tomat og rødløg i tern, og vend med limesaft.', 'Lun skallerne, og fyld dem ved bordet.'] },
+        suppe: { t: 'Tomatsuppe med grillet ost', d: 'Varm, blød og hurtig', m: 30, k: 490, c: 'Aftensmad', cloth: '#CFC1B0', art: art('#CF5438', '#F5EAD2', '#4F7A3A'),
+          ing: [[2, 'ds.', 'hakkede tomater'], [1, 'stk', 'løg'], [3, 'dl', 'grøntsagsbouillon'], [4, 'skiver', 'surdejsbrød'], [80, 'g', 'cheddar']],
+          steps: ['Svits løget, og tilsæt tomater og bouillon. Lad det simre i 15 minutter.', 'Blend suppen glat, og smag til.', 'Rist brødet med ost på en pande, til osten er smeltet.'] },
+        banan: { t: 'Bananbrød med valnødder', d: 'Saftigt og ikke for sødt', m: 70, k: 310, c: 'Bagværk', cloth: '#D3C5B0', art: art('#B8824A', '#E8CB8E', '#7A5433'),
+          ing: [[3, 'stk', 'modne bananer'], [200, 'g', 'hvedemel'], [100, 'g', 'rørsukker'], [2, 'stk', 'æg'], [60, 'g', 'valnødder']],
+          steps: ['Mos bananerne, og rør dem sammen med æg og sukker.', 'Vend mel og hakkede valnødder i.', 'Bag i en form i 50 minutter ved 175 °C.'] },
+        mousse: { t: 'Chokolademousse', d: 'Mørk, luftig og med hindbær', m: 20, k: 380, c: 'Sødt', cloth: '#D9C9C0', art: art('#4B2F23', '#EADDCC', '#B43B3B'),
+          ing: [[150, 'g', 'mørk chokolade'], [3, 'stk', 'æg'], [2.5, 'dl', 'piskefløde'], [100, 'g', 'hindbær']],
+          steps: ['Smelt chokoladen, og lad den køle lidt af.', 'Pisk fløden let, og vend den i chokoladen sammen med æggeblommerne.', 'Sæt på køl i mindst to timer, og pynt med hindbær.'] }
+      },
+      ORDER: ['pasta', 'dahl', 'laks', 'tacos', 'suppe', 'banan', 'mousse'],
+      FT: { ude: 'Ude at spise', rester: 'Rester', takeaway: 'Takeaway', wok: 'Wok med det, vi har' },
+      DAYS: [['man', 'Man', '9.', 'Mandag 9. november'], ['tir', 'Tir', '10.', 'Tirsdag 10. november'], ['ons', 'Ons', '11.', 'Onsdag 11. november'], ['tor', 'Tor', '12.', 'Torsdag 12. november'], ['fre', 'Fre', '13.', 'Fredag 13. november'], ['lor', 'Lør', '14.', 'Lørdag 14. november'], ['son', 'Søn', '15.', 'Søndag 15. november']],
+      ITEMS: [['i1', 'Frugt & grønt', 'Spinat', '200 g', 'Dahl'], ['i2', 'Frugt & grønt', 'Citron', '2 stk', 'Laks og pasta alfredo'], ['i3', 'Frugt & grønt', 'Nye kartofler', '600 g', 'Laks'], ['i4', 'Frugt & grønt', 'Hvidløg', '1 stk', 'Pasta alfredo'], ['i5', 'Kød & fisk', 'Laksefilet', '300 g', 'Laks'], ['i6', 'Mejeri & æg', 'Piskefløde', '2,5 dl', 'Pasta alfredo'], ['i7', 'Mejeri & æg', 'Parmesan', '80 g', 'Pasta alfredo'], ['i8', 'Kolonial', 'Tagliatelle', '250 g', 'Pasta alfredo'], ['i9', 'Kolonial', 'Røde linser', '200 g', 'Dahl'], ['i10', 'Kolonial', 'Kokosmælk', '1 ds.', 'Dahl'], ['i11', 'Drikkevarer', 'Kaffe', '1 pose', 'Tilføjet af Camilla'], ['i12', 'Husholdning & pleje', 'Opvasketabs', '', 'Tilføjet af Jonas']],
+      GROUPS: ['Frugt & grønt', 'Kød & fisk', 'Mejeri & æg', 'Kolonial', 'Drikkevarer', 'Husholdning & pleje', 'Andet'],
+      OFFERS: [
+        { head: 'Rema 1000', sub: '6 af 12 varer er på tilbud', rows: [['Laksefilet', 'Rema 1000', '39,95'], ['Kaffe', 'Rema 1000', '34,95'], ['Spinat', 'Rema 1000', '12,00'], ['Citroner, net', 'Rema 1000', '10,00'], ['Kokosmælk', 'Rema 1000', '9,00'], ['Piskefløde', 'Rema 1000', '8,95']] },
+        { head: 'Rema 1000 og Netto', sub: '9 af 12 varer er på tilbud', rows: [['Laksefilet', 'Rema 1000', '39,95'], ['Kaffe', 'Rema 1000', '34,95'], ['Spinat', 'Rema 1000', '12,00'], ['Citroner, net', 'Rema 1000', '10,00'], ['Kokosmælk', 'Rema 1000', '9,00'], ['Piskefløde', 'Rema 1000', '8,95'], ['Parmesan', 'Netto', '22,00'], ['Nye kartofler', 'Netto', '12,00'], ['Tagliatelle', 'Netto', '9,95']] },
+        { head: 'Bedste tilbud pr. vare', sub: 'Fordelt på fire butikker', rows: [['Laksefilet', 'Lidl', '36,00'], ['Kaffe', 'Føtex', '32,00'], ['Parmesan', 'Netto', '22,00'], ['Spinat', 'Rema 1000', '12,00'], ['Nye kartofler', 'Netto', '12,00'], ['Citroner, net', 'Lidl', '9,00'], ['Kokosmælk', 'Rema 1000', '9,00'], ['Tagliatelle', 'Netto', '9,95'], ['Piskefløde', 'Føtex', '7,95']] }
+      ],
+      SUGG: [{ k: 'suppe', why: 'Hurtig, og I har ikke fået suppe i denne uge.' }, { k: 'wok', why: 'En idé fra jeres liste. Tjek selv ingredienserne.' }],
+      init: () => ({ tab: 'hjem', recipe: null, persons: 2, rtab: 'ing', sheetDay: null, sugg: -1, offers: false, oview: 0, importOpen: false, seg: 'alle', cat: 'Alle', checked: { i2: true }, tasks: {}, habits: { h3: true }, claimed: {}, plan: { man: 'dahl', tir: 'tacos', ons: 'pasta', tor: null, fre: 'laks', lor: 'ude', son: null }, extra: [], newItem: '' })
+    };
+    return this._db;
+  }
+  renderVals() {
+    const db = this.db(), T = db.T, D = db.D, FT = db.FT;
+    const s = Object.assign(db.init(), this.state || {});
+    const set = (o) => () => this.setState(o);
+    const fmt = (n) => String(Math.round(n * 10) / 10).replace('.', ',');
+    const on = (a) => a ? 'background: ' + T.green + '; border-color: ' + T.green : 'background: #fff; border-color: ' + T.box;
+    const strike = (a) => a ? 'text-decoration: line-through; color: ' + T.muted : '';
+    const pill = (a) => a ? 'background: ' + T.green + '; color: #fff' : 'background: ' + T.chip + '; color: #1B2620';
+    const segSt = (a) => a ? 'background: ' + T.seg + '; color: #1B2620; box-shadow: 0 1px 3px rgba(0,0,0,0.12)' : 'color: ' + T.muted;
+    const thumb = (dish) => dish ? 'background: ' + dish.art : 'background: ' + T.tile;
+    const openRecipe = (k) => set({ recipe: k, persons: 2, rtab: 'ing' });
+
+    const tabs = ['hjem', 'madplan', 'indkob', 'sundhed', 'opskrifter'];
+    const go = {}, nc = {}, nb = {};
+    tabs.forEach((k) => {
+      go[k] = set({ tab: k, recipe: null, sheetDay: null, offers: false, importOpen: false });
+      nc[k] = s.tab === k ? T.green : T.muted;
+      nb[k] = s.tab === k ? 'inset 0 2px 0 ' + T.green : 'none';
+    });
+
+    const week = db.DAYS.map(([k, l, n]) => {
+      const v = s.plan[k], dish = D[v], ft = FT[v], today = k === 'ons';
+      return {
+        l, n, today, filled: !!(dish || ft), empty: !(dish || ft),
+        title: dish ? dish.t : (ft || ''), short: dish ? dish.t : (ft || 'Tilføj ret'),
+        sub: dish ? dish.m + ' min, 2 personer' : (ft ? 'Ingen opskrift' : ''),
+        thumb: (dish || ft) ? thumb(dish) : 'border: 1.5px dashed ' + T.box, letter: dish ? '' : (ft ? ft[0] : '+'),
+        lc: today ? T.green : '#1B2620', ring: today ? 'box-shadow: 0 0 0 2px ' + T.green : '',
+        tap: dish ? openRecipe(v) : set({ sheetDay: k, sugg: -1 })
+      };
+    });
+
+    const td = D[s.plan.ons] || D.pasta;
+    const tonight = { t: td.t, meta: td.m + ' min, 2 personer', cloth: td.cloth, art: td.art, open: openRecipe(s.plan.ons || 'pasta') };
+
+    const taskDefs = [['t1', 'Betal elregning', 'Skulle være gjort i går', true, null], ['t2', 'Vand planter', 'I dag', false, s.claimed.t2 || null], ['t3', 'Støvsug stuen', 'I dag', false, 'C']];
+    const tasks = taskDefs.map(([id, t, due, late, who]) => {
+      const done = !!s.tasks[id];
+      return { t, due, who, hasWho: !!who, canClaim: !who && !done, whoColor: who ? T[who] : T.green, dueColor: late && !done ? '#7A2A16' : T.muted, box: on(done), nm: strike(done),
+        toggle: set({ tasks: Object.assign({}, s.tasks, { [id]: !done }) }), claim: set({ claimed: Object.assign({}, s.claimed, { [id]: 'J' }) }) };
+    });
+    const habits = [['h1', 'Stræk ud i 10 minutter', 'J', 'Jonas'], ['h2', 'Læs 20 sider', 'C', 'Camilla'], ['h3', 'Gå en aftentur', 'F', 'Fælles']].map(([id, t, who, whoName]) => {
+      const done = !!s.habits[id];
+      return { t, whoName, whoColor: T[who] || T.green, box: on(done), nm: strike(done), toggle: set({ habits: Object.assign({}, s.habits, { [id]: !done }) }) };
+    });
+
+    const all = db.ITEMS.map(([id, cat, name, amt, from]) => ({ id, cat, name, amt, from })).concat(s.extra.map((x) => ({ id: x.id, cat: 'Andet', name: x.name, amt: '', from: 'Tilføjet af Jonas' })));
+    const items = all.map((it) => {
+      const done = !!s.checked[it.id];
+      return Object.assign({}, it, { done, box: on(done), nm: strike(done), toggle: set({ checked: Object.assign({}, s.checked, { [it.id]: !done }) }) });
+    });
+    const groups = db.GROUPS.map((name) => ({ name, items: items.filter((i) => i.cat === name).map((i, ix) => Object.assign({}, i, { sep: ix ? '1px solid #EFEADD' : '0' })) })).filter((g) => g.items.length);
+    const doneCount = items.filter((i) => i.done).length;
+    const addItem = () => { const v = (s.newItem || '').trim(); if (!v) return; this.setState({ extra: s.extra.concat([{ id: 'x' + s.extra.length, name: v }]), newItem: '' }); };
+
+    const rk = s.recipe, rd = D[rk] || D.pasta;
+    const rIng = rd.ing.map(([a, u, name]) => ({ amt: a === null ? 'efter smag' : fmt(a * s.persons / 2) + ' ' + u, name }));
+    const rSteps = rd.steps.map((text, i) => ({ n: i + 1, text }));
+
+    const used = Object.keys(s.plan).map((k) => s.plan[k]);
+    const place = (v) => set({ plan: Object.assign({}, s.plan, { [s.sheetDay]: v }), sheetDay: null, sugg: -1 });
+    const picks = db.ORDER.filter((k) => D[k].c === 'Aftensmad' && used.indexOf(k) < 0).map((k) => ({ t: D[k].t, art: D[k].art, pick: place(k) }));
+    const ftChips = ['rester', 'ude', 'takeaway'].map((k) => ({ label: FT[k], pick: place(k) }));
+    const sgDef = db.SUGG[Math.max(0, s.sugg) % db.SUGG.length], sgDish = D[sgDef.k];
+    const sg = { t: sgDish ? sgDish.t : FT[sgDef.k], why: sgDef.why, thumb: thumb(sgDish), letter: sgDish ? '' : FT[sgDef.k][0], pick: place(sgDef.k) };
+    const dayDef = db.DAYS.filter((d) => d[0] === s.sheetDay)[0];
+
+    const cats = ['Alle', 'Aftensmad', 'Bagværk', 'Sødt'];
+    const chips = cats.map((label) => ({ label, st: pill(s.cat === label), pick: set({ cat: label }) }));
+    const isIdeer = s.seg === 'ideer';
+    const grid = db.ORDER.filter((k) => isIdeer ? D[k].c === 'Aftensmad' : (s.cat === 'Alle' || D[k].c === s.cat)).map((k) => ({ t: D[k].t, meta: D[k].m + ' min, ' + D[k].c.toLowerCase(), cloth: D[k].cloth, art: D[k].art, open: openRecipe(k) }));
+    const of = db.OFFERS[s.oview];
+
+    return {
+      isHjem: s.tab === 'hjem', isMadplan: s.tab === 'madplan', isIndkob: s.tab === 'indkob', isSundhed: s.tab === 'sundhed', isOpskrifter: s.tab === 'opskrifter',
+      go, nc, nb, week, strip: week.slice(3), tonight, tasks, habits,
+      groups, countText: doneCount + ' af ' + items.length + ' varer er købt', pct: Math.round(100 * doneCount / items.length) + '%',
+      newItem: s.newItem, onNew: (e) => this.setState({ newItem: e.target.value }), addItem, clearChecked: set({ checked: {} }),
+      showOffers: s.offers, openOffers: set({ offers: true }), closeOffers: set({ offers: false }),
+      ov: ['Én butik', 'Maks. 2', 'Pr. vare'].map((label, i) => ({ label, st: segSt(s.oview === i), pick: set({ oview: i }) })),
+      offerHead: of.head, offerSub: of.sub, offerRows: of.rows.map(([name, store, price]) => ({ name, store, price: price + ' kr.' })),
+      isAlle: !isIdeer, isIdeer, segAlle: segSt(!isIdeer), segIdeer: segSt(isIdeer), pickAlle: set({ seg: 'alle' }), pickIdeer: set({ seg: 'ideer' }),
+      chips, grid, ideas: [{ t: 'Pizza på grillen' }, { t: 'Rugbrødsmadder' }, { t: 'Wok med det, vi har' }],
+      showImport: s.importOpen, openImport: set({ importOpen: true }), closeImport: set({ importOpen: false }),
+      showRecipe: !!rk, r: rd, persons: s.persons, personsText: s.persons === 1 ? '1 person' : s.persons + ' personer',
+      inc: set({ persons: Math.min(8, s.persons + 1) }), dec: set({ persons: Math.max(1, s.persons - 1) }),
+      showPortions: rd.c === 'Aftensmad' && s.persons === 2, rIng, rSteps,
+      isIng: s.rtab === 'ing', isFrem: s.rtab === 'frem', tabIng: segSt(s.rtab === 'ing'), tabFrem: segSt(s.rtab === 'frem'), pickIng: set({ rtab: 'ing' }), pickFrem: set({ rtab: 'frem' }),
+      closeRecipe: set({ recipe: null }), toPlan: set({ recipe: null, tab: 'madplan' }), toList: set({ recipe: null, tab: 'indkob' }),
+      showSheet: !!s.sheetDay, sheetTitle: dayDef ? dayDef[3] : '', closeSheet: set({ sheetDay: null, sugg: -1 }),
+      picks, ftChips, noSugg: s.sugg < 0, showSugg: s.sugg >= 0, sg, suggest: set({ sugg: s.sugg + 1 })
+    };
+  }
+}
+</script>
+</body>
+</html>

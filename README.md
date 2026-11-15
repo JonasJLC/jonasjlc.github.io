@@ -31,6 +31,8 @@ On first sign-in the data already on the device is imported; if the shared copy 
 
 Add shadcn components with `pnpm dlx shadcn@latest add <name>`; the CLI currently adds a stray `cn` npm package and rewrites `import { cn } from "cn"`, so fix those imports to `@/components/ferie/lib/utils` and run `pnpm remove cn` afterwards.
 
+Strandparken, the household app, is at `/strandparken/` (unlisted, noindex, not linked from the homepage). It is a second React island, built like `/ferie/`: page in `src/pages/strandparken/index.astro`, code in `src/components/strandparken/` (primitives in `ui/`, the app shell in `shell/`, pure logic in `lib/`) and one stylesheet, `src/styles/strandparken.css`. All design tokens (colour, radius, shadow, spacing, type roles, motion) live only in that stylesheet; components use token classes and a test (`tests/strandparken-token-guard.test.mjs`) fails on raw colour, radius, shadow or font values. The current view is kept in the URL hash (`#hjem`, `#madplan`, `#indkob`, `#sundhed`, `#opskrifter`). Run `pnpm dev` and open `/strandparken/galleri` for the development-only UI gallery; it is injected only for `astro dev` and never reaches `dist/`. The design source of truth is `docs/superpowers/specs/2026-11-12-strandparken-ui-design.md`.
+
 ## Local development
 
 **Requirements:** Node 22.23.4+, pnpm 10.33.2 (pinned via `packageManager` in `package.json`)
@@ -46,6 +48,7 @@ Useful commands:
 pnpm check       # TypeScript + Astro type check only
 pnpm build       # Type check + build to dist/
 pnpm preview     # Serve the built dist/ locally
+node --test tests/*.test.*   # Unit tests (also run in CI)
 ```
 
 ## Repository structure

@@ -36,6 +36,17 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Run tests
+        run: node --test tests/*.test.*
+
+      - name: Setup Deno
+        uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+
+      - name: Run edge function tests
+        run: deno test --node-modules-dir=none --no-lock --allow-env supabase/functions
+
       - name: Check and build
         run: pnpm build
 
@@ -44,6 +55,9 @@ jobs:
 
       - name: Verify ferie route
         run: test -s dist/ferie/index.html
+
+      - name: Verify strandparken route
+        run: test -s dist/strandparken/index.html
 
       - name: Upload Pages artifact
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'

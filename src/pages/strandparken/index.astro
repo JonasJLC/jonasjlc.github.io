@@ -1,0 +1,35 @@
+---
+import StrandparkenApp from '../../components/strandparken/StrandparkenApp';
+import '../../styles/strandparken.css';
+
+const title = 'Strandparken';
+const description = 'Madplan, indkøb og hverdag for to.';
+---
+
+<!doctype html>
+<html lang="da" data-app="strandparken">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="description" content={description} />
+    <meta name="theme-color" content="#F5F1E8" />
+    <meta name="robots" content="noindex, nofollow" />
+    <link rel="canonical" href="https://jonasjlc.github.io/strandparken/" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://jonasjlc.github.io/strandparken/" />
+    <title>{title}</title>
+    <link rel="icon" href="/strandparken/icon.svg" type="image/svg+xml" />
+    <link rel="icon" href="/strandparken/favicon-32.png" type="image/png" sizes="32x32" />
+    <link rel="apple-touch-icon" href="/strandparken/apple-touch-icon.png" />
+    <link rel="manifest" href="/strandparken/manifest.webmanifest" />
+    <meta name="apple-mobile-web-app-title" content="Strandparken" />
+  </head>
+  <body>
+    <StrandparkenApp client:only="react" />
+    <noscript>
+      <p>Strandparken kræver JavaScript.</p>
+    </noscript>
+  </body>
+</html>

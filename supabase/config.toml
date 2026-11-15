@@ -11,6 +11,8 @@ site_url = "https://jonasjlc.github.io/ferie/"
 additional_redirect_urls = [
   "https://jonasjlc.github.io/ferie/",
   "http://localhost:4321/ferie/",
+  "https://jonasjlc.github.io/strandparken/",
+  "http://localhost:4321/strandparken/",
 ]
 
 # The app signs in with Google only; this also turns off email/password and magic-link accounts.
@@ -39,4 +41,20 @@ verify_jwt = false
 # The token is a secret, never committed (fine-grained PAT, this repo only, Issues read/write):
 #   supabase secrets set GITHUB_ISSUES_TOKEN=...
 [functions.create-issue]
+verify_jwt = false
+
+# Strandparken functions. verify_jwt is off for the same reason as above: _shared/guard.ts verifies the token,
+# the household membership and the person key before any function body runs. Secrets (never committed):
+#   supabase secrets set ANTHROPIC_API_KEY=...
+# Optional: SP_AI_MODEL (default claude-haiku-5-5), AI_MONTHLY_CAP_DKK (50), AI_DAILY_CALLS_PER_PERSON (60), AI_USD_DKK (7).
+# Tests: deno test --node-modules-dir=none --no-lock --allow-env supabase/functions
+[functions.sp-status]
+verify_jwt = false
+
+# Recipe import from pasted text and screenshots (slice 1.6). Optional: SP_AI_MODEL_VISION (default claude-sonnet-5-5).
+[functions.recipe-import]
+verify_jwt = false
+
+# AI dinner suggestion for an empty day (slice 2.2).
+[functions.meal-suggest]
 verify_jwt = false
