@@ -51,7 +51,7 @@ verify_jwt = false
 [functions.sp-status]
 verify_jwt = false
 
-# Recipe import from pasted text and screenshots (slice 1.6). Optional: SP_AI_MODEL_VISION (default claude-sonnet-5-5).
+# Recipe import from pasted text, screenshots and links (slices 1.6 and 1.2). The function fetches pages itself, so it needs outbound network. Optional: SP_AI_MODEL_VISION (default claude-sonnet-5-5).
 [functions.recipe-import]
 verify_jwt = false
 

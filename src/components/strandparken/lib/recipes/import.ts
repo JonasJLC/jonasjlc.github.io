@@ -35,6 +35,26 @@ export function detectSource(link: string): { url: string; source: ImportSource 
   return { url: u.toString(), source };
 }
 
+/** A link without the parts that do not change the page: scheme, `www.`, `#fragment`, tracking parameters, a trailing slash. */
+export function normaliseUrl(link: string): string | null {
+  try {
+    const u = new URL(/^https?:\/\//i.test(link.trim()) ? link.trim() : `https://${link.trim()}`);
+    if (!u.hostname.includes('.')) return null;
+    for (const k of [...u.searchParams.keys()]) if (/^(utm_|fbclid$|gclid$|igshid$|mc_)/i.test(k)) u.searchParams.delete(k);
+    u.searchParams.sort();
+    const query = u.searchParams.toString();
+    return `${u.hostname.toLowerCase().replace(/^(www|m)\./, '')}${u.pathname.replace(/\/+$/, '')}${query ? `?${query}` : ''}`;
+  } catch {
+    return null;
+  }
+}
+
+/** The recipe that was already imported from this link, if any (design §1.2: the same link twice is not a silent duplicate). */
+export function findBySource<T extends { source_url: string | null }>(recipes: readonly T[], link: string): T | null {
+  const wanted = normaliseUrl(link);
+  return wanted ? recipes.find((r) => r.source_url && normaliseUrl(r.source_url) === wanted) ?? null : null;
+}
+
 export const sourceName: Record<ImportSource, string> = { instagram: 'Instagram', tiktok: 'TikTok', facebook: 'Facebook', youtube: 'YouTube', web: 'siden' };
 
 /** The editor's draft from an import. Every field stays editable; `unsure` lists what to double-check. */
@@ -83,6 +103,11 @@ export function importErrorMessage(code: string | undefined): string {
     case 'rate_limited': return 'I har brugt dagens import. Prøv igen i morgen, eller skriv opskriften selv.';
     case 'budget_exceeded': return 'Månedens AI-budget er brugt. Skriv opskriften selv i mellemtiden.';
     case 'refused': return 'Det kunne ikke læses som en opskrift.';
+    case 'bad_url': return 'Det ligner ikke en side, jeg kan hente. Linket skal begynde med https://.';
+    case 'blocked': return 'Den adresse kan jeg ikke hente.';
+    case 'fetch_failed': return 'Jeg kunne ikke hente siden.';
+    case 'not_html': return 'Linket peger ikke på en side, jeg kan læse.';
+    case 'too_large': return 'Siden er for stor til at blive læst.';
     case 'bad_request': return 'Teksten eller billedet kan ikke bruges. Tjek længden og formatet.';
     case 'unauthorized': case 'forbidden': return 'Log ind igen og prøv igen.';
     case 'not_configured': return 'Import er ikke sat op endnu. Skriv opskriften selv.';

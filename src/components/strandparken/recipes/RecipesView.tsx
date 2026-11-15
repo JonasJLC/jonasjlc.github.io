@@ -182,7 +182,7 @@ export function RecipesView({ path, householdId }: { path: string[]; householdId
         </SegmentedPanel>
       </SegmentedControl>
 
-      <AddRecipeSheet open={adding} categories={state.status === 'ready' ? state.categories : []} onClose={() => setAdding(false)} />
+      <AddRecipeSheet open={adding} categories={state.status === 'ready' ? state.categories : []} recipes={recipes} onClose={() => setAdding(false)} />
       <IdeaSheet householdId={householdId} idea={ideaOpen?.idea ?? null} open={ideaOpen !== null} onClose={() => setIdeaOpen(null)} onChanged={ideasState.reload} />
     </div>
   );
