@@ -57,24 +57,31 @@ export async function uploadPhoto(householdId: string, recipeId: string, file: F
   return path;
 }
 
-async function removePhoto(path: string | null) {
+export async function removePhoto(path: string | null) {
   if (!path) return;
   const c = await getClient();
   await c.storage.from(BUCKET).remove([path]); // best effort: an orphan file is harmless
 }
 
-export type SaveInput = { id: string | null; draft: RecipeDraft; photo?: { file: File } | { remove: true } | null; previous?: Recipe | null };
+export type SaveInput = {
+  id: string | null;
+  draft: RecipeDraft;
+  photo?: { file: File } | { remove: true } | null;
+  previous?: Recipe | null;
+  /** A new recipe that starts from an idea keeps the idea's photo until a person changes it. */
+  inheritedPhoto?: string | null;
+};
 
 /**
  * Saves a recipe and its ingredients. Ingredients are never deleted before the new ones are written: kept lines are
  * updated in place, new lines inserted, and only then lines that were removed are deleted, so a failure half-way
  * leaves a complete (if older) ingredient list.
  */
-export async function saveRecipe(householdId: string, { id, draft, photo, previous }: SaveInput): Promise<string> {
+export async function saveRecipe(householdId: string, { id, draft, photo, previous, inheritedPhoto }: SaveInput): Promise<string> {
   const c = await getClient();
   const recipeId = id ?? crypto.randomUUID();
 
-  let imagePath = previous?.image_path ?? null;
+  let imagePath = previous?.image_path ?? inheritedPhoto ?? null;
   let oldPhoto: string | null = null;
   if (photo && 'file' in photo) {
     oldPhoto = imagePath;

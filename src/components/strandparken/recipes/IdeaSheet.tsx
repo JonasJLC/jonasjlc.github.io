@@ -1,9 +1,10 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { cleanTags, normaliseTag } from '../lib/recipes/model';
 import { cleanTitle, emptyIdea, ideaProblem, type Idea, type IdeaDraft } from '../lib/ideas/model';
 import { deleteIdea, saveIdea } from '../lib/ideas/repo';
 import { Button } from '../ui/button';
 import { Chip } from '../ui/chip';
+import { DishImage } from '../ui/dish-image';
 import { Field } from '../ui/field';
 import { Sheet, SheetContent, SheetHeader } from '../ui/sheet';
 import { notify } from '../ui/toast';
@@ -12,6 +13,8 @@ type Props = {
   householdId: string;
   /** `null` with `open` adds a new idea; an idea edits it. */
   idea: Idea | null;
+  /** A signed link to the idea's current photo, if it has one. */
+  photoUrl?: string;
   open: boolean;
   onClose: () => void;
   onChanged: () => Promise<void>;
@@ -20,17 +23,24 @@ type Props = {
 const area = 'sp-input sp-body min-h-24 w-full resize-y rounded-sp-row bg-sp-surface px-4 py-3 text-sp-ink placeholder:text-sp-muted';
 
 /** Add or edit a dinner idea: only the title is required (design §5.3.2). */
-export function IdeaSheet({ householdId, idea, open, onClose, onChanged }: Props) {
+export function IdeaSheet({ householdId, idea, photoUrl, open, onClose, onChanged }: Props) {
   const [draft, setDraft] = useState<IdeaDraft>(emptyIdea);
   const [tagText, setTagText] = useState('');
   const [busy, setBusy] = useState(false);
   const [shown, setShown] = useState(false);
+  const [file, setFile] = useState<File | null>(null);
+  const [removePhoto, setRemovePhoto] = useState(false);
+  const preview = useMemo(() => (file ? URL.createObjectURL(file) : null), [file]);
+  useEffect(() => () => { if (preview) URL.revokeObjectURL(preview); }, [preview]);
+  const photo = removePhoto ? undefined : preview ?? photoUrl;
 
   useEffect(() => {
     if (!open) return;
     setDraft(idea ? { title: idea.title, note: idea.note ?? '', tags: idea.tags } : emptyIdea);
     setTagText('');
     setShown(false);
+    setFile(null);
+    setRemovePhoto(false);
   }, [open, idea]);
 
   const withTag = () => {
@@ -44,7 +54,7 @@ export function IdeaSheet({ householdId, idea, open, onClose, onChanged }: Props
     if (problem) return;
     setBusy(true);
     try {
-      await saveIdea(householdId, idea?.id ?? null, { ...draft, title: cleanTitle(draft.title), tags: withTag() });
+      await saveIdea(householdId, idea?.id ?? null, { ...draft, title: cleanTitle(draft.title), tags: withTag() }, file ? { file } : removePhoto ? { remove: true } : null, idea?.image_path ?? null);
       await onChanged();
       notify(idea ? 'Idéen er gemt.' : 'Idéen er tilføjet.');
       onClose();
@@ -59,7 +69,7 @@ export function IdeaSheet({ householdId, idea, open, onClose, onChanged }: Props
     if (!idea) return;
     setBusy(true);
     try {
-      await deleteIdea(idea.id);
+      await deleteIdea(idea.id, idea.image_path);
       await onChanged();
       notify('Idéen er fjernet.');
       onClose();
@@ -90,6 +100,16 @@ export function IdeaSheet({ householdId, idea, open, onClose, onChanged }: Props
                 {draft.tags.map((t) => <Chip key={t} selected onClick={() => setDraft({ ...draft, tags: draft.tags.filter((x) => x !== t) })}>{t} ×</Chip>)}
               </div>
             )}
+          </div>
+          <div className="flex items-center gap-3">
+            <div className="size-20 shrink-0 overflow-hidden rounded-sp-inset"><DishImage shape="cover" src={photo} name={draft.title || '?'} /></div>
+            <div className="flex flex-col items-start gap-1">
+              <label className="sp-button-sm sp-border-strong inline-flex min-h-sp-target cursor-pointer items-center rounded-sp-pill border-sp-primary px-3.5 text-sp-primary focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-sp-primary active:bg-sp-track">
+                {photo ? 'Skift billede' : 'Vælg billede'}
+                <input type="file" accept="image/*" className="sr-only" onChange={(e) => { setFile(e.target.files?.[0] ?? null); setRemovePhoto(false); e.target.value = ''; }} />
+              </label>
+              {photo && <Button variant="quiet" onClick={() => { setFile(null); setRemovePhoto(true); }}>Fjern billede</Button>}
+            </div>
           </div>
           <Button type="submit" disabled={busy}>Gem</Button>
           {idea && (

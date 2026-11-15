@@ -1,4 +1,5 @@
 import { getClient } from '../auth';
+import { removePhoto, uploadPhoto } from '../recipes/repo';
 import { cleanIdea, type Idea, type IdeaDraft } from './model';
 
 export async function loadIdeas(): Promise<Idea[]> {
@@ -8,20 +9,37 @@ export async function loadIdeas(): Promise<Idea[]> {
   return data;
 }
 
-export async function saveIdea(householdId: string, id: string | null, draft: IdeaDraft): Promise<void> {
+export type IdeaPhotoChange = { file: File } | { remove: true } | null;
+
+/**
+ * Saves an idea. A new photo goes to Storage first (under `<household>/ideas/<idea id>/`, inside the folder the bucket
+ * policy already allows); the row is written next, and only then is the old file removed, so a failure never leaves
+ * an idea pointing at a missing file.
+ */
+export async function saveIdea(householdId: string, id: string | null, draft: IdeaDraft, photo: IdeaPhotoChange = null, previousPath: string | null = null): Promise<string> {
   const c = await getClient();
+  const ideaId = id ?? crypto.randomUUID();
   const clean = cleanIdea(draft);
+  let imagePath = previousPath;
+  if (photo && 'file' in photo) imagePath = await uploadPhoto(householdId, `ideas/${ideaId}`, photo.file);
+  else if (photo && 'remove' in photo) imagePath = null;
   const { error } = id
-    ? await c.from('sp_dinner_ideas').update(clean).eq('id', id)
-    : await c.from('sp_dinner_ideas').insert({ household_id: householdId, ...clean });
-  if (error) throw error;
+    ? await c.from('sp_dinner_ideas').update({ ...clean, image_path: imagePath }).eq('id', id)
+    : await c.from('sp_dinner_ideas').insert({ id: ideaId, household_id: householdId, ...clean, image_path: imagePath });
+  if (error) {
+    if (imagePath && imagePath !== previousPath) await removePhoto(imagePath);
+    throw error;
+  }
+  if (previousPath && imagePath !== previousPath) await removePhoto(previousPath);
+  return ideaId;
 }
 
 /** Fails (and keeps the idea) while a day still points at it: the plan is never left with a hole. */
-export async function deleteIdea(id: string): Promise<void> {
+export async function deleteIdea(id: string, imagePath: string | null = null): Promise<void> {
   const c = await getClient();
   const { error } = await c.from('sp_dinner_ideas').delete().eq('id', id);
   if (error) throw error;
+  await removePhoto(imagePath);
 }
 
 /**

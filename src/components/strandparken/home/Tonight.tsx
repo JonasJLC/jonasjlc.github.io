@@ -16,7 +16,7 @@ export function Tonight({ householdId }: { householdId: string | null }) {
   const sunday = addDays(mondayOf(today), 6);
   const { state, retry } = usePlan(householdId, today, sunday);
   const recipesState = useRecipes();
-  const { ideas } = useIdeas();
+  const { ideas, photos: ideaPhotos } = useIdeas();
 
   if (!householdId) return <p className="sp-body text-sp-muted">Aftensmad og ugen kræver, at appen er koblet til databasen.</p>;
   if (state.status === 'error') {
@@ -30,11 +30,11 @@ export function Tonight({ householdId }: { householdId: string | null }) {
 
   const ready = state.status === 'ready';
   const recipes = recipesState.state.status === 'ready' ? recipesState.state.recipes : [];
-  const photos = recipesState.state.status === 'ready' ? recipesState.state.photos : {};
+  const photos = { ...(recipesState.state.status === 'ready' ? recipesState.state.photos : {}), ...ideaPhotos };
   const entries = ready ? state.entries : [];
   const tonight = ready ? entryOn(entries, today) : null;
   const dish = tonight ? dishOf(tonight, recipes, ideas) : null;
-  const photo = dish?.recipe?.image_path ? photos[dish.recipe.image_path] : undefined;
+  const photo = dish?.imagePath ? photos[dish.imagePath] : undefined;
   const rest = [1, 2, 3, 4, 5, 6].map((n) => addDays(today, n)).filter((d) => d <= sunday);
 
   return (
@@ -74,7 +74,7 @@ export function Tonight({ householdId }: { householdId: string | null }) {
             {rest.slice(0, 4).map((date) => {
               const e = ready ? entryOn(entries, date) : null;
               const d = e ? dishOf(e, recipes, ideas) : null;
-              const img = d?.recipe?.image_path ? photos[d.recipe.image_path] : undefined;
+              const img = d?.imagePath ? photos[d.imagePath] : undefined;
               return (
                 <li key={date}>
                   <a href="#madplan" aria-label={`${weekdayShort(date)} ${dayOfMonth(date)}: ${d ? d.title : 'ingen ret planlagt'}`} className="flex h-full flex-col items-center gap-2 rounded-sp-row bg-sp-surface px-1 py-3 text-center active:bg-sp-track">
