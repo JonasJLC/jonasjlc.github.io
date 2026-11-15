@@ -1,4 +1,4 @@
 import type { Person } from './people';
 
-/** Who is signed in. Until sign-in exists (slice 0.2) the shell shows Jonas. */
+/** Shown when the app is built without Supabase (`PUBLIC_SUPABASE_URL=`) and nobody can sign in. */
 export const signedInPerson: Person = 'jonas';

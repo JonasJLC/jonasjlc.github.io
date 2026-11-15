@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { signedInPerson } from '../lib/fixtures';
+import type { Person } from '../lib/people';
 import { labels } from '../lib/routes';
 import { useRoute } from '../lib/use-route';
 import { Toaster } from '../ui/toast';
@@ -10,7 +10,7 @@ import { ViewFor } from './views';
  * One scrolling column, fluid from 360 px and centred at 520 px from 560 px up (UI spec §4). Content never sits under the
  * fixed bar. When the view changes, the title of the new view gets focus and the document title follows.
  */
-export function AppShell() {
+export function AppShell({ person }: { person: Person }) {
   const view = useRoute();
   const first = useRef(true);
 
@@ -26,7 +26,7 @@ export function AppShell() {
   return (
     <>
       <main className="mx-auto w-full max-w-sp-column px-sp-page-x pt-sp-top-safe pb-sp-bar-clear">
-        <ViewFor view={view} person={signedInPerson} />
+        <ViewFor view={view} person={person} />
       </main>
       <BottomBar current={view} />
       <Toaster />

@@ -5,3 +5,7 @@ export const people: Record<Person, { name: string; initial: string; photo: stri
   jonas: { name: 'Jonas', initial: 'J', photo: '/ferie/avatars/jonas.jpg', fill: 'bg-sp-jonas', tint: 'bg-sp-jonas-tint', ink: 'text-sp-jonas-ink' },
   camilla: { name: 'Camilla', initial: 'C', photo: '/ferie/avatars/camilla.jpg', fill: 'bg-sp-camilla', tint: 'bg-sp-camilla-tint', ink: 'text-sp-camilla-ink' },
 };
+
+/** The database stores the /ferie person keys: `a` is Camilla, `b` is Jonas (`household_members.person`). */
+export const personFromKey = (key: unknown): Person | null => (key === 'a' ? 'camilla' : key === 'b' ? 'jonas' : null);
+export const keyFromPerson = (person: Person): 'a' | 'b' => (person === 'camilla' ? 'a' : 'b');

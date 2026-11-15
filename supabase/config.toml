@@ -11,6 +11,8 @@ site_url = "https://jonasjlc.github.io/ferie/"
 additional_redirect_urls = [
   "https://jonasjlc.github.io/ferie/",
   "http://localhost:4321/ferie/",
+  "https://jonasjlc.github.io/strandparken/",
+  "http://localhost:4321/strandparken/",
 ]
 
 # The app signs in with Google only; this also turns off email/password and magic-link accounts.

@@ -1,7 +1,6 @@
-import type { SupabaseClient } from '@supabase/supabase-js';
-import { SUPABASE_KEY, SUPABASE_URL } from './supabase-config';
+import { createSupabaseAuth, remoteEnabled } from '../../../lib/supabase/client';
 
-export const remoteEnabled = Boolean(SUPABASE_URL && SUPABASE_KEY);
+export { remoteEnabled };
 
 export interface RemoteRow {
   version: number;
@@ -12,17 +11,9 @@ export type RemoteLoad =
   | { status: 'no-access' }
   | { status: 'ok'; householdId: string; row: RemoteRow | null };
 
-let clientPromise: Promise<SupabaseClient> | null = null;
-
-/** Loaded lazily so the library only downloads when sync is used. */
-export function getClient(): Promise<SupabaseClient> {
-  clientPromise ??= import('@supabase/supabase-js').then(({ createClient }) =>
-    createClient(SUPABASE_URL, SUPABASE_KEY, {
-      auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true },
-    }),
-  );
-  return clientPromise;
-}
+// Sign-in and the client are shared with /strandparken (src/lib/supabase).
+const auth = createSupabaseAuth({ redirectPath: '/ferie/' });
+export const { getClient, signInWithGoogle, signInWithGoogleIdToken, signOut } = auth;
 
 /** Finds the signed-in user's household and its shared state (null row = nothing saved yet). */
 export async function fetchRemote(): Promise<RemoteLoad> {
@@ -75,26 +66,4 @@ export async function subscribeRemote(householdId: string, onRow: (row: RemoteRo
   return () => {
     void c.removeChannel(channel);
   };
-}
-
-/** Starts Google sign-in; the browser leaves the page and returns to /ferie/ signed in. */
-export async function signInWithGoogle(): Promise<string | null> {
-  const c = await getClient();
-  const { error } = await c.auth.signInWithOAuth({
-    provider: 'google',
-    options: { redirectTo: `${location.origin}/ferie/`, queryParams: { prompt: 'select_account' } },
-  });
-  return error ? error.message : null;
-}
-
-/** Finishes sign-in with an ID token from Google's button; `nonce` is the raw (unhashed) nonce. */
-export async function signInWithGoogleIdToken(token: string, nonce: string): Promise<string | null> {
-  const c = await getClient();
-  const { error } = await c.auth.signInWithIdToken({ provider: 'google', token, nonce });
-  return error ? error.message : null;
-}
-
-export async function signOut(): Promise<void> {
-  const c = await getClient();
-  await c.auth.signOut();
 }
