@@ -249,3 +249,5 @@
 @utility sp-sheet-overlap { margin-top: -34px; }
 @utility sp-col-amount { width: 84px; }
 @utility sp-bleed-top { margin-top: calc(-1 * (var(--sp-page-top) + env(safe-area-inset-top, 0px))); }
+@utility sp-col-date { width: 38px; }
+@utility sp-ring-today { box-shadow: inset 0 0 0 2px var(--sp-primary); }
