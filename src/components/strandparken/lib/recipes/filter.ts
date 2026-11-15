@@ -2,7 +2,7 @@ import type { Recipe } from './model.ts';
 
 export type RecipeFilter = { categoryId: string | null; tag: string | null; query: string };
 
-const fold = (s: string) => s.toLocaleLowerCase('da').normalize('NFKD').replace(/[̀-ͯ]/g, '');
+export const fold = (s: string) => s.toLocaleLowerCase('da').normalize('NFKD').replace(/[̀-ͯ]/g, '');
 
 /** Every word of the query must appear in the title, a tag or an ingredient name (design §5.3.1). Archived recipes are never listed. */
 export function filterRecipes(recipes: readonly Recipe[], f: RecipeFilter): Recipe[] {

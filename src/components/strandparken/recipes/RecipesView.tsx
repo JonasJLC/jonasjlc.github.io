@@ -3,6 +3,12 @@ import { useMemo, useState } from 'react';
 import { filterRecipes, tagsInUse } from '../lib/recipes/filter';
 import type { Recipe } from '../lib/recipes/model';
 import { useRecipes } from '../lib/recipes/use-recipes';
+import { catalog, dinnerCategoryId } from '../lib/ideas/model';
+import { useIdeas } from '../lib/ideas/use-ideas';
+import type { Idea } from '../lib/ideas/model';
+import { Badge } from '../ui/badge';
+import { SegmentedControl, SegmentedPanel } from '../ui/segmented-control';
+import { IdeaSheet } from './IdeaSheet';
 import { Button } from '../ui/button';
 import { Card } from '../ui/card';
 import { Chip } from '../ui/chip';
@@ -52,6 +58,10 @@ export function RecipesView({ path, householdId }: { path: string[]; householdId
   const [categoryId, setCategoryId] = useState<string | null>(null);
   const [tag, setTag] = useState<string | null>(null);
   const [query, setQuery] = useState('');
+  const [segment, setSegment] = useState('alle');
+  const [ideaQuery, setIdeaQuery] = useState('');
+  const [ideaOpen, setIdeaOpen] = useState<{ idea: Idea | null } | null>(null);
+  const ideasState = useIdeas();
   const recipes = state.status === 'ready' ? state.recipes : [];
   const shown = useMemo(() => filterRecipes(recipes, { categoryId, tag, query }), [recipes, categoryId, tag, query]);
   const tags = useMemo(() => tagsInUse(recipes), [recipes]);
@@ -68,7 +78,7 @@ export function RecipesView({ path, householdId }: { path: string[]; householdId
   const [first, second] = path;
   const ready = state.status === 'ready' ? state : null;
 
-  if (first === 'ny' && ready) return <RecipeEditor householdId={householdId} recipe={null} categories={ready.categories} photos={ready.photos} onSaved={reload} />;
+  if (first === 'ny' && ready) return <RecipeEditor key={second ?? 'ny'} householdId={householdId} recipe={null} categories={ready.categories} photos={ready.photos} fromIdea={ideasState.ideas.find((i) => i.id === second) ?? null} onSaved={async () => { await reload(); await ideasState.reload(); }} />;
   if (first && first !== 'ny') {
     if (!ready) return state.status === 'error' ? <ErrorBlock onRetry={retry} /> : <Skeleton />;
     const recipe = ready.recipes.find((r) => r.id === first);
@@ -94,45 +104,82 @@ export function RecipesView({ path, householdId }: { path: string[]; householdId
         </Button>
       </header>
 
-      {state.status === 'loading' && <Skeleton />}
-      {state.status === 'error' && <ErrorBlock onRetry={retry} />}
+      <SegmentedControl aria-label="Visning" value={segment} onValueChange={setSegment} options={[{ value: 'alle', label: 'Alle' }, { value: 'ideer', label: 'Aftensmadsidéer' }]}>
+        <SegmentedPanel value="alle" className="flex flex-col gap-sp-gap pt-sp-gap">
+        {state.status === 'loading' && <Skeleton />}
+        {state.status === 'error' && <ErrorBlock onRetry={retry} />}
 
-      {ready && ready.recipes.filter((r) => !r.archived_at).length === 0 && (
-        <Card className="flex flex-col gap-sp-gap">
-          <p className="sp-body">Her samles jeres opskrifter. Skriv den første, så er den klar til madplanen.</p>
-          <Button asChild inCard><a href="#opskrifter/ny">Skriv en opskrift</a></Button>
-        </Card>
-      )}
+        {ready && ready.recipes.filter((r) => !r.archived_at).length === 0 && (
+          <Card className="flex flex-col gap-sp-gap">
+            <p className="sp-body">Her samles jeres opskrifter. Skriv den første, så er den klar til madplanen.</p>
+            <Button asChild inCard><a href="#opskrifter/ny">Skriv en opskrift</a></Button>
+          </Card>
+        )}
 
-      {ready && ready.recipes.some((r) => !r.archived_at) && (
-        <>
-          <Field label="Søg i opskrifter" type="search" placeholder="Søg på navn, tag eller ingrediens" value={query} onChange={(e) => setQuery(e.target.value)} />
-          <div className="-mx-sp-page-x flex gap-2 overflow-x-auto px-sp-page-x" role="group" aria-label="Kategori">
-            <Chip selected={categoryId === null} onClick={() => setCategoryId(null)}>Alle</Chip>
-            {ready.categories.map((c) => (
-              <Chip key={c.id} selected={categoryId === c.id} onClick={() => setCategoryId(categoryId === c.id ? null : c.id)}>{c.name}</Chip>
-            ))}
-          </div>
-          {tags.length > 0 && (
-            <div className="-mx-sp-page-x flex gap-2 overflow-x-auto px-sp-page-x" role="group" aria-label="Tags">
-              {tags.map((t) => (
-                <Chip key={t} selected={tag === t} onClick={() => setTag(tag === t ? null : t)}>{t}</Chip>
+        {ready && ready.recipes.some((r) => !r.archived_at) && (
+          <>
+            <Field label="Søg i opskrifter" type="search" placeholder="Søg på navn, tag eller ingrediens" value={query} onChange={(e) => setQuery(e.target.value)} />
+            <div className="-mx-sp-page-x flex gap-2 overflow-x-auto px-sp-page-x" role="group" aria-label="Kategori">
+              <Chip selected={categoryId === null} onClick={() => setCategoryId(null)}>Alle</Chip>
+              {ready.categories.map((c) => (
+                <Chip key={c.id} selected={categoryId === c.id} onClick={() => setCategoryId(categoryId === c.id ? null : c.id)}>{c.name}</Chip>
               ))}
             </div>
+            {tags.length > 0 && (
+              <div className="-mx-sp-page-x flex gap-2 overflow-x-auto px-sp-page-x" role="group" aria-label="Tags">
+                {tags.map((t) => (
+                  <Chip key={t} selected={tag === t} onClick={() => setTag(tag === t ? null : t)}>{t}</Chip>
+                ))}
+              </div>
+            )}
+            {shown.length === 0 ? (
+              <p role="status" className="sp-body text-sp-muted">Ingen opskrifter passer. Prøv at fjerne et filter.</p>
+            ) : (
+              <ul className="grid grid-cols-2 gap-sp-gap-grid" aria-label="Opskrifter">
+                {shown.map((r) => (
+                  <li key={r.id}>
+                    <RecipeCard recipe={r} photo={r.image_path ? ready.photos[r.image_path] : undefined} />
+                  </li>
+                ))}
+              </ul>
+            )}
+          </>
+        )}
+        </SegmentedPanel>
+        <SegmentedPanel value="ideer" className="flex flex-col gap-sp-gap pt-sp-gap">
+          {ready && (
+            <>
+              <Button onClick={() => setIdeaOpen({ idea: null })}>Tilføj idé</Button>
+              <Field label="Søg i aftensmadsidéer" type="search" placeholder="Søg på navn eller tag" value={ideaQuery} onChange={(e) => setIdeaQuery(e.target.value)} />
+              {(() => {
+                const items = catalog(ready.recipes, ideasState.ideas, dinnerCategoryId(ready.categories), ideaQuery);
+                if (items.length === 0) {
+                  return <p role="status" className="sp-body text-sp-muted">{ideaQuery.trim() ? 'Intet passer.' : 'Her samles alt, I kan finde på at lave til aftensmad. Skriv den første idé, så er den klar til madplanen.'}</p>;
+                }
+                return (
+                  <ul className="grid grid-cols-2 gap-sp-gap-grid" aria-label="Aftensmadsidéer">
+                    {items.map((item) => (
+                      <li key={item.kind === 'recipe' ? item.recipe.id : item.idea.id}>
+                        {item.kind === 'recipe' ? (
+                          <RecipeCard recipe={item.recipe} photo={item.recipe.image_path ? ready.photos[item.recipe.image_path] : undefined} />
+                        ) : (
+                          <button type="button" onClick={() => setIdeaOpen({ idea: item.idea })} className="sp-border-strong flex h-full min-h-52 w-full flex-col items-start justify-between gap-3 rounded-sp-row border-dashed border-sp-dash p-3 text-left active:bg-sp-track">
+                            <Badge>Idé</Badge>
+                            <span className="sp-title-card line-clamp-4">{item.idea.title}</span>
+                          </button>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                );
+              })()}
+            </>
           )}
-          {shown.length === 0 ? (
-            <p role="status" className="sp-body text-sp-muted">Ingen opskrifter passer. Prøv at fjerne et filter.</p>
-          ) : (
-            <ul className="grid grid-cols-2 gap-sp-gap-grid" aria-label="Opskrifter">
-              {shown.map((r) => (
-                <li key={r.id}>
-                  <RecipeCard recipe={r} photo={r.image_path ? ready.photos[r.image_path] : undefined} />
-                </li>
-              ))}
-            </ul>
-          )}
-        </>
-      )}
+          {state.status === 'loading' && <Skeleton />}
+        </SegmentedPanel>
+      </SegmentedControl>
+
+      <IdeaSheet householdId={householdId} idea={ideaOpen?.idea ?? null} open={ideaOpen !== null} onClose={() => setIdeaOpen(null)} onChanged={ideasState.reload} />
     </div>
   );
 }

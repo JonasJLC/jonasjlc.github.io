@@ -9,7 +9,7 @@ export async function loadEntries(from: string, to: string): Promise<PlanEntry[]
   return data;
 }
 
-export type Dish = { recipeId: string } | { freeText: string };
+export type Dish = { recipeId: string } | { ideaId: string } | { freeText: string };
 
 export async function addEntry(householdId: string, date: string, dish: Dish, servings = defaultServings): Promise<void> {
   const c = await getClient();
@@ -18,6 +18,7 @@ export async function addEntry(householdId: string, date: string, dish: Dish, se
     date,
     servings,
     recipe_id: 'recipeId' in dish ? dish.recipeId : null,
+    idea_id: 'ideaId' in dish ? dish.ideaId : null,
     free_text: 'freeText' in dish ? dish.freeText : null,
   });
   if (error) throw error;

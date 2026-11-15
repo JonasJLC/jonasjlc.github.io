@@ -2,6 +2,7 @@ import { Clock, Users } from 'lucide-react';
 import { addDays, dayOfMonth, mondayOf, todayIso, weekdayShort } from '../lib/madplan/dates';
 import { dishOf, entryOn } from '../lib/madplan/model';
 import { usePlan } from '../lib/madplan/use-plan';
+import { useIdeas } from '../lib/ideas/use-ideas';
 import { useRecipes } from '../lib/recipes/use-recipes';
 import { personsLabel } from '../lib/stepper';
 import { Button } from '../ui/button';
@@ -15,6 +16,7 @@ export function Tonight({ householdId }: { householdId: string | null }) {
   const sunday = addDays(mondayOf(today), 6);
   const { state, retry } = usePlan(householdId, today, sunday);
   const recipesState = useRecipes();
+  const { ideas } = useIdeas();
 
   if (!householdId) return <p className="sp-body text-sp-muted">Aftensmad og ugen kræver, at appen er koblet til databasen.</p>;
   if (state.status === 'error') {
@@ -31,7 +33,7 @@ export function Tonight({ householdId }: { householdId: string | null }) {
   const photos = recipesState.state.status === 'ready' ? recipesState.state.photos : {};
   const entries = ready ? state.entries : [];
   const tonight = ready ? entryOn(entries, today) : null;
-  const dish = tonight ? dishOf(tonight, recipes) : null;
+  const dish = tonight ? dishOf(tonight, recipes, ideas) : null;
   const photo = dish?.recipe?.image_path ? photos[dish.recipe.image_path] : undefined;
   const rest = [1, 2, 3, 4, 5, 6].map((n) => addDays(today, n)).filter((d) => d <= sunday);
 
@@ -71,7 +73,7 @@ export function Tonight({ householdId }: { householdId: string | null }) {
           <ul className="grid grid-cols-4 gap-sp-gap-grid">
             {rest.slice(0, 4).map((date) => {
               const e = ready ? entryOn(entries, date) : null;
-              const d = e ? dishOf(e, recipes) : null;
+              const d = e ? dishOf(e, recipes, ideas) : null;
               const img = d?.recipe?.image_path ? photos[d.recipe.image_path] : undefined;
               return (
                 <li key={date}>

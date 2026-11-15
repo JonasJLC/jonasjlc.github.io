@@ -2,6 +2,8 @@ import { ArrowDown, ArrowUp, ChevronLeft, Plus, X } from 'lucide-react';
 import { useEffect, useId, useMemo, useState, type ComponentProps } from 'react';
 import { cleanTags, draftFromRecipe, emptyDraft, newIngredient, normaliseTag, validateDraft, type CategoryRow, type Recipe, type RecipeDraft } from '../lib/recipes/model';
 import { saveRecipe } from '../lib/recipes/repo';
+import { promoteIdea } from '../lib/ideas/repo';
+import type { Idea } from '../lib/ideas/model';
 import { Button } from '../ui/button';
 import { Card } from '../ui/card';
 import { Checkbox } from '../ui/checkbox';
@@ -31,11 +33,13 @@ type Props = {
   categories: CategoryRow[];
   photos: Record<string, string>;
   onSaved: () => Promise<void>;
+  /** Turning a dinner idea into a recipe: the draft starts from the idea, and saving moves its planned days to the recipe. */
+  fromIdea?: Idea | null;
 };
 
 /** Create (`#opskrifter/ny`) or edit (`#opskrifter/<id>/rediger`) a recipe. Nothing is saved until `Gem`. */
-export function RecipeEditor({ householdId, recipe, categories, photos, onSaved }: Props) {
-  const [draft, setDraft] = useState<RecipeDraft>(() => (recipe ? draftFromRecipe(recipe) : { ...emptyDraft(categories.find((c) => c.name === 'Aftensmad')?.id ?? null), ingredients: [newIngredient()], steps: [''] }));
+export function RecipeEditor({ householdId, recipe, categories, photos, onSaved, fromIdea = null }: Props) {
+  const [draft, setDraft] = useState<RecipeDraft>(() => (recipe ? draftFromRecipe(recipe) : { ...emptyDraft(categories.find((c) => c.name === 'Aftensmad')?.id ?? null), ...(fromIdea ? { title: fromIdea.title, descriptor: fromIdea.note ?? '', tags: fromIdea.tags } : {}), ingredients: [newIngredient()], steps: [''] }));
   const [file, setFile] = useState<File | null>(null);
   const [removePhoto, setRemovePhoto] = useState(false);
   const [tagText, setTagText] = useState('');
@@ -67,6 +71,7 @@ export function RecipeEditor({ householdId, recipe, categories, photos, onSaved 
         previous: recipe,
         photo: file ? { file } : removePhoto ? { remove: true } : null,
       });
+      if (fromIdea) await promoteIdea(fromIdea.id, id);
       await onSaved();
       notify(recipe ? 'Opskriften er gemt.' : 'Opskriften er tilføjet.');
       location.hash = `#opskrifter/${id}`;

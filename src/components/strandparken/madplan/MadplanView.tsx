@@ -3,6 +3,7 @@ import { useMemo, useState } from 'react';
 import { addDays, dayOfMonth, isIsoDate, isoWeek, longDate, mondayOf, todayIso, weekDays, weekdayShort } from '../lib/madplan/dates';
 import { dishOf, entryOn, type PlanEntry } from '../lib/madplan/model';
 import { usePlan } from '../lib/madplan/use-plan';
+import { useIdeas } from '../lib/ideas/use-ideas';
 import { useRecipes } from '../lib/recipes/use-recipes';
 import { personsLabel } from '../lib/stepper';
 import { Badge } from '../ui/badge';
@@ -27,6 +28,7 @@ export function MadplanView({ path, householdId }: { path: string[]; householdId
   const days = useMemo(() => weekDays(requested), [requested]);
   const { state, reload, retry } = usePlan(householdId, days[0], days[6]);
   const recipesState = useRecipes();
+  const { ideas } = useIdeas();
   const [open, setOpen] = useState<string | null>(null);
 
   if (!householdId) {
@@ -87,6 +89,7 @@ export function MadplanView({ path, householdId }: { path: string[]; householdId
                 entry={state.status === 'ready' ? entryOn(entries, date) : null}
                 loading={state.status === 'loading'}
                 recipes={recipes}
+                ideas={ideas}
                 photos={photos}
                 onOpen={() => setOpen(date)}
               />
@@ -103,6 +106,7 @@ export function MadplanView({ path, householdId }: { path: string[]; householdId
         days={days}
         entries={entries}
         recipes={recipes}
+        ideas={ideas}
         photos={photos}
         onClose={() => setOpen(null)}
         onChanged={changed}
@@ -117,12 +121,13 @@ type RowProps = {
   entry: PlanEntry | null;
   loading: boolean;
   recipes: Parameters<typeof dishOf>[1];
+  ideas: Parameters<typeof dishOf>[2];
   photos: Record<string, string>;
   onOpen: () => void;
 };
 
-function DayRow({ date, isToday, entry, loading, recipes, photos, onOpen }: RowProps) {
-  const dish = entry ? dishOf(entry, recipes) : null;
+function DayRow({ date, isToday, entry, loading, recipes, ideas, photos, onOpen }: RowProps) {
+  const dish = entry ? dishOf(entry, recipes, ideas) : null;
   const photo = dish?.recipe?.image_path ? photos[dish.recipe.image_path] : undefined;
   return (
     <div className="flex items-center gap-3">
