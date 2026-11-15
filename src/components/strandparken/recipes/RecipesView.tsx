@@ -82,7 +82,7 @@ export function RecipesView({ path, householdId }: { path: string[]; householdId
       );
     }
     if (second === 'rediger') return <RecipeEditor householdId={householdId} recipe={recipe} categories={ready.categories} photos={ready.photos} onSaved={reload} />;
-    return <RecipeDetail key={recipe.id} recipe={recipe} category={ready.categories.find((c) => c.id === recipe.category_id)?.name ?? null} photo={recipe.image_path ? ready.photos[recipe.image_path] : undefined} onChanged={reload} />;
+    return <RecipeDetail key={recipe.id} householdId={householdId} recipe={recipe} category={ready.categories.find((c) => c.id === recipe.category_id)?.name ?? null} photo={recipe.image_path ? ready.photos[recipe.image_path] : undefined} onChanged={reload} />;
   }
 
   return (

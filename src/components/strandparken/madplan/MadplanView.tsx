@@ -11,6 +11,7 @@ import { Card } from '../ui/card';
 import { DishImage, DishSlot } from '../ui/dish-image';
 import { Icon } from '../ui/icon';
 import { notify } from '../ui/toast';
+import { MakeListButton } from '../shopping/ListButtons';
 import { DaySheet } from './DaySheet';
 
 const Title = () => (
@@ -93,6 +94,8 @@ export function MadplanView({ path, householdId }: { path: string[]; householdId
           ))}
         </ul>
       )}
+
+      {state.status === 'ready' && <MakeListButton householdId={householdId} entries={entries} recipes={recipes} />}
 
       <DaySheet
         householdId={householdId}

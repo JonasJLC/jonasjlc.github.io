@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 import { dateLine, greetingFor } from '../lib/greeting';
 import { people, type Person } from '../lib/people';
 import { labels, type View } from '../lib/routes';
+import { IndkobView } from '../shopping/IndkobView';
 import { MadplanView } from '../madplan/MadplanView';
 import { RecipesView } from '../recipes/RecipesView';
 import { AvatarButton } from '../ui/avatar';
@@ -44,8 +45,7 @@ function HomeView({ person }: { person: Person }) {
   );
 }
 
-const placeholders: Record<Exclude<View, 'hjem' | 'opskrifter' | 'madplan'>, string> = {
-  indkob: 'Indkøbslisten er tom. Varer kommer til, når I laver en liste.',
+const placeholders: Record<Exclude<View, 'hjem' | 'opskrifter' | 'madplan' | 'indkob'>, string> = {
   sundhed: 'Sundhed er ikke sat op endnu.',
 };
 
@@ -53,6 +53,7 @@ const placeholders: Record<Exclude<View, 'hjem' | 'opskrifter' | 'madplan'>, str
 export function ViewFor({ view, path, person, householdId }: { view: View; path: string[]; person: Person; householdId: string | null }) {
   if (view === 'hjem') return <HomeView person={person} />;
   if (view === 'madplan') return <MadplanView path={path} householdId={householdId} />;
+  if (view === 'indkob') return <IndkobView householdId={householdId} />;
   if (view === 'opskrifter') return <RecipesView path={path} householdId={householdId} />;
   return (
     <div className="flex flex-col gap-sp-gap">

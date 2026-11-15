@@ -9,10 +9,11 @@ import { DishImage } from '../ui/dish-image';
 import { Icon } from '../ui/icon';
 import { SegmentedControl, SegmentedPanel } from '../ui/segmented-control';
 import { Sheet, SheetContent, SheetHeader, SheetTrigger } from '../ui/sheet';
+import { AddRecipeButton } from '../shopping/ListButtons';
 import { Stepper } from '../ui/stepper';
 import { notify } from '../ui/toast';
 
-type Props = { recipe: Recipe; category: string | null; photo?: string; onChanged: () => Promise<void> };
+type Props = { householdId: string | null; recipe: Recipe; category: string | null; photo?: string; onChanged: () => Promise<void> };
 
 function Stat({ icon, label, value }: { icon: typeof Clock; label: string; value: string }) {
   return (
@@ -25,7 +26,7 @@ function Stat({ icon, label, value }: { icon: typeof Clock; label: string; value
 }
 
 /** One recipe (UI spec §5.11): photo, overlapping sheet, persons stepper that scales the amounts, ingredients and steps. */
-export function RecipeDetail({ recipe, category, photo, onChanged }: Props) {
+export function RecipeDetail({ householdId, recipe, category, photo, onChanged }: Props) {
   const [persons, setPersons] = useState(recipe.base_servings);
   const [busy, setBusy] = useState(false);
 
@@ -117,6 +118,8 @@ export function RecipeDetail({ recipe, category, photo, onChanged }: Props) {
             )}
           </SegmentedPanel>
         </SegmentedControl>
+
+        {householdId && !recipe.archived_at && <AddRecipeButton householdId={householdId} recipe={recipe} persons={persons} />}
 
         <div className="flex flex-wrap items-center gap-2 border-t border-sp-line pt-sp-gap">
           <Button asChild variant="outline"><a href={`#opskrifter/${recipe.id}/rediger`}>Rediger</a></Button>
