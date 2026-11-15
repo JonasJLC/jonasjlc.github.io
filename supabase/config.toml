@@ -50,3 +50,7 @@ verify_jwt = false
 # Tests: deno test --node-modules-dir=none --no-lock --allow-env supabase/functions
 [functions.sp-status]
 verify_jwt = false
+
+# Recipe import from pasted text and screenshots (slice 1.6). Optional: SP_AI_MODEL_VISION (default claude-sonnet-5-5).
+[functions.recipe-import]
+verify_jwt = false

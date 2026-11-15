@@ -4,6 +4,7 @@ import { cleanTags, draftFromRecipe, emptyDraft, newIngredient, normaliseTag, va
 import { saveRecipe } from '../lib/recipes/repo';
 import { promoteIdea } from '../lib/ideas/repo';
 import type { Idea } from '../lib/ideas/model';
+import { clearPendingDraft, unsureLabel, type ImportedRecipe } from '../lib/recipes/import';
 import { Button } from '../ui/button';
 import { Card } from '../ui/card';
 import { Checkbox } from '../ui/checkbox';
@@ -35,11 +36,13 @@ type Props = {
   onSaved: () => Promise<void>;
   /** Turning a dinner idea into a recipe: the draft starts from the idea, and saving moves its planned days to the recipe. */
   fromIdea?: Idea | null;
+  /** A draft read from text or screenshots (slice 1.6); `unsure` names what to double-check. */
+  imported?: (RecipeDraft & { unsure: ImportedRecipe['unsure'] }) | null;
 };
 
 /** Create (`#opskrifter/ny`) or edit (`#opskrifter/<id>/rediger`) a recipe. Nothing is saved until `Gem`. */
-export function RecipeEditor({ householdId, recipe, categories, photos, onSaved, fromIdea = null }: Props) {
-  const [draft, setDraft] = useState<RecipeDraft>(() => (recipe ? draftFromRecipe(recipe) : { ...emptyDraft(categories.find((c) => c.name === 'Aftensmad')?.id ?? null), ...(fromIdea ? { title: fromIdea.title, descriptor: fromIdea.note ?? '', tags: fromIdea.tags } : {}), ingredients: [newIngredient()], steps: [''] }));
+export function RecipeEditor({ householdId, recipe, categories, photos, onSaved, fromIdea = null, imported = null }: Props) {
+  const [draft, setDraft] = useState<RecipeDraft>(() => (recipe ? draftFromRecipe(recipe) : imported ? { ...imported } : { ...emptyDraft(categories.find((c) => c.name === 'Aftensmad')?.id ?? null), ...(fromIdea ? { title: fromIdea.title, descriptor: fromIdea.note ?? '', tags: fromIdea.tags } : {}), ingredients: [newIngredient()], steps: [''] }));
   const [file, setFile] = useState<File | null>(null);
   const [removePhoto, setRemovePhoto] = useState(false);
   const [tagText, setTagText] = useState('');
@@ -71,6 +74,7 @@ export function RecipeEditor({ householdId, recipe, categories, photos, onSaved,
         previous: recipe,
         photo: file ? { file } : removePhoto ? { remove: true } : null,
       });
+      if (imported) clearPendingDraft();
       if (fromIdea) await promoteIdea(fromIdea.id, id);
       await onSaved();
       notify(recipe ? 'Opskriften er gemt.' : 'Opskriften er tilføjet.');
@@ -93,6 +97,13 @@ export function RecipeEditor({ householdId, recipe, categories, photos, onSaved,
         <Button asChild variant="icon" aria-label="Annullér"><a href={back}><Icon icon={ChevronLeft} /></a></Button>
         <h1 id="view-title" tabIndex={-1} className="sp-title-page">{recipe ? 'Rediger opskrift' : 'Ny opskrift'}</h1>
       </header>
+
+      {imported && (
+        <Card role="note" className="flex flex-col gap-1">
+          <p className="sp-body-strong">Opskriften er læst af en AI og kan indeholde fejl. Læs den igennem, før du gemmer.</p>
+          {imported.unsure.length > 0 && <p className="sp-body text-sp-muted">Tjek ekstra godt: {imported.unsure.map((u) => unsureLabel[u]).join(', ')}.</p>}
+        </Card>
+      )}
 
       <Card className="flex flex-col gap-sp-gap">
         <Labelled label="Navn">

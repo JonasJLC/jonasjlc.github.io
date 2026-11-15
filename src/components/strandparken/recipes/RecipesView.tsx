@@ -9,6 +9,8 @@ import type { Idea } from '../lib/ideas/model';
 import { Badge } from '../ui/badge';
 import { SegmentedControl, SegmentedPanel } from '../ui/segmented-control';
 import { IdeaSheet } from './IdeaSheet';
+import { AddRecipeSheet } from './AddRecipeSheet';
+import { peekPendingDraft } from '../lib/recipes/import';
 import { Button } from '../ui/button';
 import { Card } from '../ui/card';
 import { Chip } from '../ui/chip';
@@ -60,6 +62,7 @@ export function RecipesView({ path, householdId }: { path: string[]; householdId
   const [query, setQuery] = useState('');
   const [segment, setSegment] = useState('alle');
   const [ideaQuery, setIdeaQuery] = useState('');
+  const [adding, setAdding] = useState(false);
   const [ideaOpen, setIdeaOpen] = useState<{ idea: Idea | null } | null>(null);
   const ideasState = useIdeas();
   const recipes = state.status === 'ready' ? state.recipes : [];
@@ -78,7 +81,7 @@ export function RecipesView({ path, householdId }: { path: string[]; householdId
   const [first, second] = path;
   const ready = state.status === 'ready' ? state : null;
 
-  if (first === 'ny' && ready) return <RecipeEditor key={second ?? 'ny'} householdId={householdId} recipe={null} categories={ready.categories} photos={ready.photos} fromIdea={ideasState.ideas.find((i) => i.id === second) ?? null} onSaved={async () => { await reload(); await ideasState.reload(); }} />;
+  if (first === 'ny' && ready) return <RecipeEditor key={second ?? 'ny'} householdId={householdId} recipe={null} categories={ready.categories} photos={ready.photos} fromIdea={ideasState.ideas.find((i) => i.id === second) ?? null} imported={second === 'importeret' ? peekPendingDraft() : null} onSaved={async () => { await reload(); await ideasState.reload(); }} />;
   if (first && first !== 'ny') {
     if (!ready) return state.status === 'error' ? <ErrorBlock onRetry={retry} /> : <Skeleton />;
     const recipe = ready.recipes.find((r) => r.id === first);
@@ -99,8 +102,8 @@ export function RecipesView({ path, householdId }: { path: string[]; householdId
     <div className="flex flex-col gap-sp-gap">
       <header className="flex items-center justify-between gap-3">
         <Title>Opskrifter</Title>
-        <Button asChild variant="icon" tone="add" size="lg" aria-label="Tilføj opskrift">
-          <a href="#opskrifter/ny"><Icon icon={Plus} /></a>
+        <Button variant="icon" tone="add" size="lg" aria-label="Tilføj opskrift" onClick={() => setAdding(true)}>
+          <Icon icon={Plus} />
         </Button>
       </header>
 
@@ -179,6 +182,7 @@ export function RecipesView({ path, householdId }: { path: string[]; householdId
         </SegmentedPanel>
       </SegmentedControl>
 
+      <AddRecipeSheet open={adding} categories={state.status === 'ready' ? state.categories : []} onClose={() => setAdding(false)} />
       <IdeaSheet householdId={householdId} idea={ideaOpen?.idea ?? null} open={ideaOpen !== null} onClose={() => setIdeaOpen(null)} onChanged={ideasState.reload} />
     </div>
   );

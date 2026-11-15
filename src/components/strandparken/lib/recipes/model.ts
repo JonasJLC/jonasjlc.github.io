@@ -21,7 +21,12 @@ export function parseSteps(value: unknown): Step[] {
 }
 
 /** One ingredient line in the editor: amount is text so "1,5" can be typed. */
-export type IngredientDraft = { key: string; amount: string; unit: string; name: string; note: string; scales: boolean };
+export type IngredientDraft = {
+  key: string; amount: string; unit: string; name: string; note: string; scales: boolean;
+  /** Set by an import (design D32); kept as is when the recipe is edited. */
+  canonicalName?: string;
+  groceryCategoryId?: string | null;
+};
 
 export type RecipeDraft = {
   title: string;
@@ -33,6 +38,8 @@ export type RecipeDraft = {
   ingredients: IngredientDraft[];
   steps: string[];
   sourceUrl: string;
+  /** The pasted text an import came from, kept so the original wording can still be seen. */
+  originalText?: string;
 };
 
 export const emptyDraft = (categoryId: string | null = null): RecipeDraft => ({
@@ -81,6 +88,7 @@ export function draftFromRecipe(r: Recipe): RecipeDraft {
     baseServings: r.base_servings,
     totalMinutes: r.total_minutes === null ? '' : String(r.total_minutes),
     sourceUrl: r.source_url ?? '',
+    originalText: r.original_text ?? undefined,
     steps: r.steps.map((s) => s.text),
     ingredients: [...r.ingredients]
       .sort((a, b) => a.position - b.position)
@@ -91,6 +99,8 @@ export function draftFromRecipe(r: Recipe): RecipeDraft {
         name: i.name,
         note: i.note ?? '',
         scales: i.scales,
+        canonicalName: i.canonical_name ?? undefined,
+        groceryCategoryId: i.grocery_category_id,
       })),
   };
 }

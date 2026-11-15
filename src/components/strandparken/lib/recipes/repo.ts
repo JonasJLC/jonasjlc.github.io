@@ -36,7 +36,7 @@ export async function signedPhotoUrls(paths: string[]): Promise<Record<string, s
 }
 
 /** A photo is scaled to at most 1600 px on its long side and stored as JPEG, so a phone camera picture is ~300 KB, not 6 MB. */
-async function shrink(file: File): Promise<Blob> {
+export async function shrinkImage(file: File): Promise<Blob> {
   const bitmap = await createImageBitmap(file);
   const scale = Math.min(1, 1600 / Math.max(bitmap.width, bitmap.height));
   const canvas = document.createElement('canvas');
@@ -52,7 +52,7 @@ async function shrink(file: File): Promise<Blob> {
 export async function uploadPhoto(householdId: string, recipeId: string, file: File): Promise<string> {
   const c = await getClient();
   const path = `${householdId}/${recipeId}/${crypto.randomUUID()}.jpg`;
-  const { error } = await c.storage.from(BUCKET).upload(path, await shrink(file), { contentType: 'image/jpeg', upsert: false });
+  const { error } = await c.storage.from(BUCKET).upload(path, await shrinkImage(file), { contentType: 'image/jpeg', upsert: false });
   if (error) throw error;
   return path;
 }
@@ -94,6 +94,7 @@ export async function saveRecipe(householdId: string, { id, draft, photo, previo
     base_servings: draft.baseServings,
     total_minutes: draft.totalMinutes.trim() ? Number(draft.totalMinutes) : null,
     source_url: draft.sourceUrl.trim() || null,
+    original_text: draft.originalText?.trim() || null,
     steps: draft.steps.map((t) => t.trim()).filter(Boolean).map((text) => ({ text })),
     image_path: imagePath,
   };
@@ -112,6 +113,8 @@ export async function saveRecipe(householdId: string, { id, draft, photo, previo
     unit: i.unit.trim() || null,
     note: i.note.trim() || null,
     scales: i.scales,
+    canonical_name: i.canonicalName ?? null,
+    grocery_category_id: i.groceryCategoryId ?? null,
   }));
   // Two calls so every row in a call has the same columns: existing lines (with id) and new lines (id is generated).
   const existing = rows.filter((r) => 'id' in r);
