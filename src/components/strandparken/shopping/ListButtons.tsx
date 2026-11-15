@@ -75,7 +75,7 @@ export function MakeListButton({ householdId, entries, recipes }: { householdId:
 }
 
 /** `Læg på indkøbslisten` for one recipe at the chosen number of persons. */
-export function AddRecipeButton({ householdId, recipe, persons }: { householdId: string; recipe: Recipe; persons: number }) {
+export function AddRecipeButton({ householdId, recipe, persons, className }: { householdId: string; recipe: Recipe; persons: number; className?: string }) {
   const [busy, setBusy] = useState(false);
   const [groups, setGroups] = useState<ReviewGroup[] | null>(null);
 
@@ -110,7 +110,7 @@ export function AddRecipeButton({ householdId, recipe, persons }: { householdId:
 
   return (
     <>
-      <Button disabled={busy} onClick={() => void start()}>Læg på indkøbslisten</Button>
+      <Button className={className} disabled={busy} onClick={() => void start()}>Læg på indkøbslisten</Button>
       <ReviewSheet open={groups !== null} groups={groups ?? []} busy={busy} onCancel={() => setGroups(null)} onConfirm={(k) => void confirm(k)} />
     </>
   );

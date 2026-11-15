@@ -9,7 +9,7 @@ import { DishImage } from '../ui/dish-image';
 import { Icon } from '../ui/icon';
 import { SegmentedControl, SegmentedPanel } from '../ui/segmented-control';
 import { Sheet, SheetContent, SheetHeader, SheetTrigger } from '../ui/sheet';
-import { AddRecipeButton } from '../shopping/ListButtons';
+import { RecipeActionBar } from './RecipeActionBar';
 import { Stepper } from '../ui/stepper';
 import { notify } from '../ui/toast';
 
@@ -49,7 +49,7 @@ export function RecipeDetail({ householdId, recipe, category, photo, onChanged }
   };
 
   return (
-    <article className="flex flex-col">
+    <article className={householdId && !recipe.archived_at ? 'mb-sp-action flex flex-col' : 'flex flex-col'}>
       <div className="sp-bleed-top sp-photo-hero relative -mx-sp-page-x">
         <DishImage shape="cover" src={photo} name={recipe.title} />
         <a
@@ -119,8 +119,6 @@ export function RecipeDetail({ householdId, recipe, category, photo, onChanged }
           </SegmentedPanel>
         </SegmentedControl>
 
-        {householdId && !recipe.archived_at && <AddRecipeButton householdId={householdId} recipe={recipe} persons={persons} />}
-
         <div className="flex flex-wrap items-center gap-2 border-t border-sp-line pt-sp-gap">
           <Button asChild variant="outline"><a href={`#opskrifter/${recipe.id}/rediger`}>Rediger</a></Button>
           {recipe.source_url && (
@@ -140,6 +138,7 @@ export function RecipeDetail({ householdId, recipe, category, photo, onChanged }
           </Button>
         </div>
       </div>
+      {householdId && !recipe.archived_at && <RecipeActionBar householdId={householdId} recipe={recipe} persons={persons} />}
     </article>
   );
 }
