@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any -- `any` is supabase-js's own default schema type. */
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { SUPABASE_KEY, SUPABASE_URL } from './config';
 
@@ -13,9 +14,9 @@ export interface AuthOptions {
   flowType?: 'pkce' | 'implicit';
 }
 
-export interface SupabaseAuth {
+export interface SupabaseAuth<DB = any> {
   /** Loaded lazily so the library only downloads when sync is used. One client per page. */
-  getClient(): Promise<SupabaseClient>;
+  getClient(): Promise<SupabaseClient<DB>>;
   /** Starts Google sign-in; the browser leaves the page and returns to `redirectPath` signed in. */
   signInWithGoogle(): Promise<string | null>;
   /** Finishes sign-in with an ID token from Google's button; `nonce` is the raw (unhashed) nonce. */
@@ -24,12 +25,12 @@ export interface SupabaseAuth {
 }
 
 /** The one sign-in implementation both apps use. Returns error messages instead of throwing, for display. */
-export function createSupabaseAuth({ redirectPath, flowType }: AuthOptions): SupabaseAuth {
-  let clientPromise: Promise<SupabaseClient> | null = null;
+export function createSupabaseAuth<DB = any>({ redirectPath, flowType }: AuthOptions): SupabaseAuth<DB> {
+  let clientPromise: Promise<SupabaseClient<DB>> | null = null;
 
   const getClient = () => {
     clientPromise ??= import('@supabase/supabase-js').then(({ createClient }) =>
-      createClient(SUPABASE_URL, SUPABASE_KEY, {
+      createClient<DB>(SUPABASE_URL, SUPABASE_KEY, {
         auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true, ...(flowType ? { flowType } : {}) },
       }),
     );
