@@ -4,10 +4,10 @@ Things found or deferred while building, outside the delivery plan in the design
 
 ## Before first real use
 
-- **Apply and test the profiles migration (2.1).** `supabase/migrations/20261115190000_strandparken_profiles.sql` is written but not applied, and the new cases in `supabase/tests/strandparken_policies.sql` have not been run (no local database here). Apply with `supabase db push`, run the test file, then run the advisors. Until it is applied, Indstillinger shows `Profilen kunne ikke hentes`.
+- **Migration history is out of step with the files.** Production applied the Strandparken migrations (profiles included, 15 Nov) through the dashboard tool, so their versions differ from `supabase/migrations/`. `supabase db push` would try to re-apply them: repair the history (`supabase migration repair`) before using it. The cases in `supabase/tests/strandparken_policies.sql` have not been run against it.
 
-- **Deploy `recipe-import`.** Set `ANTHROPIC_API_KEY` as a function secret, then `supabase functions deploy recipe-import`. Try one pasted caption, one screenshot and one link (a page with schema.org data and one without); the structured-output schema and the page fetch have only run against test doubles (slices 1.6 and 1.2). Spike R7 (cost and quality on 20 real imports) is still open.
-- **Deploy `meal-suggest` (2.2).** Same secret as `recipe-import`; then `supabase functions deploy meal-suggest`. Try `Foreslå ret` on an empty day with a few recipes saved. The structured-output schema (an enum of candidate ids) has only run against test doubles.
+- **Try `recipe-import`** (deployed 15 Nov with the existing `ANTHROPIC_API_KEY` secret): one pasted caption, one screenshot and one link (a page with schema.org data and one without). The structured-output schema and the page fetch have only run against test doubles (slices 1.6 and 1.2). Spike R7 (cost and quality on 20 real imports) is still open.
+- **Try `meal-suggest` (2.2)**, deployed with `recipe-import`: `Foreslå ret` on an empty day with a few recipes saved. The structured-output schema (an enum of candidate ids) has only run against test doubles.
 - **Set a spend limit in the Anthropic console** as the backstop that ADR-07 recommends.
 - **Try the app on both phones** (sign-in, tick sync, review sheets). Slices 1.4 to 1.8 have been tested by unit tests and the build only, never in a browser against Supabase.
 
