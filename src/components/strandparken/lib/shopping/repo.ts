@@ -1,4 +1,5 @@
 import { getClient } from '../auth';
+import type { Op } from './queue';
 import { canonicalName, rowFor, type GroceryCategory, type Plan, type ShoppingRow, type Status, type Wanted } from './model';
 
 /** Every row of the household, cleared ones included: the plan comparison needs them to know what was already handled. */
@@ -93,5 +94,36 @@ export async function addRecipeRows(householdId: string, kept: Wanted[]): Promis
   if (!kept.length) return;
   const c = await getClient();
   const { error } = await c.from('sp_shopping_items').insert(kept.map((w) => rowFor(householdId, w, 'active')));
+  if (error) throw error;
+}
+
+/** True for "no connection" failures: a database error carries a `code`, a failed fetch does not. */
+export const isNetworkError = (e: unknown) =>
+  (typeof navigator !== 'undefined' && navigator.onLine === false) || !(e && typeof e === 'object' && 'code' in e && (e as { code?: unknown }).code);
+
+/**
+ * Sends one queued change. Latest change wins: a status is only written over a row whose `client_updated_at` is older
+ * than this change, so a late sync from one phone never undoes a newer tick from the other. An add uses its own id
+ * and ignores duplicates, so a retry after a lost response cannot create the item twice.
+ */
+export async function sendOp(op: Op): Promise<void> {
+  const c = await getClient();
+  if (op.kind === 'add') {
+    const { error } = await c.from('sp_shopping_items').upsert(
+      { ...op.row, canonical_name: canonicalName(op.row.name), source: 'manual', client_updated_at: op.at },
+      { onConflict: 'id', ignoreDuplicates: true },
+    );
+    if (error) throw error;
+    return;
+  }
+  const checked = op.status === 'checked';
+  const { error } = await c
+    .from('sp_shopping_items')
+    .update({
+      status: op.status, client_updated_at: op.at,
+      checked_by: checked ? op.by : null, checked_at: checked ? op.at : null,
+    })
+    .in('id', op.ids)
+    .or(`client_updated_at.is.null,client_updated_at.lt.${op.at}`);
   if (error) throw error;
 }

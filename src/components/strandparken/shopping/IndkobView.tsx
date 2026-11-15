@@ -3,7 +3,7 @@ import { useMemo, useState } from 'react';
 import { useRecipes } from '../lib/recipes/use-recipes';
 import { formatQuantity } from '../lib/recipes/scale';
 import { counts, groupLines, guessCategoryId, mergeRows, type Line } from '../lib/shopping/model';
-import { addManual, clearRows, removeRows, restoreDeleted, restoreRows, setChecked } from '../lib/shopping/repo';
+import { removeRows, restoreDeleted } from '../lib/shopping/repo';
 import { useShopping } from '../lib/shopping/use-shopping';
 import { Button } from '../ui/button';
 import { Card } from '../ui/card';
@@ -20,7 +20,7 @@ const Title = () => (
 
 /** Indkøb: one shared list in store-walk order, ticks visible on both phones, manual items, clear with undo (design §5.3.4). */
 export function IndkobView({ householdId }: { householdId: string | null }) {
-  const { state, reload, patchLocal, retry } = useShopping(householdId);
+  const { state, reload, setStatus, addItem, offline, pending, retry } = useShopping(householdId);
   const recipesState = useRecipes();
   const [text, setText] = useState('');
   const [open, setOpen] = useState<Line | null>(null);
@@ -47,36 +47,21 @@ export function IndkobView({ householdId }: { householdId: string | null }) {
   const failed = () => notify('Det lykkedes ikke. Prøv igen.');
 
   const tick = (line: Line, checked: boolean) => {
-    const ids = line.rows.map((r) => r.id);
-    patchLocal(ids, checked ? 'checked' : 'active');
-    void setChecked(ids, checked).catch(failed).finally(() => void reload());
+    void setStatus(line.rows.map((r) => r.id), checked ? 'checked' : 'active');
   };
 
   const add = async () => {
     const name = text.trim();
     if (!name) return;
     setText('');
-    try {
-      await addManual(householdId, name, guessCategoryId(name, categories));
-      await reload();
-    } catch {
-      setText(name);
-      failed();
-    }
+    await addItem(name, guessCategoryId(name, categories));
   };
 
   const clearDone = async () => {
     const ids = lines.filter((l) => l.checked).flatMap((l) => l.rows.map((r) => r.id));
     if (!ids.length) return;
-    try {
-      await clearRows(ids);
-      await reload();
-      notify(ids.length === 1 ? '1 vare er ryddet.' : `${ids.length} varer er ryddet.`, {
-        onUndo: () => void restoreRows(ids).then(reload).catch(failed),
-      });
-    } catch {
-      failed();
-    }
+    await setStatus(ids, 'cleared');
+    notify(ids.length === 1 ? '1 vare er ryddet.' : `${ids.length} varer er ryddet.`, { onUndo: () => void setStatus(ids, 'checked') });
   };
 
   const remove = async (line: Line) => {
@@ -95,6 +80,12 @@ export function IndkobView({ householdId }: { householdId: string | null }) {
     <div className="flex flex-col gap-sp-gap">
       <header>
         <Title />
+        {(offline || pending > 0) && (
+          <p role="status" className="sp-small mt-1 inline-block rounded-sp-pill bg-sp-track px-3 py-1 text-sp-muted">
+            {offline ? 'Offline – viser senest hentede' : 'Sender ændringer …'}
+            {offline && pending > 0 ? ` · ${pending} ${pending === 1 ? 'ændring venter' : 'ændringer venter'}` : ''}
+          </p>
+        )}
         {state.status === 'ready' && total > 0 && (
           <p className="sp-small text-sp-muted" aria-live="polite">{done} af {total} {total === 1 ? 'vare er' : 'varer er'} købt</p>
         )}
