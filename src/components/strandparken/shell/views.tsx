@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 import { dateLine, greetingFor } from '../lib/greeting';
 import { people, type Person } from '../lib/people';
 import { labels, type View } from '../lib/routes';
+import { ProfileSection } from '../settings/ProfileSection';
 import { Tonight } from '../home/Tonight';
 import { IndkobView } from '../shopping/IndkobView';
 import { MadplanView } from '../madplan/MadplanView';
@@ -37,7 +38,7 @@ function HomeView({ person, householdId }: { person: Person; householdId: string
           </SheetTrigger>
           <SheetContent>
             <SheetHeader title="Indstillinger" />
-            <Empty>Her samles profil, mål og forbindelser, når de er sat op.</Empty>
+            <ProfileSection householdId={householdId} person={person} />
           </SheetContent>
         </Sheet>
       </header>

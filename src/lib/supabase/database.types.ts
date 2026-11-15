@@ -92,6 +92,12 @@ export type Database = {
         };
         Relationships: Rel[];
       };
+      sp_profiles: {
+        Row: { created_at: string; created_by: string | null; dislikes: string[]; household_id: string; id: string; person: string; preferences: string | null; updated_at: string };
+        Insert: { created_at?: string; created_by?: string | null; dislikes?: string[]; household_id: string; id?: string; person: string; preferences?: string | null; updated_at?: string };
+        Update: { created_at?: string; created_by?: string | null; dislikes?: string[]; household_id?: string; id?: string; person?: string; preferences?: string | null; updated_at?: string };
+        Relationships: Rel[];
+      };
       sp_recipe_categories: {
         Row: { created_at: string; created_by: string | null; household_id: string; id: string; name: string; position: number; updated_at: string };
         Insert: { created_at?: string; created_by?: string | null; household_id: string; id?: string; name: string; position?: number; updated_at?: string };

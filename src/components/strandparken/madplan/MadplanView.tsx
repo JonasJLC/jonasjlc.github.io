@@ -3,6 +3,7 @@ import { useMemo, useState } from 'react';
 import { addDays, dayOfMonth, isIsoDate, isoWeek, longDate, mondayOf, todayIso, weekDays, weekdayShort } from '../lib/madplan/dates';
 import { dishOf, entryOn, type PlanEntry } from '../lib/madplan/model';
 import { usePlan } from '../lib/madplan/use-plan';
+import { useProfiles } from '../lib/profile/use-profiles';
 import { useIdeas } from '../lib/ideas/use-ideas';
 import { useRecipes } from '../lib/recipes/use-recipes';
 import { personsLabel } from '../lib/stepper';
@@ -29,6 +30,7 @@ export function MadplanView({ path, householdId }: { path: string[]; householdId
   const { state, reload, retry } = usePlan(householdId, days[0], days[6]);
   const recipesState = useRecipes();
   const { ideas } = useIdeas();
+  const { dislikes } = useProfiles(householdId);
   const [open, setOpen] = useState<string | null>(null);
 
   if (!householdId) {
@@ -107,6 +109,7 @@ export function MadplanView({ path, householdId }: { path: string[]; householdId
         entries={entries}
         recipes={recipes}
         ideas={ideas}
+        dislikes={dislikes}
         photos={photos}
         onClose={() => setOpen(null)}
         onChanged={changed}

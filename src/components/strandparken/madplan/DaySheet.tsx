@@ -2,6 +2,8 @@ import { ArrowRightLeft, ExternalLink, Plus, Trash2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { filterRecipes, fold } from '../lib/recipes/filter';
 import type { Idea } from '../lib/ideas/model';
+import { dislikeHits, ideaDislikeHits, whoLabel } from '../lib/profile/model';
+import type { Person } from '../lib/people';
 import type { Recipe } from '../lib/recipes/model';
 import { longDate, dayOfMonth, weekdayShort } from '../lib/madplan/dates';
 import { cleanFreeText, dishOf, entryOn, quickDishes, type PlanEntry } from '../lib/madplan/model';
@@ -23,6 +25,7 @@ type Props = {
   entries: PlanEntry[];
   recipes: Recipe[];
   ideas: Idea[];
+  dislikes: { word: string; people: Person[] }[];
   photos: Record<string, string>;
   onClose: () => void;
   onChanged: (message: string, undo?: () => Promise<void>) => Promise<void>;
@@ -42,7 +45,7 @@ export function DaySheet({ date, entries, ...rest }: Props) {
 
 type Shared = Omit<Props, 'date' | 'entries'> & { date: string };
 
-function Fill({ householdId, date, recipes, ideas, photos, onClose, onChanged }: Shared) {
+function Fill({ householdId, date, recipes, ideas, dislikes, photos, onClose, onChanged }: Shared) {
   const [query, setQuery] = useState('');
   const [text, setText] = useState('');
   const [busy, setBusy] = useState(false);
@@ -84,7 +87,13 @@ function Fill({ householdId, date, recipes, ideas, photos, onClose, onChanged }:
                   className="flex min-h-sp-row w-full items-center gap-3 rounded-sp-row bg-sp-surface px-3 py-2 text-left active:bg-sp-track disabled:opacity-45"
                 >
                   <DishImage shape="round" size={52} src={r.image_path ? photos[r.image_path] : undefined} name={r.title} />
-                  <span className="sp-body-strong line-clamp-2 min-w-0 flex-1">{r.title}</span>
+                  <span className="min-w-0 flex-1">
+                    <span className="sp-body-strong line-clamp-2 block">{r.title}</span>
+                    {(() => {
+                      const hits = dislikeHits(r, dislikes);
+                      return hits.length > 0 && <span className="sp-caption block text-sp-danger">Indeholder {hits.join(', ')} ({whoLabel([...new Set(dislikes.filter((d) => hits.includes(d.word)).flatMap((d) => d.people))])} kan ikke lide)</span>;
+                    })()}
+                  </span>
                 </button>
               </li>
             ))}
@@ -109,6 +118,7 @@ function Fill({ householdId, date, recipes, ideas, photos, onClose, onChanged }:
                     <span className="min-w-0 flex-1">
                       <span className="sp-body-strong line-clamp-2 block">{i.title}</span>
                       <span className="sp-caption block text-sp-muted">Idé – tjek ingredienser</span>
+                      {ideaDislikeHits(i, dislikes).length > 0 && <span className="sp-caption block text-sp-danger">Nævner {ideaDislikeHits(i, dislikes).join(', ')}</span>}
                     </span>
                   </button>
                 </li>

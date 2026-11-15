@@ -92,6 +92,32 @@ insert into r select 'member reads own storage objects', '1', count(*)::text fro
 
 -- Member of household 2 (U2) ---------------------------------------------------------------------------------
 reset role;
+-- Profiles: U1 is person 'b' in household 1; U4 joins household 1 as person 'a'.
+insert into auth.users (id, email, aud, role, email_confirmed_at) values
+  ('00000000-0000-0000-0000-0000000000b4', 'u4@example.test', 'authenticated', 'authenticated', now());
+insert into public.household_members (household_id, user_id, person, is_owner) values
+  ('00000000-0000-0000-0000-0000000000a1', '00000000-0000-0000-0000-0000000000b4', 'a', false);
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000b1","role":"authenticated"}', true);
+set local role authenticated;
+select pg_temp.try('person writes own profile', 'ok',
+  $$insert into public.sp_profiles (household_id, person, dislikes) values ('00000000-0000-0000-0000-0000000000a1', 'b', '{koriander}')$$);
+select pg_temp.try('person cannot write the other person''s profile', '42501',
+  $$insert into public.sp_profiles (household_id, person) values ('00000000-0000-0000-0000-0000000000a1', 'a')$$);
+select pg_temp.try('person cannot write a profile in another household', '42501',
+  $$insert into public.sp_profiles (household_id, person) values ('00000000-0000-0000-0000-0000000000a2', 'b')$$);
+select pg_temp.try('one profile per person', '23505',
+  $$insert into public.sp_profiles (household_id, person) values ('00000000-0000-0000-0000-0000000000a1', 'b')$$);
+select pg_temp.try('person cannot hand their profile to the other person', '42501',
+  $$update public.sp_profiles set person = 'a' where person = 'b'$$);
+select pg_temp.try('person cannot delete a profile', '42501', $$delete from public.sp_profiles where person = 'b'$$);
+reset role;
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000b4","role":"authenticated"}', true);
+set local role authenticated;
+insert into r select 'both people read both profiles', '1', count(*)::text from public.sp_profiles;
+select pg_temp.try('the other person cannot change it', 'ok', $$update public.sp_profiles set dislikes = '{}' where person = 'b'$$);
+insert into r select 'the other person''s update changed nothing', '{koriander}', dislikes::text from public.sp_profiles where person = 'b';
+
+reset role;
 select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000b2","role":"authenticated"}', true);
 set local role authenticated;
 
