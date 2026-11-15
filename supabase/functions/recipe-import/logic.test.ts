@@ -69,3 +69,38 @@ Deno.test('only http(s) links are kept as the source', () => {
   assert.equal(cleanSourceUrl('ikke et link'), null);
   assert.equal(cleanSourceUrl(undefined), null);
 });
+
+const pub = () => Promise.resolve(['93.184.216.34']);
+const recipePage = `<html><head><script type="application/ld+json">${JSON.stringify({ '@type': 'Recipe', name: 'Kyllingegryde', recipeIngredient: ['500 g kyllingebryst'], recipeInstructions: ['Steg kyllingen.'] })}</script></head><body></body></html>`;
+const web = (body: string) => ({ resolve: pub, fetch: () => Promise.resolve(new Response(body, { headers: { 'content-type': 'text/html' } })) });
+
+Deno.test('a link is fetched, the schema.org recipe goes to the cheap model as untrusted text, and the link is the source', async () => {
+  const client = fakeModel([{ text: draft() }]);
+  const out = await importRecipe(fakeCaller(), Input.parse({ kind: 'url', url: ' https://example.com/kylling ' }), { client, limits, web: web(recipePage) });
+  assert.equal(out.title, 'Kyllingegryde');
+  assert.equal(out.sourceUrl, 'https://example.com/kylling');
+  assert.match(out.originalText ?? '', /^Title: Kyllingegryde/);
+  const sent = client.sent[0] as { model: string; messages: { content: string }[] };
+  assert.equal(sent.model, 'claude-haiku-5-5');
+  assert.match(sent.messages[0].content, /^<untrusted source="web page">/);
+  assert.match(sent.messages[0].content, /500 g kyllingebryst/);
+});
+
+Deno.test('a link that cannot be fetched, a page with nothing on it and a blocked address fail without calling the model', async () => {
+  const client = fakeModel([{ text: draft() }]);
+  const run = (url: string, w: ReturnType<typeof web>) => fail(importRecipe(fakeCaller(), Input.parse({ kind: 'url', url }), { client, limits, web: w }));
+  assert.equal(await run('https://example.com/x', { resolve: pub, fetch: () => Promise.reject(new Error('down')) }), '502 fetch_failed');
+  assert.equal(await run('https://example.com/x', web('<html><body> </body></html>')), '422 not_a_recipe');
+  assert.equal(await run('http://example.com/x', web(recipePage)), '422 bad_url');
+  assert.equal(await run('https://169.254.169.254/latest', web(recipePage)), '422 blocked');
+  assert.equal(client.sent.length, 0);
+});
+
+Deno.test('a person over the daily limit cannot make the function fetch pages', async () => {
+  let fetched = 0;
+  const usage = fakeUsage({ callsToday: 60, monthCostDkk: 0 });
+  const w = { resolve: pub, fetch: () => { fetched++; return Promise.resolve(new Response(recipePage, { headers: { 'content-type': 'text/html' } })); } };
+  const result = await fail(importRecipe(fakeCaller(usage), Input.parse({ kind: 'url', url: 'https://example.com/x' }), { client: fakeModel([{ text: draft() }]), limits, web: w }));
+  assert.match(result, /^429 /);
+  assert.equal(fetched, 0);
+});

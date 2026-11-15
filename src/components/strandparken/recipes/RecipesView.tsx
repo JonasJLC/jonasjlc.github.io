@@ -81,7 +81,7 @@ export function RecipesView({ path, householdId }: { path: string[]; householdId
   const [first, second] = path;
   const ready = state.status === 'ready' ? state : null;
 
-  if (first === 'ny' && ready) return <RecipeEditor key={second ?? 'ny'} householdId={householdId} recipe={null} categories={ready.categories} photos={ready.photos} fromIdea={ideasState.ideas.find((i) => i.id === second) ?? null} imported={second === 'importeret' ? peekPendingDraft() : null} onSaved={async () => { await reload(); await ideasState.reload(); }} />;
+  if (first === 'ny' && ready) return <RecipeEditor key={second ?? 'ny'} householdId={householdId} recipe={null} categories={ready.categories} photos={{ ...ready.photos, ...ideasState.photos }} fromIdea={ideasState.ideas.find((i) => i.id === second) ?? null} imported={second === 'importeret' ? peekPendingDraft() : null} onSaved={async () => { await reload(); await ideasState.reload(); }} />;
   if (first && first !== 'ny') {
     if (!ready) return state.status === 'error' ? <ErrorBlock onRetry={retry} /> : <Skeleton />;
     const recipe = ready.recipes.find((r) => r.id === first);
@@ -168,6 +168,9 @@ export function RecipesView({ path, householdId }: { path: string[]; householdId
                         ) : (
                           <button type="button" onClick={() => setIdeaOpen({ idea: item.idea })} className="sp-border-strong flex h-full min-h-52 w-full flex-col items-start justify-between gap-3 rounded-sp-row border-dashed border-sp-dash p-3 text-left active:bg-sp-track">
                             <Badge>Idé</Badge>
+                            {item.idea.image_path && ideasState.photos[item.idea.image_path] && (
+                              <span className="block aspect-video w-full overflow-hidden rounded-sp-inset"><DishImage shape="cover" src={ideasState.photos[item.idea.image_path]} name={item.idea.title} /></span>
+                            )}
                             <span className="sp-title-card line-clamp-4">{item.idea.title}</span>
                           </button>
                         )}
@@ -182,8 +185,8 @@ export function RecipesView({ path, householdId }: { path: string[]; householdId
         </SegmentedPanel>
       </SegmentedControl>
 
-      <AddRecipeSheet open={adding} categories={state.status === 'ready' ? state.categories : []} onClose={() => setAdding(false)} />
-      <IdeaSheet householdId={householdId} idea={ideaOpen?.idea ?? null} open={ideaOpen !== null} onClose={() => setIdeaOpen(null)} onChanged={ideasState.reload} />
+      <AddRecipeSheet open={adding} categories={state.status === 'ready' ? state.categories : []} recipes={recipes} onClose={() => setAdding(false)} />
+      <IdeaSheet householdId={householdId} idea={ideaOpen?.idea ?? null} photoUrl={ideaOpen?.idea?.image_path ? ideasState.photos[ideaOpen.idea.image_path] : undefined} open={ideaOpen !== null} onClose={() => setIdeaOpen(null)} onChanged={ideasState.reload} />
     </div>
   );
 }

@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { detectSource, importErrorMessage, toDraft, type ImportedRecipe } from '../src/components/strandparken/lib/recipes/import.ts';
+import { detectSource, findBySource, importErrorMessage, normaliseUrl, toDraft, type ImportedRecipe } from '../src/components/strandparken/lib/recipes/import.ts';
 import type { GroceryCategory } from '../src/components/strandparken/lib/shopping/model.ts';
 
 const groceries = [{ id: 'g1', name: 'Kød & fisk', position: 0 }, { id: 'g2', name: 'Andet', position: 1 }] as GroceryCategory[];
@@ -55,4 +55,27 @@ test('every error code has a plain Danish message, and unknown ones do not leak'
     assert.match(importErrorMessage(code), /\S{3}/);
   }
   assert.equal(importErrorMessage('whatever').includes('whatever'), false);
+});
+
+test('the same page is recognised through www, tracking parameters, fragments and a trailing slash', () => {
+  const base = normaliseUrl('https://www.dr.dk/mad/opskrift/x/?utm_source=fb&fbclid=abc#top');
+  assert.equal(base, 'dr.dk/mad/opskrift/x');
+  assert.equal(normaliseUrl('http://dr.dk/mad/opskrift/x'), base);
+  assert.notEqual(normaliseUrl('https://dr.dk/mad/opskrift/y'), base);
+  assert.equal(normaliseUrl('https://example.com/r?id=2&b=1'), normaliseUrl('https://example.com/r?b=1&id=2'));
+  assert.notEqual(normaliseUrl('https://example.com/r?id=2'), normaliseUrl('https://example.com/r?id=3'));
+  assert.equal(normaliseUrl('ikke et link'), null);
+});
+
+test('an earlier import of the same link is found, other recipes and recipes without a source are not', () => {
+  const recipes = [{ id: 'a', source_url: null }, { id: 'b', source_url: 'https://www.dr.dk/mad/opskrift/x/' }, { id: 'c', source_url: 'https://dr.dk/mad/opskrift/y' }];
+  assert.equal(findBySource(recipes, 'dr.dk/mad/opskrift/x?utm_medium=mail')?.id, 'b');
+  assert.equal(findBySource(recipes, 'https://dr.dk/andet'), null);
+  assert.equal(findBySource(recipes, 'nonsense'), null);
+});
+
+test('the function\'s link errors have Danish messages', () => {
+  for (const code of ['bad_url', 'blocked', 'fetch_failed', 'not_html', 'too_large']) {
+    assert.notEqual(importErrorMessage(code), importErrorMessage(undefined), code);
+  }
 });

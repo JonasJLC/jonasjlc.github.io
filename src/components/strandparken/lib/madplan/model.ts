@@ -9,17 +9,20 @@ export const quickDishes = ['Rester', 'Ude at spise', 'Takeaway'] as const;
 
 export const defaultServings = 2;
 
-export type Dish = { title: string; recipe: Recipe | null };
+export type Dish = { title: string; recipe: Recipe | null; /** Storage path of the recipe's or idea's photo. */ imagePath: string | null };
 
 /** What a plan entry shows: the recipe's title, or the free text. An idea shows its title. */
 export function dishOf(entry: PlanEntry, recipes: readonly Recipe[], ideas: readonly Idea[] = []): Dish {
   if (entry.recipe_id) {
     const recipe = recipes.find((r) => r.id === entry.recipe_id) ?? null;
-    return { title: recipe?.title ?? 'Opskrift', recipe };
+    return { title: recipe?.title ?? 'Opskrift', recipe, imagePath: recipe?.image_path ?? null };
   }
-  if (entry.idea_id) return { title: ideas.find((i) => i.id === entry.idea_id)?.title ?? 'Aftensidé', recipe: null };
-  if (entry.free_text) return { title: entry.free_text, recipe: null };
-  return { title: 'Aftensidé', recipe: null };
+  if (entry.idea_id) {
+    const idea = ideas.find((i) => i.id === entry.idea_id);
+    return { title: idea?.title ?? 'Aftensidé', recipe: null, imagePath: idea?.image_path ?? null };
+  }
+  if (entry.free_text) return { title: entry.free_text, recipe: null, imagePath: null };
+  return { title: 'Aftensidé', recipe: null, imagePath: null };
 }
 
 /** The entry on `date`, if any (one dinner per day). */

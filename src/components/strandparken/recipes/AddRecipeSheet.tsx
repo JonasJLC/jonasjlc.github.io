@@ -1,8 +1,8 @@
 import { FileText, ImagePlus, Link2, PenLine, type LucideIcon } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
-import { detectSource, setPendingDraft, sourceName, toDraft, type ImportedRecipe, type ImportSource } from '../lib/recipes/import';
-import { ImportError, importFromImages, importFromText } from '../lib/recipes/import-client';
-import type { CategoryRow } from '../lib/recipes/model';
+import { detectSource, findBySource, setPendingDraft, sourceName, toDraft, type ImportedRecipe, type ImportSource } from '../lib/recipes/import';
+import { ImportError, importFromImages, importFromText, importFromUrl } from '../lib/recipes/import-client';
+import type { CategoryRow, Recipe } from '../lib/recipes/model';
 import { dinnerCategoryId } from '../lib/ideas/model';
 import { loadGroceryCategories } from '../lib/shopping/repo';
 import { Button } from '../ui/button';
@@ -30,7 +30,7 @@ function Option({ icon, title, hint, onClick, href }: { icon: LucideIcon; title:
 }
 
 /** `Tilføj opskrift`: link, pasted text, screenshots or a blank editor (design §5.3.1). Every route ends in the editor, never in a saved recipe. */
-export function AddRecipeSheet({ open, categories, onClose }: { open: boolean; categories: CategoryRow[]; onClose: () => void }) {
+export function AddRecipeSheet({ open, categories, recipes, onClose }: { open: boolean; categories: CategoryRow[]; recipes: Recipe[]; onClose: () => void }) {
   const [step, setStep] = useState<Step>('choose');
   const [link, setLink] = useState('');
   const [source, setSource] = useState<{ url: string; source: ImportSource } | null>(null);
@@ -38,11 +38,12 @@ export function AddRecipeSheet({ open, categories, onClose }: { open: boolean; c
   const [files, setFiles] = useState<File[]>([]);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [duplicate, setDuplicate] = useState<Recipe | null>(null);
   const picker = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (open) {
-      setStep('choose'); setLink(''); setSource(null); setText(''); setFiles([]); setError(null); setBusy(false);
+      setStep('choose'); setLink(''); setSource(null); setText(''); setFiles([]); setError(null); setBusy(false); setDuplicate(null);
     }
   }, [open]);
 
@@ -64,18 +65,40 @@ export function AddRecipeSheet({ open, categories, onClose }: { open: boolean; c
     }
   };
 
+  /** A page is fetched and read for you; a social post cannot be, so it asks for the caption or a screenshot instead. */
+  const proceed = (found: { url: string; source: ImportSource }) => {
+    setSource(found);
+    setDuplicate(null);
+    setError(null);
+    if (found.source !== 'web') {
+      setStep('text');
+      return;
+    }
+    setBusy(true);
+    importFromUrl(found.url).then(finish, (e) => {
+      // The site could not be read (blocked, no recipe data, too big): the pasted text is the way on.
+      setError(`${e instanceof ImportError ? e.message : 'Importen lykkedes ikke.'} Kopiér i stedet opskriftens tekst herind, eller brug skærmbilleder.`);
+      setStep('text');
+      setBusy(false);
+    });
+  };
+
   const continueLink = () => {
     const found = detectSource(link);
     if (!found) {
       setError('Det ligner ikke et link. Indsæt hele adressen, f.eks. https://…');
       return;
     }
-    setSource(found);
-    setError(null);
-    setStep('text');
+    const existing = findBySource(recipes, found.url);
+    if (existing && duplicate?.id !== existing.id) {
+      setError(null);
+      setDuplicate(existing);
+      return;
+    }
+    proceed(found);
   };
 
-  const back = step === 'choose' ? null : () => { setStep(step === 'text' && source ? 'link' : 'choose'); setError(null); };
+  const back = step === 'choose' ? null : () => { setStep(step === 'text' && source ? 'link' : 'choose'); setError(null); setDuplicate(null); };
 
   return (
     <Sheet open={open} onOpenChange={(o) => !o && !busy && onClose()}>
@@ -93,8 +116,13 @@ export function AddRecipeSheet({ open, categories, onClose }: { open: boolean; c
 
           {step === 'link' && (
             <form className="flex flex-col gap-sp-gap" onSubmit={(e) => { e.preventDefault(); continueLink(); }}>
-              <Field label="Link til opskriften" type="url" inputMode="url" placeholder="Indsæt link" value={link} onChange={(e) => setLink(e.target.value)} />
-              <Button type="submit">Fortsæt</Button>
+              <Field label="Link til opskriften" type="url" inputMode="url" placeholder="Indsæt link" value={link} disabled={busy} onChange={(e) => { setLink(e.target.value); setDuplicate(null); }} />
+              {duplicate && (
+                <p role="status" className="sp-body">
+                  Den ligger allerede: <a className="underline" href={`#opskrifter/${duplicate.id}`} onClick={onClose}>{duplicate.title}</a>. Tryk på Hent alligevel, hvis du vil have en ekstra kopi.
+                </p>
+              )}
+              <Button type="submit" disabled={busy}>{busy ? 'Henter og læser siden …' : duplicate ? 'Hent alligevel' : 'Fortsæt'}</Button>
             </form>
           )}
 
@@ -103,7 +131,7 @@ export function AddRecipeSheet({ open, categories, onClose }: { open: boolean; c
               {source && (
                 <p className="sp-body text-sp-muted" role="note">
                   {source.source === 'web'
-                    ? 'Jeg henter ikke sider endnu. Linket gemmes som kilde: kopiér opskriftens tekst herind, eller brug skærmbilleder.'
+                    ? 'Linket gemmes som kilde: kopiér opskriftens tekst herind, eller brug skærmbilleder.'
                     : `${sourceName[source.source]} lader ikke andre læse opslaget. Linket gemmes som kilde: kopiér teksten under opslaget herind, eller brug et skærmbillede.`}
                 </p>
               )}

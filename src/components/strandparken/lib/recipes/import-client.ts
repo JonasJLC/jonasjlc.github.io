@@ -4,7 +4,7 @@ import { shrinkImage } from './repo';
 
 export class ImportError extends Error {}
 
-type Body = { kind: 'text'; text: string; sourceUrl?: string } | { kind: 'images'; images: { mediaType: 'image/jpeg'; data: string }[]; sourceUrl?: string };
+type Body = { kind: 'url'; url: string } | { kind: 'text'; text: string; sourceUrl?: string } | { kind: 'images'; images: { mediaType: 'image/jpeg'; data: string }[]; sourceUrl?: string };
 
 async function call(body: Body): Promise<ImportedRecipe> {
   const c = await getClient();
@@ -16,10 +16,13 @@ async function call(body: Body): Promise<ImportedRecipe> {
     } catch {
       /* no readable body: a network failure or a crashed function */
     }
-    throw new ImportError(importErrorMessage(code));
+    throw new ImportError(importErrorMessage(code), { cause: code });
   }
   return data as ImportedRecipe;
 }
+
+/** The function fetches the page itself (schema.org first, page text as the fallback). */
+export const importFromUrl = (url: string) => call({ kind: 'url', url });
 
 export const importFromText = (text: string, sourceUrl?: string) => call({ kind: 'text', text, ...(sourceUrl ? { sourceUrl } : {}) });
 

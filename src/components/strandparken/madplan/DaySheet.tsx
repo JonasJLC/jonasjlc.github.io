@@ -119,7 +119,7 @@ function Fill({ householdId, date, entries, recipes, ideas, dislikes, profiles, 
                     onClick={() => void add({ ideaId: i.id }, i.title)}
                     className="sp-border-strong flex min-h-sp-row w-full items-center gap-3 rounded-sp-row border-dashed border-sp-dash px-3 py-2 text-left active:bg-sp-track disabled:opacity-45"
                   >
-                    <DishImage shape="round" size={52} name={i.title} />
+                    <DishImage shape="round" size={52} src={i.image_path ? photos[i.image_path] : undefined} name={i.title} />
                     <span className="min-w-0 flex-1">
                       <span className="sp-body-strong line-clamp-2 block">{i.title}</span>
                       <span className="sp-caption block text-sp-muted">Idé – tjek ingredienser</span>

@@ -47,3 +47,12 @@ test('a planned idea shows its title; once promoted the same day shows the recip
   const promoted = { ...entry, idea_id: null, recipe_id: 'r1' } as PlanEntry;
   assert.equal(dishOf(promoted, [recipe('r1', 'Sushi bowl')], []).recipe?.id, 'r1');
 });
+
+test('a planned idea shows its photo, a recipe shows its own', () => {
+  const entry = (over: Partial<PlanEntry>) => ({ id: 'e', date: '2026-11-16', recipe_id: null, idea_id: null, free_text: null, servings: 2, ...over }) as PlanEntry;
+  const withPhoto = idea('i1', 'Pita', { image_path: 'h/ideas/i1/a.jpg' });
+  assert.equal(dishOf(entry({ idea_id: 'i1' }), [], [withPhoto]).imagePath, 'h/ideas/i1/a.jpg');
+  assert.equal(dishOf(entry({ idea_id: 'i1' }), [], [idea('i1', 'Pita', { image_path: null })]).imagePath, null);
+  assert.equal(dishOf(entry({ recipe_id: 'r1' }), [recipe('r1', 'Lasagne', { image_path: 'h/r1/a.jpg' })]).imagePath, 'h/r1/a.jpg');
+  assert.equal(dishOf(entry({ free_text: 'Rester' }), []).imagePath, null);
+});

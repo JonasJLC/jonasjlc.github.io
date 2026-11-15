@@ -60,6 +60,7 @@
   --sp-row-min: 52px;
   --sp-target: 44px;
   --sp-bar-h: 76px;
+  --sp-action-h: 84px; /* the recipe page's action bar, above the bottom bar (UI spec §5.11) */
   --sp-column: 520px;
 
   /* shadcn/ui theme variables point at the Strandparken tokens */
@@ -148,6 +149,7 @@
   --spacing-sp-target: var(--sp-target);
   --spacing-sp-row: var(--sp-row-min);
   --spacing-sp-bar: var(--sp-bar-h);
+  --spacing-sp-action: var(--sp-action-h);
   --spacing-sp-page-top: var(--sp-page-top);
   --spacing-sp-page-x: var(--sp-page-x);
   --spacing-sp-page-bottom: var(--sp-page-bottom);
@@ -185,6 +187,11 @@
 /* Bottom bar: 76 px plus the home-indicator safe area (UI spec §5.1). */
 @utility h-sp-bar-safe { height: calc(var(--sp-bar-h) + env(safe-area-inset-bottom, 0px)); }
 @utility pb-sp-safe { padding-bottom: env(safe-area-inset-bottom, 0px); }
+
+/* Sticky action bar: sits on top of the bottom bar, 84 px plus nothing more (the bottom bar already clears the home indicator).
+   While one is mounted (`<html data-sp-action>`), toasts rise above it as well. */
+@utility bottom-sp-bar-safe { bottom: calc(var(--sp-bar-h) + env(safe-area-inset-bottom, 0px)); }
+html[data-sp-action] { --sp-toast-offset: calc(var(--sp-bar-h) + var(--sp-action-h) + env(safe-area-inset-bottom, 0px) + 12px); }
 
 /* Page padding: top clears the status bar in the installed app; bottom clears the fixed bar (UI spec §4). */
 @utility pt-sp-top-safe { padding-top: calc(var(--sp-page-top) + env(safe-area-inset-top, 0px)); }

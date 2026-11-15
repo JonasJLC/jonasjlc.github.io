@@ -29,7 +29,7 @@ export function MadplanView({ path, householdId }: { path: string[]; householdId
   const days = useMemo(() => weekDays(requested), [requested]);
   const { state, reload, retry } = usePlan(householdId, days[0], days[6]);
   const recipesState = useRecipes();
-  const { ideas } = useIdeas();
+  const { ideas, photos: ideaPhotos } = useIdeas();
   const { dislikes, profiles } = useProfiles(householdId);
   const [open, setOpen] = useState<string | null>(null);
 
@@ -43,7 +43,7 @@ export function MadplanView({ path, householdId }: { path: string[]; householdId
   }
 
   const recipes = recipesState.state.status === 'ready' ? recipesState.state.recipes : [];
-  const photos = recipesState.state.status === 'ready' ? recipesState.state.photos : {};
+  const photos = { ...(recipesState.state.status === 'ready' ? recipesState.state.photos : {}), ...ideaPhotos };
   const entries = state.status === 'ready' ? state.entries : [];
   const thisWeek = mondayOf(today);
   const hrefFor = (monday: string) => (monday === thisWeek ? '#madplan' : `#madplan/${monday}`);
@@ -133,7 +133,7 @@ type RowProps = {
 
 function DayRow({ date, isToday, entry, loading, recipes, ideas, photos, onOpen }: RowProps) {
   const dish = entry ? dishOf(entry, recipes, ideas) : null;
-  const photo = dish?.recipe?.image_path ? photos[dish.recipe.image_path] : undefined;
+  const photo = dish?.imagePath ? photos[dish.imagePath] : undefined;
   return (
     <div className="flex items-center gap-3">
       <div className="sp-sheet-date sp-col-date shrink-0 text-center" aria-hidden="true">

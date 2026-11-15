@@ -54,7 +54,8 @@ export function RecipeEditor({ householdId, recipe, categories, photos, onSaved,
 
   const set = (patch: Partial<RecipeDraft>) => setDraft((d) => ({ ...d, ...patch }));
   const back = recipe ? `#opskrifter/${recipe.id}` : '#opskrifter';
-  const photo = removePhoto ? undefined : preview ?? (recipe?.image_path ? photos[recipe.image_path] : undefined);
+  const startPhoto = recipe ? recipe.image_path : fromIdea?.image_path ?? null;
+  const photo = removePhoto ? undefined : preview ?? (startPhoto ? photos[startPhoto] : undefined);
   const problemAt = (field: string, index?: number) => (shown ? problems.find((p) => p.field === field && p.index === index)?.message : undefined);
 
   const addTag = () => {
@@ -72,6 +73,7 @@ export function RecipeEditor({ householdId, recipe, categories, photos, onSaved,
         id: recipe?.id ?? null,
         draft: { ...draft, tags: cleanTags(tagText.trim() ? [...draft.tags, tagText] : draft.tags) },
         previous: recipe,
+        inheritedPhoto: recipe ? null : fromIdea?.image_path ?? null,
         photo: file ? { file } : removePhoto ? { remove: true } : null,
       });
       if (imported) clearPendingDraft();
