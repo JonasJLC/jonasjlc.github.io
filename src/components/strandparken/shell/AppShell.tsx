@@ -10,8 +10,8 @@ import { ViewFor } from './views';
  * One scrolling column, fluid from 360 px and centred at 520 px from 560 px up (UI spec §4). Content never sits under the
  * fixed bar. When the view changes, the title of the new view gets focus and the document title follows.
  */
-export function AppShell({ person }: { person: Person }) {
-  const view = useRoute();
+export function AppShell({ person, householdId }: { person: Person; householdId: string | null }) {
+  const { view, path } = useRoute();
   const first = useRef(true);
 
   useEffect(() => {
@@ -21,12 +21,12 @@ export function AppShell({ person }: { person: Person }) {
       return;
     }
     document.getElementById('view-title')?.focus();
-  }, [view]);
+  }, [view, path.join('/')]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <>
       <main className="mx-auto w-full max-w-sp-column px-sp-page-x pt-sp-top-safe pb-sp-bar-clear">
-        <ViewFor view={view} person={person} />
+        <ViewFor view={view} path={path} person={person} householdId={householdId} />
       </main>
       <BottomBar current={view} />
       <Toaster />

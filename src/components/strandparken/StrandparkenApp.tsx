@@ -7,7 +7,7 @@ export default function StrandparkenApp() {
   const auth = useAuth();
   return (
     <AuthGate state={auth}>
-      <AppShell person={auth.status === 'ready' ? auth.person : signedInPerson} />
+      <AppShell person={auth.status === 'ready' ? auth.person : signedInPerson} householdId={auth.status === 'ready' ? auth.householdId : null} />
     </AuthGate>
   );
 }

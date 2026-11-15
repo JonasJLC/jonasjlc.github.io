@@ -12,10 +12,20 @@ export const labels: Record<View, string> = {
 
 const fallback: View = 'hjem';
 
+/** `#opskrifter/abc?x=1` becomes `['opskrifter', 'abc']`: the path segments, without the query string. */
+export function splitHash(hash: string): string[] {
+  return hash.replace(/^#/, '').split('?')[0].split('/');
+}
+
+/** The segments after the view: `#opskrifter/abc/rediger` gives `['abc', 'rediger']`. Empty segments are dropped. */
+export function subPath(hash: string): string[] {
+  return splitHash(hash).slice(1).filter(Boolean).map((s) => { try { return decodeURIComponent(s); } catch { return s; } });
+}
+
 /** `#madplan` becomes `madplan`. Anything unknown opens Hjem. A query string after the view is ignored. */
 export function parseHash(hash: string): View {
-  let slug = hash.replace(/^#/, '');
-  slug = slug.split('?')[0];
+  const [slug0] = splitHash(hash);
+  let slug = slug0;
   try {
     slug = decodeURIComponent(slug);
   } catch {

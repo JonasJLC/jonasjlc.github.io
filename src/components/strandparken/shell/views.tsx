@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 import { dateLine, greetingFor } from '../lib/greeting';
 import { people, type Person } from '../lib/people';
 import { labels, type View } from '../lib/routes';
+import { RecipesView } from '../recipes/RecipesView';
 import { AvatarButton } from '../ui/avatar';
 import { Sheet, SheetContent, SheetHeader, SheetTrigger } from '../ui/sheet';
 
@@ -42,16 +43,16 @@ function HomeView({ person }: { person: Person }) {
   );
 }
 
-const placeholders: Record<Exclude<View, 'hjem'>, string> = {
+const placeholders: Record<Exclude<View, 'hjem' | 'opskrifter'>, string> = {
   madplan: 'Ugens aftensmad dukker op her, når I begynder at planlægge.',
   indkob: 'Indkøbslisten er tom. Varer kommer til, når I laver en liste.',
   sundhed: 'Sundhed er ikke sat op endnu.',
-  opskrifter: 'Opskrifterne dukker op her, når I har tilføjet nogle.',
 };
 
 /** The five views. Placeholders only: a title and one sentence, no sample data (U6 brings the fixtures). */
-export function ViewFor({ view, person }: { view: View; person: Person }) {
+export function ViewFor({ view, path, person, householdId }: { view: View; path: string[]; person: Person; householdId: string | null }) {
   if (view === 'hjem') return <HomeView person={person} />;
+  if (view === 'opskrifter') return <RecipesView path={path} householdId={householdId} />;
   return (
     <div className="flex flex-col gap-sp-gap">
       <Title>{labels[view]}</Title>

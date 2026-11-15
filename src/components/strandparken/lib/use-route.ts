@@ -1,27 +1,33 @@
 import { useEffect, useState } from 'react';
-import { hrefFor, parseHash, type View } from './routes';
+import { hrefFor, parseHash, subPath, type View } from './routes';
+
+export type Route = { view: View; path: string[] };
+
+const read = (): Route => ({ view: parseHash(location.hash), path: subPath(location.hash) });
 
 /**
- * The current view from `location.hash`. An empty or unknown hash is replaced with the canonical one through
- * `history.replaceState` (no extra history entry), so a refresh keeps the view. Changing view scrolls to the top.
+ * The current view and any path below it, from `location.hash` (`#opskrifter/<id>/rediger`). An empty or unknown view is
+ * replaced with the canonical one through `history.replaceState` (no extra history entry), so a refresh keeps the view.
+ * Changing view or path scrolls to the top.
  */
-export function useRoute(): View {
-  const [view, setView] = useState<View>(() => parseHash(location.hash));
+export function useRoute(): Route {
+  const [route, setRoute] = useState<Route>(read);
 
   useEffect(() => {
     const canonicalise = () => {
-      const next = parseHash(location.hash);
-      if (location.hash !== hrefFor(next)) history.replaceState(null, '', hrefFor(next));
-      return next;
+      const view = parseHash(location.hash);
+      const head = location.hash.replace(/^#/, '').split(/[/?]/)[0];
+      if (head !== view) history.replaceState(null, '', hrefFor(view));
+      return read();
     };
     canonicalise();
     const onChange = () => {
-      setView(canonicalise());
+      setRoute(canonicalise());
       window.scrollTo({ top: 0 });
     };
     window.addEventListener('hashchange', onChange);
     return () => window.removeEventListener('hashchange', onChange);
   }, []);
 
-  return view;
+  return route;
 }

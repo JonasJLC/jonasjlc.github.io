@@ -242,3 +242,10 @@
     scroll-behavior: auto !important;
   }
 }
+
+/* Recipe views (UI spec §5.10, §5.11): photo heights and the sheet overlap are design values, so they live here. */
+@utility sp-photo-card { height: 132px; }
+@utility sp-photo-hero { height: 330px; }
+@utility sp-sheet-overlap { margin-top: -34px; }
+@utility sp-col-amount { width: 84px; }
+@utility sp-bleed-top { margin-top: calc(-1 * (var(--sp-page-top) + env(safe-area-inset-top, 0px))); }
