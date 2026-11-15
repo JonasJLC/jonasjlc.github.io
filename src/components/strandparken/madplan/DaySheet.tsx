@@ -16,6 +16,8 @@ import { Field } from '../ui/field';
 import { Icon } from '../ui/icon';
 import { Sheet, SheetContent, SheetHeader } from '../ui/sheet';
 import { Stepper } from '../ui/stepper';
+import { SuggestBlock } from './SuggestBlock';
+import type { Profile } from '../lib/profile/model';
 import { notify } from '../ui/toast';
 
 type Props = {
@@ -26,6 +28,8 @@ type Props = {
   recipes: Recipe[];
   ideas: Idea[];
   dislikes: { word: string; people: Person[] }[];
+  profiles: Record<Person, Profile>;
+  categories: { id: string; name: string }[];
   photos: Record<string, string>;
   onClose: () => void;
   onChanged: (message: string, undo?: () => Promise<void>) => Promise<void>;
@@ -37,7 +41,7 @@ export function DaySheet({ date, entries, ...rest }: Props) {
   return (
     <Sheet open={date !== null} onOpenChange={(o) => !o && rest.onClose()}>
       <SheetContent aria-describedby={undefined}>
-        {date && (entry ? <Manage key={entry.id} date={date} entry={entry} entries={entries} {...rest} /> : <Fill key={date} date={date} {...rest} />)}
+        {date && (entry ? <Manage key={entry.id} date={date} entry={entry} entries={entries} {...rest} /> : <Fill key={date} date={date} entries={entries} {...rest} />)}
       </SheetContent>
     </Sheet>
   );
@@ -45,7 +49,7 @@ export function DaySheet({ date, entries, ...rest }: Props) {
 
 type Shared = Omit<Props, 'date' | 'entries'> & { date: string };
 
-function Fill({ householdId, date, recipes, ideas, dislikes, photos, onClose, onChanged }: Shared) {
+function Fill({ householdId, date, entries, recipes, ideas, dislikes, profiles, categories, photos, onClose, onChanged }: Shared & { entries: PlanEntry[] }) {
   const [query, setQuery] = useState('');
   const [text, setText] = useState('');
   const [busy, setBusy] = useState(false);
@@ -75,6 +79,7 @@ function Fill({ householdId, date, recipes, ideas, dislikes, photos, onClose, on
     <>
       <SheetHeader title="Tilføj ret" eyebrow={longDate(date)} />
       <div className="flex flex-col gap-sp-gap">
+        <SuggestBlock recipes={recipes} categories={categories} ideas={ideas} weekEntries={entries} profiles={Object.values(profiles)} dislikes={dislikes} busy={busy} onPick={(dish, title) => void add(dish, title)} />
         <Field label="Søg i opskrifter" type="search" placeholder="Søg i opskrifter" value={query} onChange={(e) => setQuery(e.target.value)} />
         {shown.length > 0 ? (
           <ul aria-label="Opskrifter" className="flex flex-col gap-sp-gap-row">

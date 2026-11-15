@@ -30,7 +30,7 @@ export function MadplanView({ path, householdId }: { path: string[]; householdId
   const { state, reload, retry } = usePlan(householdId, days[0], days[6]);
   const recipesState = useRecipes();
   const { ideas } = useIdeas();
-  const { dislikes } = useProfiles(householdId);
+  const { dislikes, profiles } = useProfiles(householdId);
   const [open, setOpen] = useState<string | null>(null);
 
   if (!householdId) {
@@ -110,6 +110,8 @@ export function MadplanView({ path, householdId }: { path: string[]; householdId
         recipes={recipes}
         ideas={ideas}
         dislikes={dislikes}
+        profiles={profiles}
+        categories={recipesState.state.status === 'ready' ? recipesState.state.categories : []}
         photos={photos}
         onClose={() => setOpen(null)}
         onChanged={changed}
