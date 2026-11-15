@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 import { dateLine, greetingFor } from '../lib/greeting';
 import { people, type Person } from '../lib/people';
 import { labels, type View } from '../lib/routes';
+import { Tonight } from '../home/Tonight';
 import { IndkobView } from '../shopping/IndkobView';
 import { MadplanView } from '../madplan/MadplanView';
 import { RecipesView } from '../recipes/RecipesView';
@@ -19,7 +20,7 @@ function Title({ children }: { children: ReactNode }) {
 
 const Empty = ({ children }: { children: ReactNode }) => <p className="sp-body text-sp-muted">{children}</p>;
 
-function HomeView({ person }: { person: Person }) {
+function HomeView({ person, householdId }: { person: Person; householdId: string | null }) {
   const now = new Date();
   return (
     <div className="flex flex-col gap-sp-gap-home">
@@ -40,7 +41,7 @@ function HomeView({ person }: { person: Person }) {
           </SheetContent>
         </Sheet>
       </header>
-      <Empty>Aftensmad, ugen og dagens opgaver samles her, når de er sat op.</Empty>
+      <Tonight householdId={householdId} />
     </div>
   );
 }
@@ -51,7 +52,7 @@ const placeholders: Record<Exclude<View, 'hjem' | 'opskrifter' | 'madplan' | 'in
 
 /** The five views. Placeholders only: a title and one sentence, no sample data (U6 brings the fixtures). */
 export function ViewFor({ view, path, person, householdId }: { view: View; path: string[]; person: Person; householdId: string | null }) {
-  if (view === 'hjem') return <HomeView person={person} />;
+  if (view === 'hjem') return <HomeView person={person} householdId={householdId} />;
   if (view === 'madplan') return <MadplanView path={path} householdId={householdId} />;
   if (view === 'indkob') return <IndkobView householdId={householdId} />;
   if (view === 'opskrifter') return <RecipesView path={path} householdId={householdId} />;
