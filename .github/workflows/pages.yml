@@ -39,6 +39,14 @@ jobs:
       - name: Run tests
         run: node --test tests/*.test.*
 
+      - name: Setup Deno
+        uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+
+      - name: Run edge function tests
+        run: deno test --node-modules-dir=none --no-lock --allow-env supabase/functions
+
       - name: Check and build
         run: pnpm build
 
