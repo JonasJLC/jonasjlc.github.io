@@ -2,6 +2,7 @@ import { Plus } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { filterRecipes, tagsInUse } from '../lib/recipes/filter';
 import { smallPhotoUrl, type Recipe } from '../lib/recipes/model';
+import { categoryName, placeholderFor } from '../lib/recipes/placeholder';
 import { useRecipes } from '../lib/recipes/use-recipes';
 import { runBackfill, useRunningPhotoJobs } from '../lib/recipes/photo-jobs';
 import { catalog, dinnerCategoryId } from '../lib/ideas/model';
@@ -31,11 +32,11 @@ function minutesLabel(r: Recipe) {
   return r.total_minutes ? `${r.total_minutes} min` : `${r.base_servings} pers.`;
 }
 
-function RecipeCard({ recipe, photo, pending }: { recipe: Recipe; photo?: string; pending?: boolean }) {
+function RecipeCard({ recipe, category, photo, pending }: { recipe: Recipe; category: string | null; photo?: string; pending?: boolean }) {
   return (
     <a href={`#opskrifter/${recipe.id}`} className="block overflow-hidden rounded-sp-row bg-sp-surface active:bg-sp-track">
       <div className="sp-photo-card">
-        <DishImage shape="cover" src={photo} name={recipe.title} pending={pending} />
+        <DishImage shape="cover" src={photo} name={recipe.title} placeholder={placeholderFor({ title: recipe.title, category, tags: recipe.tags })} pending={pending} />
       </div>
       <div className="p-3">
         <p className="sp-body-strong line-clamp-2 min-h-11">{recipe.title}</p>
@@ -149,7 +150,7 @@ export function RecipesView({ path, householdId }: { path: string[]; householdId
               <ul className="grid grid-cols-2 gap-sp-gap-grid" aria-label="Opskrifter">
                 {shown.map((r) => (
                   <li key={r.id}>
-                    <RecipeCard recipe={r} photo={smallPhotoUrl(ready.photos, r.thumb_path, r.image_path)} pending={fetching.has(r.id)} />
+                    <RecipeCard recipe={r} category={categoryName(ready.categories, r.category_id)} photo={smallPhotoUrl(ready.photos, r.thumb_path, r.image_path)} pending={fetching.has(r.id)} />
                   </li>
                 ))}
               </ul>
@@ -172,12 +173,12 @@ export function RecipesView({ path, householdId }: { path: string[]; householdId
                     {items.map((item) => (
                       <li key={item.kind === 'recipe' ? item.recipe.id : item.idea.id}>
                         {item.kind === 'recipe' ? (
-                          <RecipeCard recipe={item.recipe} photo={smallPhotoUrl(ready.photos, item.recipe.thumb_path, item.recipe.image_path)} pending={fetching.has(item.recipe.id)} />
+                          <RecipeCard recipe={item.recipe} category={categoryName(ready.categories, item.recipe.category_id)} photo={smallPhotoUrl(ready.photos, item.recipe.thumb_path, item.recipe.image_path)} pending={fetching.has(item.recipe.id)} />
                         ) : (
                           <button type="button" onClick={() => setIdeaOpen({ idea: item.idea })} className="sp-border-strong flex h-full min-h-52 w-full flex-col items-start justify-between gap-3 rounded-sp-row border-dashed border-sp-dash p-3 text-left active:bg-sp-track">
                             <Badge>Idé</Badge>
                             {item.idea.image_path && ideasState.photos[item.idea.image_path] && (
-                              <span className="block aspect-video w-full overflow-hidden rounded-sp-inset"><DishImage shape="cover" src={ideasState.photos[item.idea.image_path]} name={item.idea.title} /></span>
+                              <span className="block aspect-video w-full overflow-hidden rounded-sp-inset"><DishImage shape="cover" src={ideasState.photos[item.idea.image_path]} name={item.idea.title} placeholder={placeholderFor({ title: item.idea.title, tags: item.idea.tags })} /></span>
                             )}
                             <span className="sp-title-card line-clamp-4">{item.idea.title}</span>
                           </button>

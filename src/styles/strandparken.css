@@ -32,6 +32,23 @@
   --sp-camilla: #96486A;
   --sp-camilla-tint: #F5ECF0;
   --sp-camilla-ink: #7A3856;
+  /* Idé 2: dish placeholder tones, shared as tone pairs (soft ground, ink in a darker shade of the same hue) by ideas 14 and 15. */
+  --sp-tone-clay: #F6DED3;
+  --sp-tone-clay-ink: #8A3E22;
+  --sp-tone-sage: #DCEBD5;
+  --sp-tone-sage-ink: #2F5E2C;
+  --sp-tone-honey: #F5E4B8;
+  --sp-tone-honey-ink: #6F4E0E;
+  --sp-tone-rose: #F4DADC;
+  --sp-tone-rose-ink: #8C2F3B;
+  --sp-tone-mint: #D5ECE3;
+  --sp-tone-mint-ink: #1F5C48;
+  --sp-tone-plum: #F2DCE7;
+  --sp-tone-plum-ink: #7F3356;
+  --sp-tone-sky: #DDE7F1;
+  --sp-tone-sky-ink: #2C5376;
+  --sp-tone-oat: #ECE5D4;
+  --sp-tone-oat-ink: #5A503C;
   --sp-scrim: rgba(27, 38, 32, 0.45);
   --sp-primary-pressed: color-mix(in oklab, var(--sp-primary) 96%, black); /* UI spec §5.2: pressed is 4% darker */
 
@@ -112,6 +129,22 @@
   --color-sp-camilla: var(--sp-camilla);
   --color-sp-camilla-tint: var(--sp-camilla-tint);
   --color-sp-camilla-ink: var(--sp-camilla-ink);
+  --color-sp-tone-clay: var(--sp-tone-clay);
+  --color-sp-tone-clay-ink: var(--sp-tone-clay-ink);
+  --color-sp-tone-sage: var(--sp-tone-sage);
+  --color-sp-tone-sage-ink: var(--sp-tone-sage-ink);
+  --color-sp-tone-honey: var(--sp-tone-honey);
+  --color-sp-tone-honey-ink: var(--sp-tone-honey-ink);
+  --color-sp-tone-rose: var(--sp-tone-rose);
+  --color-sp-tone-rose-ink: var(--sp-tone-rose-ink);
+  --color-sp-tone-mint: var(--sp-tone-mint);
+  --color-sp-tone-mint-ink: var(--sp-tone-mint-ink);
+  --color-sp-tone-plum: var(--sp-tone-plum);
+  --color-sp-tone-plum-ink: var(--sp-tone-plum-ink);
+  --color-sp-tone-sky: var(--sp-tone-sky);
+  --color-sp-tone-sky-ink: var(--sp-tone-sky-ink);
+  --color-sp-tone-oat: var(--sp-tone-oat);
+  --color-sp-tone-oat-ink: var(--sp-tone-oat-ink);
   --color-sp-scrim: var(--sp-scrim);
   --color-sp-primary-pressed: var(--sp-primary-pressed);
 

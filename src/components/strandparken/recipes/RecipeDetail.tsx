@@ -6,6 +6,7 @@ import { PHOTO_EDGE, removePhoto, setArchived, setPhoto, uploadPhotoPair } from 
 import { Badge } from '../ui/badge';
 import { Button } from '../ui/button';
 import { DishImage } from '../ui/dish-image';
+import { placeholderFor } from '../lib/recipes/placeholder';
 import { Icon } from '../ui/icon';
 import { SegmentedControl, SegmentedPanel } from '../ui/segmented-control';
 import { Sheet, SheetContent, SheetHeader, SheetTrigger } from '../ui/sheet';
@@ -96,7 +97,7 @@ export function RecipeDetail({ householdId, recipe, category, photo, pending = f
   return (
     <article className={householdId && !recipe.archived_at ? 'mb-sp-action flex flex-col' : 'flex flex-col'}>
       <div className="sp-bleed-top sp-photo-hero relative -mx-sp-page-x">
-        <DishImage shape="cover" src={photo} name={recipe.title} pending={pending} live />
+        <DishImage shape="cover" src={photo} name={recipe.title} placeholder={placeholderFor({ title: recipe.title, category, tags: recipe.tags })} pending={pending} live />
         <a
           href="#opskrifter"
           aria-label="Tilbage til opskrifter"

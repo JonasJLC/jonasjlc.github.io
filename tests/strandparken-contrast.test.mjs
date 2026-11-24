@@ -35,3 +35,22 @@ for (const bg of ['surface', 'bg'])
     const r = ratio(c('dash'), c(bg));
     assert.ok(r >= 3, `${r.toFixed(2)}:1`);
   });
+
+// Idé 2 tone pairs (also reused by ideas 14 and 15): the icon is a graphical object (WCAG 1.4.11, 3:1),
+// and the tile stays soft, so it never reads louder than a photo.
+const tones = ['clay', 'sage', 'honey', 'rose', 'mint', 'plum', 'sky', 'oat'];
+for (const k of tones) {
+  test(`tone ${k}: ink on tile is at least 3:1`, () => {
+    const r = ratio(c(`tone-${k}-ink`), c(`tone-${k}`));
+    assert.ok(r >= 3, `${r.toFixed(2)}:1`);
+  });
+  test(`tone ${k}: tile against surface stays below 1.6:1`, () => {
+    const r = ratio(c(`tone-${k}`), c('surface'));
+    assert.ok(r < 1.6, `${r.toFixed(2)}:1`);
+  });
+  // The cover tile's "Henter billede…" caption (Idé 1) sits on the tone.
+  test(`text muted on tone ${k} is at least 4.5:1`, () => {
+    const r = ratio(c('muted'), c(`tone-${k}`));
+    assert.ok(r >= 4.5, `${r.toFixed(2)}:1`);
+  });
+}

@@ -5,6 +5,7 @@ import type { Idea } from '../lib/ideas/model';
 import { dislikeHits, ideaDislikeHits, whoLabel } from '../lib/profile/model';
 import type { Person } from '../lib/people';
 import { smallPhotoUrl, type Recipe } from '../lib/recipes/model';
+import { categoryName, placeholderFor } from '../lib/recipes/placeholder';
 import { longDate } from '../lib/madplan/dates';
 import { dropOutcome, type DropOutcome } from '../lib/madplan/drag';
 import { cleanFreeText, dishOf, entryOn, quickDishes, type PlanEntry } from '../lib/madplan/model';
@@ -95,7 +96,7 @@ function Fill({ householdId, date, entries, recipes, ideas, dislikes, profiles, 
                   onClick={() => void add({ recipeId: r.id }, r.title)}
                   className="flex min-h-sp-row w-full items-center gap-3 rounded-sp-row bg-sp-surface px-3 py-2 text-left active:bg-sp-track disabled:opacity-45"
                 >
-                  <DishImage shape="round" size={52} src={smallPhotoUrl(photos, r.thumb_path, r.image_path)} name={r.title} />
+                  <DishImage shape="round" size={52} src={smallPhotoUrl(photos, r.thumb_path, r.image_path)} name={r.title} placeholder={placeholderFor({ title: r.title, category: categoryName(categories, r.category_id), tags: r.tags })} />
                   <span className="min-w-0 flex-1">
                     <span className="sp-body-strong line-clamp-2 block">{r.title}</span>
                     {(() => {
@@ -123,7 +124,7 @@ function Fill({ householdId, date, entries, recipes, ideas, dislikes, profiles, 
                     onClick={() => void add({ ideaId: i.id }, i.title)}
                     className="sp-border-strong flex min-h-sp-row w-full items-center gap-3 rounded-sp-row border-dashed border-sp-dash px-3 py-2 text-left active:bg-sp-track disabled:opacity-45"
                   >
-                    <DishImage shape="round" size={52} src={i.image_path ? photos[i.image_path] : undefined} name={i.title} />
+                    <DishImage shape="round" size={52} src={i.image_path ? photos[i.image_path] : undefined} name={i.title} placeholder={placeholderFor({ title: i.title, tags: i.tags })} />
                     <span className="min-w-0 flex-1">
                       <span className="sp-body-strong line-clamp-2 block">{i.title}</span>
                       <span className="sp-caption block text-sp-muted">Idé – tjek ingredienser</span>
@@ -150,8 +151,8 @@ function Fill({ householdId, date, entries, recipes, ideas, dislikes, profiles, 
   );
 }
 
-function Manage({ householdId, date, days, entry, entries, recipes, ideas, photos, onClose, onChanged, onMove }: Shared & { entry: PlanEntry; entries: PlanEntry[] }) {
-  const dish = dishOf(entry, recipes, ideas);
+function Manage({ householdId, date, days, entry, entries, recipes, ideas, categories, photos, onClose, onChanged, onMove }: Shared & { entry: PlanEntry; entries: PlanEntry[] }) {
+  const dish = dishOf(entry, recipes, ideas, categories);
   const [servings, setLocal] = useState(entry.servings ?? 2);
   const [moving, setMoving] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -188,7 +189,7 @@ function Manage({ householdId, date, days, entry, entries, recipes, ideas, photo
       <SheetHeader title={dish.title} eyebrow={longDate(date)} />
       <div className="flex flex-col gap-sp-gap">
         <div className="flex items-center gap-3">
-          <DishImage shape="round" size={64} src={smallPhotoUrl(photos, dish.recipe?.thumb_path, dish.recipe?.image_path)} name={dish.title} />
+          <DishImage shape="round" size={64} src={smallPhotoUrl(photos, dish.recipe?.thumb_path, dish.recipe?.image_path)} name={dish.title} placeholder={dish.placeholder} />
           <div className="min-w-0 flex-1"><Stepper value={servings} onChange={(n) => void changeServings(n)} /></div>
         </div>
 

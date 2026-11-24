@@ -65,6 +65,7 @@ Define these as CSS custom properties on the `/strandparken` root element in `sr
 | `--sp-jonas` / `-tint` / `-ink` | `#2F6690` / `#EDF2F6` / `#24506F` | Jonas: avatar, tiles, labels |
 | `--sp-camilla` / `-tint` / `-ink` | `#96486A` / `#F5ECF0` / `#7A3856` | Camilla: avatar, tiles, labels |
 | `--sp-scrim` | `rgba(27, 38, 32, 0.45)` | Behind sheets |
+| `--sp-tone-<key>` / `--sp-tone-<key>-ink` | clay `#F6DED3` / `#8A3E22`, sage `#DCEBD5` / `#2F5E2C`, honey `#F5E4B8` / `#6F4E0E`, rose `#F4DADC` / `#8C2F3B`, mint `#D5ECE3` / `#1F5C48`, plum `#F2DCE7` / `#7F3356`, sky `#DDE7F1` / `#2C5376`, oat `#ECE5D4` / `#5A503C` | Tone pairs (Idé 2): soft ground plus a darker ink of the same hue. Dish placeholders (§5.4); reused by the shopping layout (Idé 14) and habits (Idé 15). Ink on ground ≥ 3:1, ground against `--sp-surface` < 1.6:1, `--sp-muted` on ground ≥ 4.5:1 (`tests/strandparken-contrast.test.mjs`). Tailwind: `bg-sp-tone-<key>`, `text-sp-tone-<key>-ink`. |
 
 The mockup uses two near-identical green tints and two near-identical tracks. The build uses the single values above.
 
@@ -141,7 +142,7 @@ White, `--sp-r-card`, 18 px padding, no border, no shadow. Rows inside are separ
 
 ### 5.4 Dish image
 
-One component for every dish picture. Props: source, shape (`round` or `cover`), size. `cover` fills its box and crops from the centre. `round` is a circle (52 px in day rows, 56 px in the week strip, 64 px in pickers). Without a photo: `--sp-track` fill with the dish's first letter in Fraunces, `--sp-primary`. An empty slot (nothing planned) is a 1.5 px dashed `--sp-dash` circle with a plus. While a recipe's photo is being fetched (`pending`), a `cover` tile shows the placeholder with `Henter billede…` in `caption` muted (a live region only on the recipe page); round tiles are too small for text and show the letter. Small pictures use the thumbnail, the recipe hero the full photo.
+One component for every dish picture. Props: source, shape (`round` or `cover`), size. `cover` fills its box and crops from the centre. `round` is a circle (52 px in day rows, 56 px in the week strip, 64 px in pickers). Without a photo, or when the photo fails to load: a placeholder tile (Idé 2, supersedes the first-letter tile) in one of the eight tone pairs (§3.1), with a lucide food icon in the tone's ink, about 40 % of the tile (22 px at 52 and 56, 26 px at 64, 32 px on `cover`), stroke 1.8, decorative. `lib/recipes/placeholder.ts` picks tone and icon: the first of the dish's own tags that names a food (fisk, kylling, pasta, vegetar, …), then the recipe category (Aftensmad clay/cutlery, Tilbehør & salat sage/salad, Frokost honey/sandwich, Morgenmad & brunch honey/egg, Bagværk oat/croissant, Sødt plum/cake, Snacks & dip rose/popcorn, Drikke mint/cup), then fixed tiles for Rester, Ude at spise and Takeaway, and otherwise a tone from a stable hash of the title with a cutlery icon. Ideas use their tags, free text its title. An empty slot (nothing planned) is a 1.5 px dashed `--sp-dash` circle with a plus. While a recipe's photo is being fetched (`pending`), a `cover` tile shows the placeholder with `Henter billede…` in `caption` muted (a live region only on the recipe page); round tiles are too small for text and show only the placeholder. Small pictures use the thumbnail, the recipe hero the full photo.
 
 ### 5.5 Tonight card
 
@@ -178,7 +179,8 @@ All seven rows, the title and the primary button must fit above the bar on a 390
 ### 5.10 Recipe card and idea card
 
 - **Recipe card:** white, `--sp-r-row`, clipped. Photo 132 px tall, `cover`. Below: name in `body-strong` (two lines reserved), meta in `caption` muted. Two columns, 12 px gap.
-- **Idea card:** same footprint, no fill, 1.5 px dashed `--sp-dash`; an `Idé` tag (pill on `--sp-track`) at the top and the idea in Fraunces 21 px at the bottom.
+- **Idea card:** same footprint, no fill, 1.5 px dashed `--sp-dash`; an `Idé` tag (pill on `--sp-track`) at the top and the idea in Fraunces 21 px at the bottom. An idea with a photo shows it above the title; a photo that fails to load falls back to the idea's tone placeholder (§5.4).
+- A recipe card without a photo shows its tone placeholder (§5.4) in the photo area, so a grid without photos reads calm and varied.
 
 ### 5.11 Recipe page
 
@@ -272,7 +274,7 @@ The fixture file in U6 is replaced screen by screen when the main-spec slices 1.
 - [ ] The bottom bar has five items of equal size and shape, and the active item is marked only by colour and the top indicator.
 - [ ] At 390 × 844, Hjem shows tonight's dinner without scrolling, and Madplan shows all seven days and `Lav indkøbsliste` without scrolling.
 - [ ] The stepper, the checkboxes and the segmented control look and behave the same on every screen where they appear.
-- [ ] A dish without a photo shows the letter placeholder, never a broken or empty image.
+- [ ] A dish without a photo shows its tone placeholder, never a broken or empty image.
 - [ ] Every interactive element is at least 44 × 44 px and reachable by keyboard with a visible focus ring.
 - [ ] Every view has a loading, an empty and an error state.
 - [ ] Nothing moves when `prefers-reduced-motion` is set.

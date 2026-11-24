@@ -4,6 +4,8 @@ import { addDays, dayOfMonth, isIsoDate, isoWeek, longDate, mondayOf, todayIso, 
 import { applyOutcome, dayOfDroppable, dropOutcome, edgeWeek, moveMessage } from '../src/components/strandparken/lib/madplan/drag.ts';
 import { cleanFreeText, dishOf, entryOn, type PlanEntry } from '../src/components/strandparken/lib/madplan/model.ts';
 import type { Recipe } from '../src/components/strandparken/lib/recipes/model.ts';
+import { placeholderFor } from '../src/components/strandparken/lib/recipes/placeholder.ts';
+import type { Idea } from '../src/components/strandparken/lib/ideas/model.ts';
 
 test('week starts on Monday and has seven days', () => {
   assert.equal(mondayOf('2026-11-15'), '2026-11-09'); // a Sunday
@@ -51,12 +53,25 @@ const entry = (over: Partial<PlanEntry>): PlanEntry => ({
 const recipe = { id: 'r1', title: 'Lasagne' } as Recipe;
 
 test('a plan entry shows its recipe, its free text, or a fallback', () => {
-  assert.deepEqual(dishOf(entry({ recipe_id: 'r1' }), [recipe]), { title: 'Lasagne', recipe, imagePath: null, thumbPath: null });
+  assert.deepEqual(dishOf(entry({ recipe_id: 'r1' }), [recipe]), { title: 'Lasagne', recipe, imagePath: null, thumbPath: null, placeholder: placeholderFor({ title: 'Lasagne' }) });
   const withPhoto = { ...recipe, image_path: 'h/r/a.jpg', thumb_path: 'h/r/a-thumb.jpg' };
   assert.equal(dishOf(entry({ recipe_id: 'r1' }), [withPhoto]).thumbPath, 'h/r/a-thumb.jpg');
   assert.equal(dishOf(entry({ recipe_id: 'r1' }), [withPhoto]).imagePath, 'h/r/a.jpg');
   assert.equal(dishOf(entry({ recipe_id: 'gone' }), [recipe]).recipe, null);
   assert.equal(dishOf(entry({ free_text: 'Rester' }), []).title, 'Rester');
+});
+
+test('a plan entry carries the placeholder for its dish', () => {
+  const tagged = { ...recipe, category_id: 'c1', tags: ['hurtig', 'pasta'] } as Recipe;
+  const cats = [{ id: 'c1', name: 'Aftensmad' }];
+  assert.deepEqual(dishOf(entry({ recipe_id: 'r1' }), [tagged], [], cats).placeholder, { tone: 'honey', icon: 'wheat' });
+  const plain = { ...recipe, category_id: 'c1', tags: [] } as Recipe;
+  assert.deepEqual(dishOf(entry({ recipe_id: 'r1' }), [plain], [], cats).placeholder, { tone: 'clay', icon: 'utensils' });
+  assert.deepEqual(dishOf(entry({ recipe_id: 'r1' }), [plain]).placeholder, placeholderFor({ title: 'Lasagne' })); // no categories passed
+  const idea = { id: 'i1', title: 'Fiskefrikadeller', tags: ['fisk'] } as Idea;
+  assert.deepEqual(dishOf(entry({ idea_id: 'i1' }), [], [idea]).placeholder, { tone: 'sky', icon: 'fish' });
+  assert.equal(dishOf(entry({ free_text: 'Takeaway' }), []).placeholder.icon, 'hamburger');
+  assert.deepEqual(dishOf(entry({ free_text: 'Biksemad' }), []).placeholder, placeholderFor({ title: 'Biksemad' }));
 });
 
 test('entryOn finds the day', () => {

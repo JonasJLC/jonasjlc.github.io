@@ -13,6 +13,12 @@ import { SegmentedControl, SegmentedPanel } from '../../components/strandparken/
 import { Sheet, SheetContent, SheetHeader, SheetTrigger } from '../../components/strandparken/ui/sheet';
 import { Stepper } from '../../components/strandparken/ui/stepper';
 import { notify, Toaster } from '../../components/strandparken/ui/toast';
+import { placeholderFor, type PlaceholderIcon, type Tone } from '../../components/strandparken/lib/recipes/placeholder';
+
+/** One sample icon per tone, as the mockup shows them. */
+const placeholderSamples: [Tone, PlaceholderIcon][] = [
+  ['clay', 'utensils'], ['sage', 'salad'], ['honey', 'sandwich'], ['rose', 'popcorn'], ['mint', 'cup'], ['plum', 'cake'], ['sky', 'fish'], ['oat', 'croissant'],
+];
 
 const samplePhoto = '/ferie/avatars/camilla.jpg';
 
@@ -213,6 +219,27 @@ export default function Gallery() {
         <Row label="Fyldt (cover): foto og bogstav">
           <div className="h-33 w-48"><DishImage shape="cover" name="Pasta" src={samplePhoto} /></div>
           <div className="h-33 w-48"><DishImage shape="cover" name="Pasta" /></div>
+        </Row>
+      </Section>
+
+      <Section id="pladsholdere" title="Pladsholdere">
+        <Row label="Rund 52, 56 og 64: alle otte toner">
+          {placeholderSamples.map(([tone, icon]) => (
+            <span key={tone} className="inline-flex gap-2">
+              <DishImage shape="round" size={52} name={tone} placeholder={{ tone, icon }} />
+              <DishImage shape="round" size={56} name={tone} placeholder={{ tone, icon }} />
+              <DishImage shape="round" size={64} name={tone} placeholder={{ tone, icon }} />
+            </span>
+          ))}
+        </Row>
+        <Row label="Cover: alle otte toner, og et fejlende foto">
+          {placeholderSamples.map(([tone, icon]) => (
+            <div key={tone} className="h-33 w-48"><DishImage shape="cover" name={tone} placeholder={{ tone, icon }} /></div>
+          ))}
+          <div className="h-33 w-48"><DishImage shape="cover" name="Risotto" src="/findes-ikke.jpg" placeholder={placeholderFor({ title: 'Risotto', tags: ['vegetar'] })} /></div>
+        </Row>
+        <Row label="Henter billede">
+          <div className="h-33 w-48"><DishImage shape="cover" name="Laks" pending placeholder={placeholderFor({ title: 'Laks', tags: ['fisk'] })} /></div>
         </Row>
       </Section>
 

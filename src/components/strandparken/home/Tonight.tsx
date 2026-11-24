@@ -31,10 +31,11 @@ export function Tonight({ householdId }: { householdId: string | null }) {
 
   const ready = state.status === 'ready';
   const recipes = recipesState.state.status === 'ready' ? recipesState.state.recipes : [];
+  const categories = recipesState.state.status === 'ready' ? recipesState.state.categories : [];
   const photos = { ...(recipesState.state.status === 'ready' ? recipesState.state.photos : {}), ...ideaPhotos };
   const entries = ready ? state.entries : [];
   const tonight = ready ? entryOn(entries, today) : null;
-  const dish = tonight ? dishOf(tonight, recipes, ideas) : null;
+  const dish = tonight ? dishOf(tonight, recipes, ideas, categories) : null;
   const photo = dish ? smallPhotoUrl(photos, dish.thumbPath, dish.imagePath) : undefined;
   const rest = [1, 2, 3, 4, 5, 6].map((n) => addDays(today, n)).filter((d) => d <= sunday);
 
@@ -48,7 +49,7 @@ export function Tonight({ householdId }: { householdId: string | null }) {
           ) : dish && tonight ? (
             <>
               <div className="flex items-center gap-3">
-                <DishImage shape="round" size={64} src={photo} name={dish.title} />
+                <DishImage shape="round" size={64} src={photo} name={dish.title} placeholder={dish.placeholder} />
                 <div className="min-w-0 flex-1">
                   <p className="sp-title-card line-clamp-2">{dish.title}</p>
                   <p className="sp-caption flex flex-wrap items-center gap-x-3 text-sp-muted">
@@ -74,13 +75,13 @@ export function Tonight({ householdId }: { householdId: string | null }) {
           <ul className="grid grid-cols-4 gap-sp-gap-grid">
             {rest.slice(0, 4).map((date) => {
               const e = ready ? entryOn(entries, date) : null;
-              const d = e ? dishOf(e, recipes, ideas) : null;
+              const d = e ? dishOf(e, recipes, ideas, categories) : null;
               const img = d ? smallPhotoUrl(photos, d.thumbPath, d.imagePath) : undefined;
               return (
                 <li key={date}>
                   <a href="#madplan" aria-label={`${weekdayShort(date)} ${dayOfMonth(date)}: ${d ? d.title : 'ingen ret planlagt'}`} className="flex h-full flex-col items-center gap-2 rounded-sp-row bg-sp-surface px-1 py-3 text-center active:bg-sp-track">
                     <span className="sp-caption text-sp-muted font-semibold">{weekdayShort(date)} {dayOfMonth(date)}</span>
-                    {d ? <DishImage shape="round" size={56} src={img} name={d.title} /> : <span aria-hidden="true" className="size-14 rounded-full border-2 border-dashed border-sp-dash" />}
+                    {d ? <DishImage shape="round" size={56} src={img} name={d.title} placeholder={d.placeholder} /> : <span aria-hidden="true" className="size-14 rounded-full border-2 border-dashed border-sp-dash" />}
                     <span className="sp-caption line-clamp-2 min-h-8 leading-tight">{d ? d.title : '–'}</span>
                   </a>
                 </li>

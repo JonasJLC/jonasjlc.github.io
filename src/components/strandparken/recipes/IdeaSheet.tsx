@@ -5,6 +5,7 @@ import { deleteIdea, saveIdea } from '../lib/ideas/repo';
 import { Button } from '../ui/button';
 import { Chip } from '../ui/chip';
 import { DishImage } from '../ui/dish-image';
+import { placeholderFor } from '../lib/recipes/placeholder';
 import { Field } from '../ui/field';
 import { Sheet, SheetContent, SheetHeader } from '../ui/sheet';
 import { notify } from '../ui/toast';
@@ -102,7 +103,7 @@ export function IdeaSheet({ householdId, idea, photoUrl, open, onClose, onChange
             )}
           </div>
           <div className="flex items-center gap-3">
-            <div className="size-20 shrink-0 overflow-hidden rounded-sp-inset"><DishImage shape="cover" src={photo} name={draft.title || '?'} /></div>
+            <div className="size-20 shrink-0 overflow-hidden rounded-sp-inset"><DishImage shape="cover" src={photo} name={draft.title || '?'} placeholder={placeholderFor({ title: draft.title, tags: draft.tags })} /></div>
             <div className="flex flex-col items-start gap-1">
               <label className="sp-button-sm sp-border-strong inline-flex min-h-sp-target cursor-pointer items-center rounded-sp-pill border-sp-primary px-3.5 text-sp-primary focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-sp-primary active:bg-sp-track">
                 {photo ? 'Skift billede' : 'Vælg billede'}

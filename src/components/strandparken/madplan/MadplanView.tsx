@@ -8,7 +8,7 @@ import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { tapHaptic } from '../lib/haptics';
 import { addDays, dayOfMonth, isIsoDate, isoWeek, longDate, mondayOf, todayIso, weekDays, weekdayLong, weekdayShort, type IsoDate } from '../lib/madplan/dates';
 import { applyOutcome, dayDroppable, dayOfDroppable, dropOutcome, edgeWeek, moveMessage, type DropOutcome } from '../lib/madplan/drag';
-import { dishOf, entryOn, type PlanEntry } from '../lib/madplan/model';
+import { type Dish, dishOf, entryOn, type PlanEntry } from '../lib/madplan/model';
 import { loadEntries, persistOutcome } from '../lib/madplan/repo';
 import { usePlan } from '../lib/madplan/use-plan';
 import { useProfiles } from '../lib/profile/use-profiles';
@@ -118,6 +118,7 @@ export function MadplanView({ path, householdId }: { path: string[]; householdId
   }
 
   const recipes = recipesState.state.status === 'ready' ? recipesState.state.recipes : [];
+  const categories = recipesState.state.status === 'ready' ? recipesState.state.categories : [];
   const photos = { ...(recipesState.state.status === 'ready' ? recipesState.state.photos : {}), ...ideaPhotos };
   const entries = state.status === 'ready' ? state.entries : [];
   const thisWeek = mondayOf(today);
@@ -275,6 +276,7 @@ export function MadplanView({ path, householdId }: { path: string[]; householdId
                   loading={state.status === 'loading'}
                   recipes={recipes}
                   ideas={ideas}
+                  categories={categories}
                   photos={photos}
                   onOpen={() => {
                     if (Date.now() - lastDrop.current > 400) setOpen(date);
@@ -296,7 +298,7 @@ export function MadplanView({ path, householdId }: { path: string[]; householdId
           ideas={ideas}
           dislikes={dislikes}
           profiles={profiles}
-          categories={recipesState.state.status === 'ready' ? recipesState.state.categories : []}
+          categories={categories}
           photos={photos}
           onClose={() => setOpen(null)}
           onChanged={changed}
@@ -308,8 +310,8 @@ export function MadplanView({ path, householdId }: { path: string[]; householdId
         {dragging && (
           <RowFace
             entry={dragging.entry}
-            title={dragging.title}
-            photo={photoOf(dragging.entry, recipes, ideas, photos)}
+            dish={dishOf(dragging.entry, recipes, ideas, categories)}
+            photos={photos}
             className="sp-row-lifted bg-sp-surface"
           />
         )}
@@ -333,18 +335,13 @@ function WeekArrow({ id, href, label, children }: { id: string; href: string; la
   );
 }
 
-const photoOf = (entry: PlanEntry, recipes: RowProps['recipes'], ideas: RowProps['ideas'], photos: Record<string, string>) => {
-  const dish = dishOf(entry, recipes, ideas);
-  return smallPhotoUrl(photos, dish.thumbPath, dish.imagePath);
-};
-
 /** The planned row's content, shared by the row itself and the lifted copy that follows the finger. */
-function RowFace({ entry, title, photo, className = '' }: { entry: PlanEntry; title: string; photo: string | undefined; className?: string }) {
+function RowFace({ entry, dish, photos, className = '' }: { entry: PlanEntry; dish: Dish; photos: Record<string, string>; className?: string }) {
   return (
     <div className={'flex min-h-sp-row min-w-0 flex-1 items-center gap-3 rounded-sp-row px-3 py-2 text-left ' + className}>
-      <DishImage shape="round" size={52} src={photo} name={title} />
+      <DishImage shape="round" size={52} src={smallPhotoUrl(photos, dish.thumbPath, dish.imagePath)} name={dish.title} placeholder={dish.placeholder} />
       <span className="min-w-0 flex-1">
-        <span className="sp-body-strong line-clamp-2 block">{title}</span>
+        <span className="sp-body-strong line-clamp-2 block">{dish.title}</span>
         <span className="sp-caption block text-sp-muted">{personsLabel(entry.servings ?? 2)}</span>
       </span>
     </div>
@@ -358,12 +355,13 @@ type RowProps = {
   loading: boolean;
   recipes: Parameters<typeof dishOf>[1];
   ideas: Parameters<typeof dishOf>[2];
+  categories: Parameters<typeof dishOf>[3];
   photos: Record<string, string>;
   onOpen: () => void;
 };
 
-function DayRow({ date, isToday, entry, loading, recipes, ideas, photos, onOpen }: RowProps) {
-  const dish = entry ? dishOf(entry, recipes, ideas) : null;
+function DayRow({ date, isToday, entry, loading, recipes, ideas, categories, photos, onOpen }: RowProps) {
+  const dish = entry ? dishOf(entry, recipes, ideas, categories) : null;
   const photo = dish ? smallPhotoUrl(photos, dish.thumbPath, dish.imagePath) : undefined;
   const drop = useDroppable({ id: dayDroppable(date) });
   const drag = useDraggable({
@@ -397,7 +395,7 @@ function DayRow({ date, isToday, entry, loading, recipes, ideas, photos, onOpen 
       >
         {dish && entry ? (
           <>
-            <DishImage shape="round" size={52} src={photo} name={dish.title} />
+            <DishImage shape="round" size={52} src={photo} name={dish.title} placeholder={dish.placeholder} />
             <span className="min-w-0 flex-1">
               <span className="sp-body-strong line-clamp-2 block">{dish.title}</span>
               <span className="sp-caption block text-sp-muted">{personsLabel(entry.servings ?? 2)}</span>

@@ -1,6 +1,7 @@
 import type { Tables } from '../../../../lib/supabase/database.types.ts';
 import type { Idea } from '../ideas/model.ts';
 import type { Recipe } from '../recipes/model.ts';
+import { categoryName, type Placeholder, placeholderFor } from '../recipes/placeholder.ts';
 
 export type PlanEntry = Tables<'sp_meal_plan_entries'>;
 
@@ -16,20 +17,30 @@ export type Dish = {
   imagePath: string | null;
   /** Storage path of the ~400 px thumbnail, for small pictures. Null when there is none; use `imagePath` then. */
   thumbPath: string | null;
+  /** The tile shown without a photo (Idé 2). */
+  placeholder: Placeholder;
 };
 
-/** What a plan entry shows: the recipe's title, or the free text. An idea shows its title. */
-export function dishOf(entry: PlanEntry, recipes: readonly Recipe[], ideas: readonly Idea[] = []): Dish {
+type Category = { id: string; name: string };
+
+/**
+ * What a plan entry shows: the recipe's title, or the free text. An idea shows its title. The placeholder comes from a
+ * recipe's tags and category (pass `categories` to use the category), an idea's tags, or the title.
+ */
+export function dishOf(entry: PlanEntry, recipes: readonly Recipe[], ideas: readonly Idea[] = [], categories: readonly Category[] = []): Dish {
   if (entry.recipe_id) {
     const recipe = recipes.find((r) => r.id === entry.recipe_id) ?? null;
-    return { title: recipe?.title ?? 'Opskrift', recipe, imagePath: recipe?.image_path ?? null, thumbPath: recipe?.thumb_path ?? null };
+    const title = recipe?.title ?? 'Opskrift';
+    const placeholder = placeholderFor({ title, category: categoryName(categories, recipe?.category_id), tags: recipe?.tags });
+    return { title, recipe, imagePath: recipe?.image_path ?? null, thumbPath: recipe?.thumb_path ?? null, placeholder };
   }
   if (entry.idea_id) {
     const idea = ideas.find((i) => i.id === entry.idea_id);
-    return { title: idea?.title ?? 'Aftensidé', recipe: null, imagePath: idea?.image_path ?? null, thumbPath: null };
+    const title = idea?.title ?? 'Aftensidé';
+    return { title, recipe: null, imagePath: idea?.image_path ?? null, thumbPath: null, placeholder: placeholderFor({ title, tags: idea?.tags }) };
   }
-  if (entry.free_text) return { title: entry.free_text, recipe: null, imagePath: null, thumbPath: null };
-  return { title: 'Aftensidé', recipe: null, imagePath: null, thumbPath: null };
+  const title = entry.free_text || 'Aftensidé';
+  return { title, recipe: null, imagePath: null, thumbPath: null, placeholder: placeholderFor({ title }) };
 }
 
 /** The entry on `date`, if any (one dinner per day). */

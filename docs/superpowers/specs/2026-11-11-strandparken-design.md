@@ -336,7 +336,7 @@ Acceptance criteria:
 - [ ] A recipe list is scannable by photo without reading titles.
 - [ ] The portion stepper looks and works the same everywhere it appears.
 - [ ] All text meets WCAG AA contrast against its background.
-- [ ] Items without a photo look intentional, not broken.
+- [ ] Items without a photo look intentional, not broken: a soft tone tile with a food icon in a darker shade of the same hue (Idé 2; UI spec §5.4). The tile comes from the dish's first food tag, then its category, then a stable hash of the title.
 
 ### 5.3 Food
 
