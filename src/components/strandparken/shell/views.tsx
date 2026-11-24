@@ -1,10 +1,15 @@
 import { ChevronRight } from 'lucide-react';
-import type { ReactNode } from 'react';
+import { useEffect, type ReactNode } from 'react';
 import { dateLine, greetingFor } from '../lib/greeting';
 import { people, type Person } from '../lib/people';
 import { labels, type View } from '../lib/routes';
 import { ForslagView } from '../forslag/ForslagView';
+import { ConnectSheet } from '../settings/ConnectSheet';
 import { ProfileSection } from '../settings/ProfileSection';
+import { connectResult, errorText, sourceNames } from '../lib/health/model';
+import { syncHealth } from '../lib/health/repo';
+import { useHealthSyncOnOpen } from '../lib/health/use-health';
+import { notify } from '../ui/toast';
 import { MissingCard } from '../home/MissingCard';
 import { Tonight } from '../home/Tonight';
 import { ListerView } from '../lister/ListerView';
@@ -28,11 +33,53 @@ const Empty = ({ children }: { children: ReactNode }) => <p className="sp-body t
 
 const otherPerson = (person: Person): Person => (person === 'jonas' ? 'camilla' : 'jonas');
 
+/** After Oura's consent page the callback lands on `#hjem?forbundet=oura` (or an error): say so once, then clean the address. */
+function useConnectResult() {
+  useEffect(() => {
+    const r = connectResult(location.hash);
+    if (!r) return;
+    history.replaceState(null, '', '#hjem');
+    if (r.kind === 'connected') {
+      notify(`${sourceNames[r.source]} er forbundet.`);
+      void syncHealth(true).catch(() => null);
+    } else if (r.kind === 'cancelled') {
+      notify('Forbindelsen blev ikke oprettet.');
+    } else {
+      notify(errorText(r.code) ?? 'Forbindelsen mislykkedes. Prøv igen.');
+    }
+  }, []);
+}
+
+/** Settings row that opens "Forbind enheder" in its own sheet. */
+function HealthRow({ person, householdId }: { person: Person; householdId: string | null }) {
+  if (!householdId) return null;
+  return (
+    <section aria-labelledby="health-title" className="flex flex-col gap-2">
+      <h3 id="health-title" className="sp-title-group">Sundhed</h3>
+      <Sheet>
+        <SheetTrigger asChild>
+          <button type="button" className="block w-full text-left">
+            <Card className="flex min-h-sp-row items-center justify-between gap-3 active:bg-sp-track">
+              <span className="flex min-w-0 flex-col">
+                <span className="sp-body-strong">Forbind enheder</span>
+                <span className="sp-small text-sp-muted">Oura, Garmin og din cyklus</span>
+              </span>
+              <Icon icon={ChevronRight} className="shrink-0 text-sp-muted" />
+            </Card>
+          </button>
+        </SheetTrigger>
+        <ConnectSheet householdId={householdId} person={person} />
+      </Sheet>
+    </section>
+  );
+}
+
 /**
  * Hjem is the household dashboard (roadmap Q7): header, Kalender, I aften, Jeres dag, Mangler at handle, about one phone
  * screen tall. Each later idea drops its section into the slot marked for it.
  */
 function HomeView({ person, householdId }: { person: Person; householdId: string | null }) {
+  useConnectResult();
   const now = new Date();
   return (
     <div className="flex flex-col gap-sp-gap">
@@ -54,6 +101,7 @@ function HomeView({ person, householdId }: { person: Person; householdId: string
               <SheetHeader title="Indstillinger" />
               <div className="flex flex-col gap-sp-gap">
                 <ProfileSection householdId={householdId} person={person} />
+                <HealthRow householdId={householdId} person={person} />
                 <section aria-labelledby="forslag-title" className="flex flex-col gap-2">
                   <h3 id="forslag-title" className="sp-title-group">Forslag</h3>
                   <SheetClose asChild>
@@ -87,6 +135,7 @@ const placeholders: Record<Exclude<View, 'hjem' | 'opskrifter' | 'madplan' | 'li
 
 /** The five views. Placeholders only: a title and one sentence, no sample data (U6 brings the fixtures). */
 export function ViewFor({ view, path, person, householdId }: { view: View; path: string[]; person: Person; householdId: string | null }) {
+  useHealthSyncOnOpen(householdId);
   if (view === 'hjem' && path[0] === 'forslag') return <ForslagView householdId={householdId} />;
   if (view === 'hjem') return <HomeView person={person} householdId={householdId} />;
   if (view === 'madplan') return <MadplanView path={path} householdId={householdId} />;
