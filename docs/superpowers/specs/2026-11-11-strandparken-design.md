@@ -105,7 +105,7 @@ The app reuses the `/ferie` people (person key `a` = Camilla, `b` = Jonas) and a
 | Personal habits | Both (the other person's behind a toggle) | Owner |
 | Profile: dislikes, preferences | Both (needed for suggestions) | Owner |
 | Body data, weight log, goal | Owner; the other person sees only the resulting portion on recipes | Owner |
-| Oura and training data | Owner; the other person only while the owner's `Del med …` switch is on (D40) | Sync functions only |
+| Health data (sleep score, activity, steps, cycle day) | Owner; the other person only the metrics the owner has shared, through `sp_health_for` (D40, idea 10) | Sync functions only; the owner logs period starts |
 | Integration tokens | Edge functions only | Edge functions only |
 
 Acceptance criteria:
@@ -135,7 +135,7 @@ Acceptance criteria:
 | D10 | Madplan scope | Dinner only. |
 | D11 | Google Calendar | Write the madplan into the calendar (one-way). Details in D37. **ADR-03** |
 | D12 | AI suggestions | Suggest per empty day (no whole-week generation, no automatic drafts). |
-| D13 | Oura | Camilla's readiness and cycle day, with an explanation aimed at Jonas. Lives in the Sundhed tab only. Tightened by D38–D40. |
+| D13 | Oura | Camilla's sleep score, activity, steps and cycle day, with an explanation aimed at Jonas. Superseded by idea 10 (sleep score instead of readiness) and idea 12 (a summary on Hjem). Tightened by D38–D40. |
 | D14 | Training data (Garmin) | **Amended 2026-11-24.** Jonas's sleep score, steps and step-goal progress come from Garmin's free Personal API (opened 21 October 2026), pulled by an edge function with a personal key Jonas creates (R4). Community login libraries are not used. **ADR-06** |
 | D15 | Portions with a goal | Per-person portion shown on the recipe. Defined in D42. |
 | D16 | Nutrition data | Hybrid: Danish food database (Frida) first, AI estimate as fallback. **ADR-04** |
@@ -169,7 +169,7 @@ Each of these replaces a "TBD" in the draft. All are reversible; veto any of the
 | D37 | Google Calendar details | A dedicated secondary calendar "Madplan", created by the app in Jonas's Google account and shared with Camilla. One timed event per dinner, default 18:00–19:00 (configurable), marked as free time. Title = dish name; description = link to the recipe. Scope limited to calendars the app created; the OAuth consent screen is published to production. | A dedicated calendar keeps private calendars untouched, and deleting it removes every event. A testing-status consent screen expires refresh tokens after seven days (R6). |
 | D38 | Oura explanation | Curated Danish text per cycle phase and readiness band, written once and reviewed by Camilla. No Oura data is sent to an AI model. | Predictable, free, private, and avoids Oura's restrictions on AI processing of API data (R3). |
 | D39 | Cycle day source | Camilla logs the first day of her period in the app (one tap) and the app counts from there. Confirmed by Camilla. | Oura API v2 has no cycle data, and Oura does not write cycle data to Apple Health (R3, checked 2026-11-24). |
-| D40 | Health sharing | Each person has a `Del med …` switch per integration, off by default, revocable at any time. Camilla has agreed to share readiness and cycle day. | Consent is a recorded choice, not an assumption. |
+| D40 | Health sharing | Per metric (sleep, activity, steps, cycle), not per integration (idea 10, roadmap Q6). Nothing is shared until the owner confirms in the connect flow, pre-set to sleep, activity and steps on and cycle off; every switch is revocable at once. The database withholds unshared metrics and marks them `hidden`. | Consent is a recorded choice, not an assumption. |
 | D41 | Goals | Three types: `Tag på (muskelmasse)`, `Tab dig`, `Hold vægten`. Body data: weight, height, birth year, sex, activity level (four steps). Weight is logged manually. | "Hold vægten" gives a personal portion without a weight change. A separate "gain weight" type adds nothing. |
 | D42 | Portion model | Each person's portion is a share of the cooked dish, shown as grams and percent (§5.4.3). | The only definition that stays correct when two portions do not add up to the pot. |
 | D43 | Micronutrients | Kostfibre, jern, calcium, D-vitamin, C-vitamin, folat, B12. Shown as share of the daily reference value. | Small enough to scan on a phone. Adjust the set once Frida coverage is known (R5). |
@@ -257,8 +257,8 @@ Every function verifies the caller's JWT and household membership, validates its
 | `offers-sync` | Daily schedule | Pulls current offers for the active chains near the household into `sp_offers`; matches them to list lines on request. |
 | `calendar-oauth` | User | Handles the Google authorisation code flow for the calendar scope and stores the refresh token. |
 | `calendar-write` | Madplan change | Creates, updates and deletes events in the Madplan calendar. Failed writes are queued and retried. |
-| `oura-oauth` / `oura-sync` | User / daily schedule | OAuth2 for Camilla's account; daily pull of readiness (and cycle data if available). |
-| `training-sync` | Schedule or upload | Per D52, after R4. |
+| `health-oauth` | User | Oura authorisation code flow with PKCE (start and callback), Garmin personal API key, disconnect (idea 10, ADR-06). |
+| `health-sync` | App open / pg_cron 07:30 and 19:30 | Pulls the last 8 days from every connected source (Oura, Garmin) into `sp_health_daily`; 30-minute throttle on app open. |
 
 ### 4.5 Security and privacy
 
@@ -266,7 +266,7 @@ Every function verifies the caller's JWT and household membership, validates its
 - **Untrusted content.** Web pages, captions and screenshots are data, never instructions. Model calls that read them have no tools, must return JSON matching a schema, and produce only a draft that a person reviews before it is saved.
 - **Allergies.** Out of scope (D55).
 - **Health data.** Body data and targets are computed in code. Cycle and readiness data are never sent to a model (D38). Dislikes and preferences may be sent to `meal-suggest`.
-- **Tokens.** Stored encrypted in `private.sp_integration_tokens`. Oura refresh tokens are single-use: a refresh stores the new token in the same transaction and is serialised with an advisory lock, so two runs cannot invalidate each other.
+- **Tokens.** Stored encrypted in `private.sp_integration_tokens`. Oura refresh tokens are single-use: a refresh first takes a lease under an advisory lock, and the new pair is stored only if the lease's version is still current, so two runs cannot invalidate each other (idea 10).
 - **Images.** Recipe photos are copied into Storage for private use; they are never served publicly.
 - **Logs.** No health data, tokens or page bodies in function logs.
 - **Budget.** `sp_ai_usage` records tokens and estimated cost; the shared helper refuses calls above the monthly cap (D48).
@@ -510,13 +510,13 @@ Sections, top to bottom: Camilla's Oura card, Jonas's training card, personal go
 
 #### 5.4.1 Oura (Camilla)
 
-- Today's **readiness** score.
-- Today's **cycle day** and phase (D39).
-- A short **explanation written for Jonas**: what today's phase and readiness band may mean in practice, from the curated texts (D38).
-- Camilla authorises the connection with her own Oura account and decides whether Jonas sees the card.
+- Today's **sleep score** (idea 10 replaces readiness), activity progress and steps.
+- Today's **cycle day** and phase, from the in-app period log (D39; Oura's API has no cycle data, ADR-06).
+- A short **explanation written for Jonas**: what today's phase may mean in practice, from the curated texts (D38).
+- Camilla authorises the connection with her own Oura account and decides, per metric, what Jonas sees (D40, idea 10).
 
 Acceptance criteria:
-- [ ] Today's readiness and cycle day are shown when there is data for today.
+- [ ] Today's sleep score and cycle day are shown when there is data for today.
 - [ ] When data is missing or stale, the card says so rather than showing old values as today's.
 - [ ] The explanation is understandable without prior knowledge of the cycle phases.
 - [ ] Camilla has read and approved every explanation text before Jonas can see any.
@@ -677,9 +677,10 @@ All tables carry `household_id` with row-level security. "Household" policy: mem
 | `sp_profiles` | person, dislikes[], preferences, dinner_share | Owner writes; household reads |
 | `sp_body` / `sp_weight_log` | person, height, birth_year, sex, activity_level / date, weight_kg | Owner only |
 | `sp_goals` | person, type, amount_kg, target_date, active, computed targets | Owner only; portions exposed through a function |
-| `sp_health_daily` | person, date, provider, readiness, cycle_day, phase, training metrics (jsonb), fetched_at | Owner; the other person while sharing is on |
-| `sp_cycle_log` | person, period_start_date | Owner only |
-| `sp_health_sharing` | person, provider, shared (bool), changed_at | Owner writes; household reads |
+| `sp_health_daily` | person, date, source, sleep_score, activity_progress, activity_goal(+unit), steps, cycle_day, synced_at (null = no data) | Owner reads; the other person only through `sp_health_for` |
+| `sp_health_connections` | person, source, connected_at, last_synced_at, last_error, step_goal | Owner reads; `sp_health_sources` gives the other person source and last sync |
+| `sp_cycle_log` | person, period_start | Owner only |
+| `sp_health_sharing` | person, metric, shared (bool), changed_at | Owner writes; household reads |
 | `sp_habits` / `sp_habit_logs` | scope (personal/shared), owner, title, weekly_target, archived_at / habit_id, date, done_by | Household; personal habits written by owner |
 | `sp_todos` | title, owner (`a`/`b`/`both`), due_date, note, completed_at, completed_by (set by the database) | Household |
 | `sp_wishlist_items` | name, note, url, price_estimate, priority, bought_at | Household |
@@ -688,7 +689,7 @@ All tables carry `household_id` with row-level security. "Household" policy: mem
 | `sp_offers` | chain, heading, canonical_name, price, quantity, unit_price, unit, valid_from, valid_to, fetched_at | Household read; function writes |
 | `sp_food_ref` | Frida id, Danish name, nutrients per 100 g, piece weight | Read-only reference |
 | `sp_ai_usage` | function, model, input/output tokens, estimated cost, person, created_at | Function writes; owner reads |
-| `private.sp_integration_tokens` | provider, user_id, encrypted tokens, scopes, expires_at | Edge functions only |
+| `private.sp_integration_tokens` | household, person, provider, encrypted access/refresh tokens or API key, scopes, expires_at, version, refresh lease | Edge functions only (service-role RPCs) |
 
 Derived, not stored: times cooked and last cooked (from past `sp_meal_plan_entries`), the merged shopping view, subscription totals, badge counts.
 

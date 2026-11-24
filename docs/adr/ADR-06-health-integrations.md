@@ -1,6 +1,9 @@
 # ADR-06: Health integrations: Oura API, Garmin Personal API, cycle day logged in the app
 
 Status: accepted, 2026-11-24 (idea 9, roadmap Q2). Jonas chose to build with this recommendation without a separate go-ahead.
+Implemented 2026-11-24 by idea 10: adapters `oura` and `garmin` in `supabase/functions/_shared/health/`, cycle day from
+`sp_cycle_log`, functions `health-oauth` and `health-sync`. The Garmin data paths are still unconfirmed: they default to the
+business Health API's `/wellness-api/rest/dailies` and `/sleeps` and can be changed with the `GARMIN_*_PATH` secrets.
 Covers design D13, D14, D38–D40, D52 and idea 10's adapters. All findings checked 2026-11-24 against the sources in
 "Findings" below.
 

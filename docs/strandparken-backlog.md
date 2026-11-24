@@ -9,6 +9,19 @@ Things found or deferred while building, outside the delivery plan in the design
 - **Try `meal-suggest` (2.2):** `Foreslå ret` on an empty day with a few recipes saved. It had never been called in production as of 24 Nov; the structured-output schema (an enum of candidate ids) has only run against test doubles. Neither person has filled in a profile (dislikes, preferences) yet.
 - **Try Madplan drag and drop on both phones (idea 3):** long press vs. tap vs. scroll, swap, edge auto-scroll, switching week over ‹ ›, undo. The iOS haptic on lift (`lib/haptics.ts`, the iOS 18 `<input switch>` technique) is unverified: keep it only if it fires reliably on both iPhones with no focus or scroll side effects; otherwise remove the iOS branch and record "Haptic on iOS is best effort: not possible in a PWA" under known gaps.
 - **Set a spend limit in the Anthropic console** as the backstop that ADR-07 recommends.
+- **Turn on health data (idea 10).** Functions and tables are live, but nothing runs until the secrets are set (`SP_TOKEN_KEY`, `SP_OAUTH_STATE_KEY`, `SP_CRON_SECRET`, `OURA_CLIENT_ID`, `OURA_CLIENT_SECRET`) and the `sp-health-sync` cron job is created with the cron secret in Vault (SQL below). Then: Camilla connects Oura, Jonas pastes his Garmin key, and both confirm sharing. The job runs at :30 past 05, 06, 17 and 18 UTC and the function acts only when it is 07 or 19 in Copenhagen, so it syncs at 07:30 and 19:30 all year:
+
+  ```sql
+  select vault.create_secret('<the SP_CRON_SECRET value>', 'sp_cron_secret');
+  select cron.schedule('sp-health-sync', '30 5,6,17,18 * * *', $$
+    select net.http_post(
+      url := 'https://kmytekaexgfqhwxapwbw.supabase.co/functions/v1/health-sync',
+      headers := jsonb_build_object('Content-Type', 'application/json',
+        'Authorization', 'Bearer ' || (select decrypted_secret from vault.decrypted_secrets where name = 'sp_cron_secret')),
+      body := '{"mode":"all","hours":[7,19]}'::jsonb,
+      timeout_milliseconds := 60000)
+  $$);
+  ```
 - **Try the app on both phones** (sign-in, tick sync, review sheets). As of 24 Nov all 16 shopping rows were written by one person, so live sync between two phones has not been seen yet.
 
 ## Done
@@ -43,3 +56,5 @@ Things found or deferred while building, outside the delivery plan in the design
 - **`Ryd afkrydsede` lives inside the expanded "Købt" group (Idé 14).** Ticked pantry lines ("Tjek at I har") are cleared with it, but when only pantry lines are ticked there is no Købt group and so no clear button.
 - **Recipe items never show in Mangler at handle (Idé 8).** Items added with `Læg på indkøbslisten` from a recipe are not linked to a day, so they never show in Mangler at handle and have no day tag. Only `Lav indkøbsliste` links items to a plan entry.
 - **Husholdning and Økonomi links** are not placed on Hjem until those pages exist (roadmap Q7).
+- **Garmin data endpoints (idea 10).** The Personal API's Swagger docs could not be read; the adapter assumes the business Health API paths and field names (`steps`, `stepsGoal`, `overallSleepScore.value`). If a sync records `garmin_endpoint` or `garmin_shape`, set `GARMIN_API_BASE`, `GARMIN_DAILIES_PATH` and `GARMIN_SLEEPS_PATH`, or adjust `mapGarmin`. Without a sleep endpoint Jonas's sleep score stays empty.
+- **Health deferred (idea 10).** No Oura webhooks (cron plus app open only); no HealthKit/Shortcuts bridge (`health-ingest` dropped, ADR-06); the Oura activity goal uses `active_calories / target_calories` and has not been compared with the Oura app's ring yet. A refresh that fails after taking the lease holds it for 30 s.
