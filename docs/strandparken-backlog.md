@@ -38,5 +38,8 @@ Things found or deferred while building, outside the delivery plan in the design
 - **Shopping category change is online-only** and affects only the rows of that line; it does not teach the guess anything.
 - **Phone clocks (ADR-09).** The offline conflict rule assumes the two phones' clocks are within a few seconds.
 - **Suggestions (2.2).** The candidate list is built in the app and sent to the function, which checks the answer against it; the function does not read the database itself. Cooked history is the plan entries of the past 90 days (D35). Suggestions are not remembered between visits to the sheet, and the model sees at most 60 candidates (newest first).
+- **Category colours for custom categories (Idé 14).** A renamed or new grocery category gets the neutral basket style. A colour and icon picker per category can come later; the map is in `lib/shopping/category-style.ts`.
+- **Shopping row height (Idé 14).** Rows are 48 px with a 44 px check target, a little less dense than the mockup. Jonas can approve 44 px rows if a week's list does not fit one screen in practice.
+- **`Ryd afkrydsede` lives inside the expanded "Købt" group (Idé 14).** Ticked pantry lines ("Tjek at I har") are cleared with it, but when only pantry lines are ticked there is no Købt group and so no clear button.
 - **Recipe items never show in Mangler at handle (Idé 8).** Items added with `Læg på indkøbslisten` from a recipe are not linked to a day, so they never show in Mangler at handle and have no day tag. Only `Lav indkøbsliste` links items to a plan entry.
 - **Husholdning and Økonomi links** are not placed on Hjem until those pages exist (roadmap Q7).

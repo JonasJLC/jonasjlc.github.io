@@ -455,7 +455,7 @@ An amount that cannot be converted shows as "ca. 1 <package>" or "ca. 1 stk". "R
 
 **Day tags and filtered view (idea 8):** a line with an item for a planned meal shows a small tag with the meal's day: "I dag", the short weekday ("Tor") within six days, else "27/11"; the earliest upcoming day wins. Manual items and past days have no tag. `#lister/indkob?for=<entry ids>` (from Hjem's Mangler at handle) shows only the lines for those meals under a banner ("Viser varer til i aften og i morgen") with `Vis alle`, which returns to the whole list. An item added while filtered is manual, so a toast says it shows under Vis alle.
 
-**While shopping:** tick items off; ticked items collapse to the bottom; both people see ticks live. `Ryd afkrydsede` clears bought items and can be undone. The list works offline (D47); when two phones change the same item, the latest change wins.
+**While shopping:** tick items off; ticked items move to a collapsed "Købt" group after a few seconds (idea 14), so the open list stays short; both people see ticks live. `Ryd afkrydsede` clears bought items and can be undone. The list works offline (D47); when two phones change the same item, the latest change wins.
 
 **Tilbudsoverblik** (offers, D7 amended) — a sheet with three views, all based on this week's offers:
 1. **Én butik** — the chain where most of the list is on offer ("8 af 23 varer på tilbud"); ties go to the lower sum of offer prices.
