@@ -62,3 +62,20 @@ verify_jwt = false
 # AI dinner suggestion for an empty day (slice 2.2).
 [functions.meal-suggest]
 verify_jwt = false
+
+# Health data (idea 10, ADR-06). Secrets (never committed):
+#   supabase secrets set SP_TOKEN_KEY=$(openssl rand -base64 32)        # AES-GCM key for provider tokens and the Garmin key
+#   supabase secrets set SP_OAUTH_STATE_KEY=$(openssl rand -base64 32)  # seals the OAuth state (and its PKCE verifier)
+#   supabase secrets set SP_CRON_SECRET=$(openssl rand -hex 32)         # pg_cron's bearer for mode `all`; also stored in Vault
+#   supabase secrets set OURA_CLIENT_ID=... OURA_CLIENT_SECRET=...      # Oura API application "Strandparken"
+# Optional, once the Garmin Personal Swagger docs are checked: GARMIN_API_BASE, GARMIN_DAILIES_PATH, GARMIN_SLEEPS_PATH.
+# Until the secrets exist the functions answer 503 not_configured (or 401 for cron) and store nothing.
+
+# Sync on app open (mode `self`, the guard) and from pg_cron (mode `all`, the cron secret).
+[functions.health-sync]
+verify_jwt = false
+
+# Oura connect (start + the GET callback, which carries no JWT: the sealed state authenticates it), Garmin key, disconnect.
+# The Oura redirect URI is this function's URL: https://kmytekaexgfqhwxapwbw.supabase.co/functions/v1/health-oauth
+[functions.health-oauth]
+verify_jwt = false
