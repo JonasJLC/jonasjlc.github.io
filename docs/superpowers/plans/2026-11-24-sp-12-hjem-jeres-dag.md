@@ -1,6 +1,6 @@
 # Strandparken Idé 12: "Jeres dag" på Hjem — Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [x]`) syntax for tracking.
 
 **Goal:** Add a compact "Jeres dag" section to Hjem, directly below the "I aften" card and above "Mangler at handle": one card per member, side by side, showing that person's sleep score, cycle day and activity progress (with a thin bar), the source and sync line, and "Ingen data i nat" when data is missing. Metrics the viewer may not see are left out. Tapping a card opens Sundhed for that person.
 
@@ -12,7 +12,7 @@
 
 **Supersedes:** main spec D13 ("Oura and training data are not on Hjem") and the line in §5.6 "Oura and training data are not on Hjem" (roadmap Q7).
 
-**Status:** Draft, 2026-11-24. Index: [roadmap](2026-11-24-strandparken-ideer-roadmap.md).
+**Status:** Done, 2026-11-24. Index: [roadmap](2026-11-24-strandparken-ideer-roadmap.md).
 
 **Privacy (roadmap Q9):** shows cycle day on Hjem when shared. Do not commit until Jonas decides.
 
@@ -59,7 +59,7 @@ None.
 
 ### Task 1: Card model (TDD)
 
-- [ ] Tests first in `tests/strandparken-sundhed.test.ts`:
+- [x] Tests first in `tests/strandparken-sundhed.test.ts`:
   - Camilla with everything shared → rows `[Søvn 82, Cyklus Dag 14, Aktivitet 65 % + bar 0.65]`, sync line "Oura · synk. 19.45".
   - Jonas (no cycle source) → rows `[Søvn 76, Aktivitet 40 % + bar]`, with no Cyklus row.
   - The same Camilla card viewed by Jonas with cycle hidden → no Cyklus row (not a blank row).
@@ -67,24 +67,24 @@ None.
   - The newest day is yesterday → today's values are `null` (freshness from idea 11) and the sync line keeps the real time.
   - No source connected → `{ empty: 'not-connected' }`; every metric hidden → `{ empty: 'not-shared' }`.
   - The bar value is clamped to 0–1 for display; the percentage text is not clamped ("112 %").
-- [ ] Implement `dayCard` as a pure function returning `{ rows: { metric, label, value: string | null, bar?: number }[], sync: string | null, empty?: ... }`. Order is fixed: Søvn, Cyklus, Aktivitet, Skridt. Skridt is off by default on Hjem (the mockup shows three rows; it stays compact).
+- [x] Implement `dayCard` as a pure function returning `{ rows: { metric, label, value: string | null, bar?: number }[], sync: string | null, empty?: ... }`. Order is fixed: Søvn, Cyklus, Aktivitet, Skridt. Skridt is off by default on Hjem (the mockup shows three rows; it stays compact).
 
 ### Task 2: Progress bar primitive
 
-- [ ] `ui/progress-bar.tsx`: a track `h-1 rounded-sp-pill bg-sp-track` with a fill in `bg-sp-primary`, width by inline `style` percentage, and `role="progressbar"` with `aria-valuemin=0 aria-valuemax=100 aria-valuenow`. The label comes from the row text, so `aria-labelledby` points at it. Token classes only.
+- [x] `ui/progress-bar.tsx`: a track `h-1 rounded-sp-pill bg-sp-track` with a fill in `bg-sp-primary`, width by inline `style` percentage, and `role="progressbar"` with `aria-valuemin=0 aria-valuemax=100 aria-valuenow`. The label comes from the row text, so `aria-labelledby` points at it. Token classes only.
 
 ### Task 3: Section and cards
 
-- [ ] `JeresDag`: `<section aria-labelledby="jeres-dag-title">` with `<h2 className="sp-title-section">Jeres dag</h2>` and a two-column grid (`grid-cols-2 gap-sp-gap-grid`). Camilla is on the left and Jonas on the right, as in the mockup, whoever is signed in.
-- [ ] `PersonDayCard`: the whole card is an `<a href={sundhedHref(person)}>` with `aria-label` "<Navn>: søvn 82, cyklus dag 14, aktivitet 65 procent. Åbn Sundhed.", built from the same rows. Inside: `Avatar` (small) + name (`sp-body-strong`), rows with a small icon (`Moon`, `CalendarHeart`, `Activity`), label (`sp-small`) and value on the right (`sp-body-strong`), the progress bar under Aktivitet, and the sync line at the bottom (`sp-caption text-sp-muted`).
-- [ ] Empty cards stay small: "Ikke forbundet" (own card: also "Forbind" text linking to the connect sheet) or "Deler ikke sine tal" for the other person. The section is never hidden entirely, so the dashboard layout does not jump. If **both** cards would be "Ikke forbundet", the section is hidden until someone connects.
-- [ ] Loading: two skeleton cards of the final height; error: one line "Tallene kunne ikke hentes." with no retry button (Sundhed has one).
-- [ ] Keep it compact: card padding `--sp-pad-card` reduced variant if needed (UI spec §3.3 tokens only). Check that header + Kalender + I aften + Jeres dag + Mangler at handle fit about one 390×844 screen (roadmap Q7).
+- [x] `JeresDag`: `<section aria-labelledby="jeres-dag-title">` with `<h2 className="sp-title-section">Jeres dag</h2>` and a two-column grid (`grid-cols-2 gap-sp-gap-grid`). Camilla is on the left and Jonas on the right, as in the mockup, whoever is signed in.
+- [x] `PersonDayCard`: the whole card is an `<a href={sundhedHref(person)}>` with `aria-label` "<Navn>: søvn 82, cyklus dag 14, aktivitet 65 procent. Åbn Sundhed.", built from the same rows. Inside: `Avatar` (small) + name (`sp-body-strong`), rows with a small icon (`Moon`, `CalendarHeart`, `Activity`), label (`sp-small`) and value on the right (`sp-body-strong`), the progress bar under Aktivitet, and the sync line at the bottom (`sp-caption text-sp-muted`).
+- [x] Empty cards stay small: "Ikke forbundet" (own card: also "Forbind" text linking to the connect sheet) or "Deler ikke sine tal" for the other person. The section is never hidden entirely, so the dashboard layout does not jump. If **both** cards would be "Ikke forbundet", the section is hidden until someone connects.
+- [x] Loading: two skeleton cards of the final height; error: one line "Tallene kunne ikke hentes." with no retry button (Sundhed has one).
+- [x] Keep it compact: card padding `--sp-pad-card` reduced variant if needed (UI spec §3.3 tokens only). Check that header + Kalender + I aften + Jeres dag + Mangler at handle fit about one 390×844 screen (roadmap Q7).
 
 ### Task 4: Spec, backlog, verify, commit
 
-- [ ] Main spec §5.6 list: add "Jeres dag" in its position; reverse D13 for this summary; reference per-metric visibility. UI spec §6 Hjem anatomy.
-- [ ] Verify (below). Suggested commit: `feat(strandparken): Jeres dag on Hjem`. Do not commit until roadmap Q9 is decided.
+- [x] Main spec §5.6 list: add "Jeres dag" in its position; reverse D13 for this summary; reference per-metric visibility. UI spec §6 Hjem anatomy.
+- [x] Verify (below). Suggested commit: `feat(strandparken): Jeres dag on Hjem`. Do not commit until roadmap Q9 is decided.
 
 ---
 
@@ -98,14 +98,14 @@ None.
 
 ## Acceptance criteria
 
-- [ ] "Jeres dag" sits directly below the "I aften" card and above "Mangler at handle".
-- [ ] One card per member, side by side, with avatar and name.
-- [ ] Camilla: sleep score, cycle day, and activity goal as a percentage with a thin progress bar under it.
-- [ ] Jonas: sleep score, and activity goal as a percentage with a thin progress bar under it.
-- [ ] A small source and sync line at the bottom of each card, e.g. "Oura · synk. 19.45".
-- [ ] Visibility settings from Sundhed are respected: hidden metrics are left out for the other member, not shown as blank.
-- [ ] Missing data shows "Ingen data i nat" instead of a number.
-- [ ] Tapping a card opens Sundhed for that person.
+- [x] "Jeres dag" sits directly below the "I aften" card and above "Mangler at handle".
+- [x] One card per member, side by side, with avatar and name.
+- [x] Camilla: sleep score, cycle day, and activity goal as a percentage with a thin progress bar under it.
+- [x] Jonas: sleep score, and activity goal as a percentage with a thin progress bar under it.
+- [x] A small source and sync line at the bottom of each card, e.g. "Oura · synk. 19.45".
+- [x] Visibility settings from Sundhed are respected: hidden metrics are left out for the other member, not shown as blank.
+- [x] Missing data shows "Ingen data i nat" instead of a number.
+- [x] Tapping a card opens Sundhed for that person.
 
 ## Open questions
 
