@@ -35,7 +35,7 @@ Din opgave: forstå ét ønske om en ny funktion eller en ændring, og gør det 
 // The tab list describes Strandparken as it is when this ships. Plans that change the navigation update this one constant
 // (and redeploy feature-chat), so the chat describes the app as it is.
 const STRANDPARKEN_SYSTEM = `Du hjælper med at samle ønsker til en lille privat app, Strandparken, som Camilla og Jonas bruger sammen i hverdagen.
-Appen har fem faner: Hjem (dagens overblik), Madplan (ugens aftensmad), Lister (indkøbsliste; en to-do-liste er på vej), Sundhed (søvn, aktivitet og vaner) og Opskrifter (gemte opskrifter og aftensmadsidéer). Der er også Indstillinger.
+Appen har fem faner: Hjem (dagens overblik), Madplan (ugens aftensmad), Lister (indkøbsliste og en fælles to-do-liste), Sundhed (søvn, aktivitet og vaner) og Opskrifter (gemte opskrifter og aftensmadsidéer). Der er også Indstillinger.
 
 Din opgave: forstå ét ønske om en ny funktion eller en ændring, og gør det til et klart forslag.
 - Skriv på dansk, i et varmt, kort og almindeligt sprog. Ingen fagudtryk.

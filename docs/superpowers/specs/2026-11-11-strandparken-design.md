@@ -581,15 +581,14 @@ Top to bottom:
 1. Greeting and date.
 2. **I aften:** today's dinner (photo, title, time, `Se opskrift`), or an empty state with `Tilføj ret`.
 3. **Ugen:** a compact strip of the remaining days.
-4. **I dag:** today's tasks (with a badge count for overdue) and today's habits, split by person, with check-off. `Rediger` opens habit management.
-5. Links to **Husholdning** and **Økonomi**, each with its own badge (overdue tasks; renewals within 30 days).
+4. **I dag:** today's habits, split by person, with check-off. `Rediger` opens habit management. To-dos are not shown on Hjem (idea 5, roadmap Q3).
+5. Links to **Husholdning** and **Økonomi**, each with its own badge (renewals within 30 days).
 
 Oura and training data are not on Hjem (D13).
 
 Acceptance criteria:
 - [ ] Tonight's dinner is visible without scrolling.
-- [ ] Today's tasks and habits can be checked off directly from Hjem.
-- [ ] Overdue tasks are visibly badged.
+- [ ] Today's habits can be checked off directly from Hjem.
 - [ ] A day with nothing planned and nothing due still looks finished, not empty.
 
 ### 5.7 Habits
@@ -608,19 +607,19 @@ Acceptance criteria:
 
 ### 5.8 Husholdning (page)
 
-#### 5.8.1 Opgaver
+#### 5.8.1 To-do (Lister)
 
-- Created manually: title, optional note, optional due date, optional recurrence (D46).
-- **Claim:** either person taps `Tag opgaven`; the task then shows that person's avatar. A claim can be released or handed over.
-- Completing a recurring task schedules its next occurrence and releases the claim.
-- Reminders: in-app badges only (overdue and due today), shown on Hjem and on the Husholdning link.
+Superseded by idea 5 (plan `2026-11-24-sp-05-todo.md`, roadmap Q3). The Husholdning task list with recurrence, claims and badges (slice 4.1) is replaced by a To-do segment under Lister (`#lister/todo`):
 
-Acceptance criteria:
-- [ ] A task can be one-off or recurring, with or without a due date.
-- [ ] A claimed task shows the claimer's avatar to both people.
-- [ ] Completing a recurring task creates the next one with the correct due date for its recurrence type.
-- [ ] Overdue tasks are badged on Hjem.
-- [ ] A task completed by mistake can be reopened without creating a duplicate occurrence.
+- One shared list of one-off to-dos. Each has a title, an owner (Camilla, Jonas or Fælles), an optional due date, an optional note, and `completed_at` / `completed_by` (set by the database). No recurrence; a later "Gentag" option is in the backlog.
+- Quick add "Tilføj to-do" at the top. A new to-do is Fælles, unless exactly one owner chip is selected; then it belongs to that person ("Nye to-dos: Jonas" shows under the chips).
+- Filter chips Camilla, Jonas, Fælles; none selected shows everything, several combine.
+- Groups: "Snart" (open, with a date, soonest first), "Når der er tid" (open, no date, newest first), "Klaret" (completed in the last 30 days, collapsed behind "Vis klarede (n)"). A completed to-do can be unticked and returns to its group.
+- The owner shows as an avatar: C, J, or CJ on honey for Fælles. An overdue date shows in `--sp-warn`, not red.
+- Tap a row to edit title, owner, date and note in a sheet; check off in the list; swipe left (or "Slet" in the sheet) to delete with "Fortryd".
+- Changes reach the other phone live (Realtime). No offline queue (ADR-09 covers only Indkøb). To-dos are not shown on Hjem.
+
+Acceptance criteria: see the idea 5 plan.
 
 #### 5.8.2 Ønskeliste til hjemmet (praktiske indkøb)
 
@@ -668,7 +667,7 @@ All tables carry `household_id` with row-level security. "Household" policy: mem
 | `sp_cycle_log` | person, period_start_date | Owner only |
 | `sp_health_sharing` | person, provider, shared (bool), changed_at | Owner writes; household reads |
 | `sp_habits` / `sp_habit_logs` | scope (personal/shared), owner, title, weekly_target, archived_at / habit_id, date, done_by | Household; personal habits written by owner |
-| `sp_tasks` | title, note, due_date, recurrence (unit, interval, mode), claimed_by, done_at, done_by, previous_task_id | Household |
+| `sp_todos` | title, owner (`a`/`b`/`both`), due_date, note, completed_at, completed_by (set by the database) | Household |
 | `sp_wishlist_items` | name, note, url, price_estimate, priority, bought_at | Household |
 | `sp_subscriptions` | name, price, cycle, next_renewal, payer | Household |
 | `sp_documents` | title, date, note, file_path, mime_type, size | Household |
@@ -793,9 +792,9 @@ Exit: §5.4 criteria pass; Camilla has approved the explanation texts and the sh
 
 | Slice | Content | Size |
 |---|---|---|
-| 4.1 | Tasks: one-off, recurring, due dates, claim with avatar, badges. | M |
+| 4.1 | ~~Tasks: one-off, recurring, due dates, claim with avatar, badges.~~ Superseded by idea 5 (To-do under Lister, shipped 24 Nov). | — |
 | 4.2 | Habits: personal/shared, weekly targets, check-off on Hjem, history. | M |
-| 4.3 | Hjem v2: today's tasks and habits, links with badges. | S |
+| 4.3 | Hjem v2: today's habits, links with badges (no tasks, idea 5). | S |
 | 4.4 | Wishlist for the home. (Forslag in settings: done 24 Nov, see D49.) | S |
 
 ### Phase 5 — Økonomi

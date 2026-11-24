@@ -61,7 +61,8 @@ Define these as CSS custom properties on the `/strandparken` root element in `sr
 | `--sp-line` | `#E6E0D2` | Rules, bottom-bar border |
 | `--sp-line-soft` | `#EFEADD` | Row separators inside cards |
 | `--sp-dash` | `#A8A291` | Dashed outlines (empty day, idea card), unchecked box border |
-| `--sp-danger` / `--sp-danger-tint` | `#7A2A16` / `#F6DFD6` | Overdue text and badge |
+| `--sp-danger` / `--sp-danger-tint` | `#7A2A16` / `#F6DFD6` | Destructive actions (delete, swipe layer) |
+| `--sp-warn` | `#8A5A00` | Overdue dates (idea 5); at least 4.5:1 on surface and ground |
 | `--sp-jonas` / `-tint` / `-ink` | `#2F6690` / `#EDF2F6` / `#24506F` | Jonas: avatar, tiles, labels |
 | `--sp-camilla` / `-tint` / `-ink` | `#96486A` / `#F5ECF0` / `#7A3856` | Camilla: avatar, tiles, labels |
 | `--sp-scrim` | `rgba(27, 38, 32, 0.45)` | Behind sheets |
@@ -161,7 +162,7 @@ All seven rows, the title and the primary button must fit above the bar on a 390
 
 - Task check: 26 px circle inside a 44 px target. Unchecked: white, 1.5 px `--sp-dash`. Checked: primary fill, white tick. A checked title is struck through and muted.
 - Habit check: same, with a 9 px corner radius, so tasks and habits are told apart by shape.
-- Task row: check, title and due line (overdue in `--sp-danger`), then either the claimer's avatar (30 px circle, person colour, white initial) or an outline `Tag opgaven`.
+- To-do row (idea 5, replaces the task row): round check, title (struck through and muted when done), the due label right-aligned (`i dag`, `i morgen`, a weekday within six days, else `30. nov`; overdue in `--sp-warn`, bold, with a hidden "Forfalden:"), then the owner avatar at 30 px: the person's avatar, or "CJ" in `--sp-tone-honey-ink` on `--sp-tone-honey` (the idea 2 tone pair) for Fælles. The row slides left over a `--sp-danger-tint` layer with a bin to delete; the edit sheet's `Slet` is the accessible alternative. Red stays reserved for destructive actions.
 - Habit row: check, title, then a pill with the owner's name on the person colour (`Fælles` on primary).
 
 ### 5.8 Shopping row and add field
