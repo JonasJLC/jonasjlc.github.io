@@ -33,6 +33,8 @@ Things found or deferred while building, outside the delivery plan in the design
 
 ## Known gaps in shipped slices
 
+- **Sundhed shows the Data panel only (idea 11).** Deferred: D38 curated cycle-phase explanations for Jonas (roadmap Q10, needs Camilla's approval of each text), goals (§5.4.3), nutrition (§5.4.2) and training (§5.4.4). The Vaner panel arrives with idea 15 (`#sundhed/vaner` already parses; add the panel in `sundhed/SundhedView.tsx`). Not yet tried in a browser: both phones at 360 and 520 px, 130 % text, sharing off as Camilla then reload as Jonas, keyboard and reduced motion.
+
 - **To-do has no recurrence (idea 5, roadmap Q3).** Recurring chores are not supported; add a "Gentag" option to a to-do if needed.
 - **Completed to-dos older than 30 days stay in `sp_todos`.** They are hidden, not deleted; add a clean-up if the table grows.
 - **To-do is online only.** Changes are shown at once and rolled back if they fail; there is no offline queue as Indkøb has (ADR-09). An undone delete of a completed to-do is re-stamped with the restorer and the time of the undo.

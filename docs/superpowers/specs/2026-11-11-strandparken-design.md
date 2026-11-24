@@ -509,20 +509,24 @@ Acceptance criteria:
 
 ### 5.4 Sundhed (tab)
 
-Sections, top to bottom: Camilla's Oura card, Jonas's training card, personal goals, nutrition insights. Each person sees their own cards always, and the other's only while sharing is on (D40).
+Sundhed is a panel view (idea 11, `#sundhed`, `#sundhed/data/<person>`, later `#sundhed/vaner`). It opens on the **Data** panel; idea 15 adds **Vaner** next to it (the segmented control appears when there are two panels). Goals (§5.4.3), nutrition (§5.4.2) and training (§5.4.4) stay future and are not shown. The original layout (a card per person) is superseded by 5.4.1. Each person sees their own numbers always, and the other's only for the metrics the owner shares (D40).
 
-#### 5.4.1 Oura (Camilla)
+#### 5.4.1 Data view (ideas 10 and 11)
 
-- Today's **sleep score** (idea 10 replaces readiness), activity progress and steps.
-- Today's **cycle day** and phase, from the in-app period log (D39; Oura's API has no cycle data, ADR-06).
-- A short **explanation written for Jonas**: what today's phase may mean in practice, from the curated texts (D38).
-- Camilla authorises the connection with her own Oura account and decides, per metric, what Jonas sees (D40, idea 10).
+Top to bottom: title (with a header slot for idea 15's `+`), a person switcher (Camilla | Jonas, the signed-in person selected; it lives in the route so a refresh and idea 12's deep link keep it), the source line ("Oura · synk. 19.45"), a 2×2 grid of today's tiles, "Søvn, 7 dage" and "Aktivitet, 7 dage" cards, and, for your own view only, "Hvad må <navn> se?" switches.
+
+- Tiles: **Søvn** (score), **Aktivitet** (percent of goal, shown as is above 100 %), **Skridt** (Danish grouping) and **Cyklus** ("Dag 14"), always in that order. A metric the owner does not share has **no tile** (never a blank one). A shared metric without a value says "Ingen data i nat" (sleep) or "Ingen data i dag". Cyklus appears only when there is a cycle value.
+- Freshness: if the newest data is not from today, today's tiles say "Ingen data" and the source line still shows the real last sync time. Yesterday's numbers are never shown as today's (§4.6).
+- Trends: seven bars ending today (plain HTML, no chart library), today in `--sp-primary`, the others in `--sp-primary-tint`, a missing day a short dashed stub, weekday letters below, "Snit 80" on the right (average of the days that have a value; activity is percent of goal). A screen-reader list repeats the numbers. A trend with no values is not drawn.
+- States: loading is skeleton tiles; error says "Tallene kunne ikke hentes." with "Prøv igen"; no source says "Forbind en enhed for at se dine tal her." with a button to the connect sheet (own view) or "<Navn> har ikke forbundet en enhed endnu."; all metrics hidden says "<Navn> deler ikke sine tal med dig."
+- Numbers and trends only: no interpretation or advice. The curated cycle-phase explanation written for Jonas (D38) is **deferred** (roadmap Q10) and not shown.
+- Per metric the owner decides what the other person sees (D40, idea 10): four switches ("Vis min søvn for <navn>", activity, steps, cycle; cycle is off by default), saved at once and rolled back with "Kunne ikke gemme. Prøv igen." on error. The database reads the choice on every call, so turning a switch off takes effect immediately.
+- Today's **cycle day** comes from the in-app period log (D39; Oura's API has no cycle data, ADR-06). Camilla authorises the connection with her own Oura account.
 
 Acceptance criteria:
 - [ ] Today's sleep score and cycle day are shown when there is data for today.
 - [ ] When data is missing or stale, the card says so rather than showing old values as today's.
-- [ ] The explanation is understandable without prior knowledge of the cycle phases.
-- [ ] Camilla has read and approved every explanation text before Jonas can see any.
+- [ ] (Deferred with D38, roadmap Q10) The explanation is understandable without prior knowledge, and Camilla has approved every text before Jonas sees any.
 - [ ] Camilla can stop sharing or disconnect Oura at any time, and Jonas's view disappears at once.
 
 #### 5.4.2 Nutrition and macros
