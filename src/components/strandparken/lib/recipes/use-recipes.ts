@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import type { CategoryRow, Recipe } from './model';
+import { subscribe } from './photo-jobs';
 import { loadCategories, loadRecipes, signedPhotoUrls } from './repo';
 
 export type RecipesState =
@@ -14,7 +15,8 @@ export function useRecipes() {
   const reload = useCallback(async () => {
     try {
       const [recipes, categories] = await Promise.all([loadRecipes(), loadCategories()]);
-      const photos = await signedPhotoUrls(recipes.flatMap((r) => (r.image_path ? [r.image_path] : [])));
+      // One call signs the photo and its thumbnail; views look either up by storage path.
+      const photos = await signedPhotoUrls(recipes.flatMap((r) => [r.image_path, r.thumb_path].filter((p): p is string => !!p)));
       setState({ status: 'ready', recipes, categories, photos });
     } catch {
       setState((s) => (s.status === 'ready' ? s : { status: 'error' }));
@@ -24,6 +26,9 @@ export function useRecipes() {
   useEffect(() => {
     void reload();
   }, [reload]);
+
+  // A photo job that finishes gives a recipe its photo: refetch so every view shows it.
+  useEffect(() => subscribe((event) => { if (event === 'end') void reload(); }), [reload]);
 
   return { state, reload, retry: () => { setState({ status: 'loading' }); void reload(); } };
 }

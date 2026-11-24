@@ -6,7 +6,7 @@ import { HttpError } from '../_shared/http.ts';
 import { z } from '../_shared/schema.ts';
 import { assertWithinLimits, limitsFromEnv } from '../_shared/usage.ts';
 import { fetchPage, type FetchDeps } from './fetch.ts';
-import { pageText } from './page.ts';
+import { pageText, pickImage } from './page.ts';
 
 export const GROCERY_CATEGORIES = [
   'Frugt & grønt', 'Brød & bagværk', 'Kød & fisk', 'Pålæg & køl', 'Mejeri & æg', 'Frost', 'Kolonial',
@@ -89,11 +89,14 @@ export async function importRecipe(caller: Caller, input: ImportInput, deps: Cal
   // A link is fetched and read as text. The limits are checked first, so a person over the daily limit cannot make the
   // function visit pages either.
   let fetchedText: string | null = null;
+  let imageUrl: string | null = null;
   if (input.kind === 'url') {
     await assertWithinLimits(caller.usage, caller, deps.limits ?? limitsFromEnv());
     const page = await fetchPage(input.url, deps.web);
     fetchedText = pageText(page.html).text;
     if (fetchedText.trim().length < 10) throw new HttpError(422, 'not_a_recipe');
+    // The photo is a bonus: whatever goes wrong while looking for it, the import carries on without one.
+    try { imageUrl = pickImage(page.html, page.url); } catch { imageUrl = null; }
   }
   const sourceUrl = cleanSourceUrl(input.kind === 'url' ? input.url : input.sourceUrl);
   const images = input.kind === 'images';
@@ -114,5 +117,5 @@ export async function importRecipe(caller: Caller, input: ImportInput, deps: Cal
   );
   if (!draft.isRecipe || draft.ingredients.length + draft.steps.length === 0) throw new HttpError(422, 'not_a_recipe');
   const { isRecipe: _isRecipe, ...rest } = draft;
-  return { ...rest, sourceUrl, originalText: input.kind === 'text' ? input.text : fetchedText };
+  return { ...rest, sourceUrl, imageUrl, originalText: input.kind === 'text' ? input.text : fetchedText };
 }

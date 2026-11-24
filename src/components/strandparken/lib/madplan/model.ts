@@ -9,20 +9,27 @@ export const quickDishes = ['Rester', 'Ude at spise', 'Takeaway'] as const;
 
 export const defaultServings = 2;
 
-export type Dish = { title: string; recipe: Recipe | null; /** Storage path of the recipe's or idea's photo. */ imagePath: string | null };
+export type Dish = {
+  title: string;
+  recipe: Recipe | null;
+  /** Storage path of the recipe's or idea's photo. */
+  imagePath: string | null;
+  /** Storage path of the ~400 px thumbnail, for small pictures. Null when there is none; use `imagePath` then. */
+  thumbPath: string | null;
+};
 
 /** What a plan entry shows: the recipe's title, or the free text. An idea shows its title. */
 export function dishOf(entry: PlanEntry, recipes: readonly Recipe[], ideas: readonly Idea[] = []): Dish {
   if (entry.recipe_id) {
     const recipe = recipes.find((r) => r.id === entry.recipe_id) ?? null;
-    return { title: recipe?.title ?? 'Opskrift', recipe, imagePath: recipe?.image_path ?? null };
+    return { title: recipe?.title ?? 'Opskrift', recipe, imagePath: recipe?.image_path ?? null, thumbPath: recipe?.thumb_path ?? null };
   }
   if (entry.idea_id) {
     const idea = ideas.find((i) => i.id === entry.idea_id);
-    return { title: idea?.title ?? 'Aftensidé', recipe: null, imagePath: idea?.image_path ?? null };
+    return { title: idea?.title ?? 'Aftensidé', recipe: null, imagePath: idea?.image_path ?? null, thumbPath: null };
   }
-  if (entry.free_text) return { title: entry.free_text, recipe: null, imagePath: null };
-  return { title: 'Aftensidé', recipe: null, imagePath: null };
+  if (entry.free_text) return { title: entry.free_text, recipe: null, imagePath: null, thumbPath: null };
+  return { title: 'Aftensidé', recipe: null, imagePath: null, thumbPath: null };
 }
 
 /** The entry on `date`, if any (one dinner per day). */

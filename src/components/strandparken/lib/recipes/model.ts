@@ -40,6 +40,8 @@ export type RecipeDraft = {
   sourceUrl: string;
   /** The pasted text an import came from, kept so the original wording can still be seen. */
   originalText?: string;
+  /** The dish photo an import found (an https address). Fetched into Storage after the recipe is saved, never hotlinked. */
+  imageUrl?: string;
 };
 
 export const emptyDraft = (categoryId: string | null = null): RecipeDraft => ({
@@ -107,3 +109,7 @@ export function draftFromRecipe(r: Recipe): RecipeDraft {
 
 let counter = 0;
 export const newIngredient = (): IngredientDraft => ({ key: `new-${Date.now()}-${counter++}`, amount: '', unit: '', name: '', note: '', scales: true });
+
+/** The link a small picture should use: the thumbnail when it is signed, otherwise the full photo. */
+export const smallPhotoUrl = (photos: Record<string, string>, thumbPath: string | null | undefined, imagePath: string | null | undefined): string | undefined =>
+  (thumbPath ? photos[thumbPath] : undefined) ?? (imagePath ? photos[imagePath] : undefined);

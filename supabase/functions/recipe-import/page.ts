@@ -101,3 +101,79 @@ export function pageText(html: string): { text: string; structured: boolean } {
   const recipe = recipeFromJsonLd(html);
   return recipe ? { text: recipe, structured: true } : { text: readableText(html), structured: false };
 }
+
+// The dish photo ----------------------------------------------------------------------------------------------
+
+const MAX_IMAGE_URL = 2000;
+
+/** An absolute https address for a raw image reference, or null. An `http:` address is upgraded only on the page's own host. */
+function usableImage(raw: unknown, page: URL): string | null {
+  if (typeof raw !== 'string') return null;
+  const text = decodeEntities(raw.trim());
+  if (!text || text.length > MAX_IMAGE_URL) return null;
+  let u: URL;
+  try { u = new URL(text, page); } catch { return null; }
+  if (u.protocol === 'http:' && u.hostname === page.hostname) u.protocol = 'https:';
+  if (u.protocol !== 'https:') return null;
+  const out = u.toString();
+  return out.length > MAX_IMAGE_URL ? null : out;
+}
+
+const sizeOf = (v: unknown) => {
+  const n = Number(v);
+  return Number.isFinite(n) && n > 0 ? n : 0;
+};
+
+/** The usable image of a schema.org `image` value: the largest ImageObject by area, or the first one when none has a size. */
+function bestFromImageValue(value: unknown, page: URL, byId: Map<string, Record<string, unknown>>): string | null {
+  const items = Array.isArray(value) ? value : [value];
+  let best: { url: string; area: number } | null = null;
+  for (const item of items) {
+    let url: string | null;
+    let area = 0;
+    if (typeof item === 'string') {
+      url = usableImage(item, page);
+    } else if (item && typeof item === 'object') {
+      let o = item as Record<string, unknown>;
+      const ref = typeof o['@id'] === 'string' ? byId.get(o['@id']) : undefined;
+      if (ref && !o.url && !o.contentUrl) o = ref;
+      url = usableImage(o.url ?? o.contentUrl, page);
+      area = sizeOf(o.width) * sizeOf(o.height);
+    } else continue;
+    if (url && (!best || area > best.area)) best = { url, area };
+  }
+  return best?.url ?? null;
+}
+
+function metaImage(html: string, names: string[], page: URL): string | null {
+  for (const name of names) {
+    for (const [tag] of html.matchAll(/<meta\b[^>]*>/gi)) {
+      const attr = (key: string) => new RegExp(`\\b${key}\\s*=\\s*(?:"([^"]*)"|'([^']*)'|([^\\s>]+))`, 'i').exec(tag);
+      const label = attr('property') ?? attr('name');
+      if ((label?.[1] ?? label?.[2] ?? label?.[3])?.toLowerCase() !== name) continue;
+      const content = attr('content');
+      const url = usableImage(content?.[1] ?? content?.[2] ?? content?.[3], page);
+      if (url) return url;
+    }
+  }
+  return null;
+}
+
+/** The dish photo a page names: schema.org Recipe image, then og:image, then twitter:image. Null when none is usable. */
+export function pickImage(html: string, pageUrl: string): string | null {
+  let page: URL;
+  try { page = new URL(pageUrl); } catch { return null; }
+  const blocks = html.matchAll(/<script[^>]*type\s*=\s*["']?application\/ld\+json["']?[^>]*>([\s\S]*?)<\/script>/gi);
+  for (const [, raw] of blocks) {
+    let data: unknown;
+    try { data = JSON.parse(raw.trim()); } catch { continue; }
+    const all = [...nodes(data)];
+    const byId = new Map(all.filter((n) => typeof n['@id'] === 'string').map((n) => [n['@id'] as string, n]));
+    for (const node of all) {
+      if (!isRecipe(node) || node.image === undefined) continue;
+      const url = bestFromImageValue(node.image, page, byId);
+      if (url) return url;
+    }
+  }
+  return metaImage(html, ['og:image', 'og:image:secure_url'], page) ?? metaImage(html, ['twitter:image', 'twitter:image:src'], page);
+}

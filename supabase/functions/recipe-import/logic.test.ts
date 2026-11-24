@@ -104,3 +104,12 @@ Deno.test('a person over the daily limit cannot make the function fetch pages', 
   assert.match(result, /^429 /);
   assert.equal(fetched, 0);
 });
+
+Deno.test('a link import also returns the dish photo address, and text and screenshot imports return null', async () => {
+  const page = `<html><head><meta property="og:image" content="/bilder/kylling.jpg"><script type="application/ld+json">${JSON.stringify({ '@type': 'Recipe', name: 'Kyllingegryde', recipeIngredient: ['500 g kyllingebryst'], recipeInstructions: ['Steg kyllingen.'] })}</script></head><body></body></html>`;
+  const out = await importRecipe(fakeCaller(), Input.parse({ kind: 'url', url: 'https://example.com/kylling' }), { client: fakeModel([{ text: draft() }]), limits, web: web(page) });
+  assert.equal(out.imageUrl, 'https://example.com/bilder/kylling.jpg');
+  assert.equal((await importRecipe(fakeCaller(), Input.parse({ kind: 'url', url: 'https://example.com/kylling' }), { client: fakeModel([{ text: draft() }]), limits, web: web(recipePage) })).imageUrl, null);
+  const text = await importRecipe(fakeCaller(), Input.parse({ kind: 'text', text: 'Kylling med ris og karry, 4 personer' }), { client: fakeModel([{ text: draft() }]), limits });
+  assert.equal(text.imageUrl, null);
+});

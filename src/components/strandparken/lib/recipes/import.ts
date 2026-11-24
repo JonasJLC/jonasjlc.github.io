@@ -12,6 +12,8 @@ export type ImportedRecipe = {
   steps: string[];
   unsure: ('title' | 'servings' | 'time' | 'ingredients' | 'steps')[];
   sourceUrl: string | null;
+  /** The photo address the page names, or null (also for text and screenshot imports). */
+  imageUrl?: string | null;
   originalText: string | null;
 };
 
@@ -81,6 +83,7 @@ export function toDraft(r: ImportedRecipe, dinnerCategoryId: string | null, groc
     steps: r.steps.length ? r.steps.map((s) => s.trim()).filter(Boolean) : [''],
     sourceUrl: r.sourceUrl ?? '',
     originalText: r.originalText ?? undefined,
+    imageUrl: r.imageUrl ?? undefined,
     // A missing servings or time is always worth a look, whatever the model said.
     unsure: [...new Set([...r.unsure, ...(r.servings ? [] : (['servings'] as const)), ...(r.totalMinutes ? [] : (['time'] as const))])],
   };

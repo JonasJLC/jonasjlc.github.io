@@ -134,6 +134,8 @@ with d as (update public.sp_recipes set title = 'Hacked' where id = '00000000-00
   insert into r select 'cannot update another household recipe', '0', count(*)::text from d;
 with d as (delete from public.sp_recipes where id = '00000000-0000-0000-0000-0000000000c1' returning 1)
   insert into r select 'cannot delete another household recipe', '0', count(*)::text from d;
+with d as (update public.sp_recipes set image_fetch_attempted_at = now() where id = '00000000-0000-0000-0000-0000000000c1' returning 1)
+  insert into r select 'cannot update another household recipe photo fetch state', '0', count(*)::text from d;
 
 -- Signed in, but a member of nothing (U3) --------------------------------------------------------------------
 reset role;

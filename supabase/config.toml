@@ -55,6 +55,10 @@ verify_jwt = false
 [functions.recipe-import]
 verify_jwt = false
 
+# Fetches a recipe photo for the browser to resize (Idé 1). Outbound network; no AI, no secrets beyond the platform's.
+[functions.recipe-image]
+verify_jwt = false
+
 # AI dinner suggestion for an empty day (slice 2.2).
 [functions.meal-suggest]
 verify_jwt = false

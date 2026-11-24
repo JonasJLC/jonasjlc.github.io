@@ -1,4 +1,5 @@
 import { getClient } from '../auth';
+import { fitWithin } from './photo-jobs-model';
 import { cleanTags, parseAmount, parseSteps, type CategoryRow, type IngredientRow, type Recipe, type RecipeDraft, type RecipeRow } from './model';
 
 const BUCKET = 'sp-recipes';
@@ -35,20 +36,29 @@ export async function signedPhotoUrls(paths: string[]): Promise<Record<string, s
   return out;
 }
 
-/** A photo is scaled to at most 1600 px on its long side and stored as JPEG, so a phone camera picture is ~300 KB, not 6 MB. */
-export async function shrinkImage(file: File): Promise<Blob> {
+/** The long side of a photo from the camera or library, and of an imported photo (main spec §4.6, roadmap Q10). */
+export const PHOTO_EDGE = 1600;
+export const IMPORTED_PHOTO_EDGE = 1200;
+const THUMB_EDGE = 400;
+
+/**
+ * A picture scaled to at most `maxEdge` px on its long side and stored as JPEG, so a phone camera picture is ~300 KB, not 6 MB.
+ * JPEG stays the format: Safari's `canvas.toBlob('image/webp')` does not encode WebP everywhere.
+ */
+export async function shrinkImage(file: Blob, maxEdge = PHOTO_EDGE, quality = 0.82): Promise<Blob> {
   const bitmap = await createImageBitmap(file);
-  const scale = Math.min(1, 1600 / Math.max(bitmap.width, bitmap.height));
+  const { w, h } = fitWithin(bitmap.width, bitmap.height, maxEdge);
   const canvas = document.createElement('canvas');
-  canvas.width = Math.round(bitmap.width * scale);
-  canvas.height = Math.round(bitmap.height * scale);
-  canvas.getContext('2d')!.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+  canvas.width = w;
+  canvas.height = h;
+  canvas.getContext('2d')!.drawImage(bitmap, 0, 0, w, h);
   bitmap.close();
-  const blob = await new Promise<Blob | null>((r) => canvas.toBlob(r, 'image/jpeg', 0.82));
+  const blob = await new Promise<Blob | null>((r) => canvas.toBlob(r, 'image/jpeg', quality));
   if (!blob) throw new Error('Billedet kunne ikke behandles.');
   return blob;
 }
 
+/** For ideas, whose photos have no thumbnail: one file under `<household>/<folder>/`. */
 export async function uploadPhoto(householdId: string, recipeId: string, file: File): Promise<string> {
   const c = await getClient();
   const path = `${householdId}/${recipeId}/${crypto.randomUUID()}.jpg`;
@@ -57,10 +67,73 @@ export async function uploadPhoto(householdId: string, recipeId: string, file: F
   return path;
 }
 
-export async function removePhoto(path: string | null) {
-  if (!path) return;
+export type PhotoPaths = { imagePath: string; thumbPath: string };
+
+/** A recipe photo: `<uuid>.jpg` at `maxEdge` px and `<uuid>-thumb.jpg` at 400 px, for the small pictures in grids and rows. */
+export async function uploadPhotoPair(householdId: string, recipeId: string, source: Blob, maxEdge = PHOTO_EDGE): Promise<PhotoPaths> {
   const c = await getClient();
-  await c.storage.from(BUCKET).remove([path]); // best effort: an orphan file is harmless
+  const base = `${householdId}/${recipeId}/${crypto.randomUUID()}`;
+  const full = await shrinkImage(source, maxEdge);
+  const thumb = await shrinkImage(full, THUMB_EDGE, 0.8);
+  const imagePath = `${base}.jpg`;
+  const thumbPath = `${base}-thumb.jpg`;
+  const up = (path: string, blob: Blob) => c.storage.from(BUCKET).upload(path, blob, { contentType: 'image/jpeg', upsert: false });
+  const first = await up(imagePath, full);
+  if (first.error) throw first.error;
+  const second = await up(thumbPath, thumb);
+  if (second.error) {
+    await removePhoto(imagePath);
+    throw second.error;
+  }
+  return { imagePath, thumbPath };
+}
+
+/** Deletes the file or files behind a photo. Best effort: an orphan file is harmless. */
+export async function removePhoto(...paths: (string | null | undefined)[]) {
+  const list = paths.filter((p): p is string => !!p);
+  if (!list.length) return;
+  const c = await getClient();
+  await c.storage.from(BUCKET).remove(list);
+}
+
+/** The photo a recipe row points at, as the pair of paths (the thumbnail may be missing on older recipes). */
+export type StoredPhoto = { image_path: string | null; thumb_path: string | null };
+
+/**
+ * Points a recipe at a new photo, or at none (`null`). Returns the photo it had, and leaves those files alone: the
+ * caller removes them when they are no longer needed (after the new photo is in place, or when `Fortryd` is not pressed).
+ */
+export async function setPhoto(recipeId: string, photo: PhotoPaths | StoredPhoto | null): Promise<StoredPhoto> {
+  const c = await getClient();
+  const { data: before, error: readError } = await c.from('sp_recipes').select('image_path, thumb_path').eq('id', recipeId).single();
+  if (readError) throw readError;
+  const next: StoredPhoto = !photo ? { image_path: null, thumb_path: null }
+    : 'imagePath' in photo ? { image_path: photo.imagePath, thumb_path: photo.thumbPath } : photo;
+  const { error } = await c.from('sp_recipes').update(next).eq('id', recipeId);
+  if (error) throw error;
+  return before;
+}
+
+/**
+ * Gives a recipe its fetched photo, only if it still has none (a person may have added one while the fetch ran), and records
+ * that the fetch was tried. Returns false when the recipe already had a photo, so the caller removes the new files.
+ */
+export async function fillPhotoIfEmpty(recipeId: string, photo: PhotoPaths): Promise<boolean> {
+  const c = await getClient();
+  const { data, error } = await c
+    .from('sp_recipes')
+    .update({ image_path: photo.imagePath, thumb_path: photo.thumbPath, image_fetch_attempted_at: new Date().toISOString() })
+    .eq('id', recipeId)
+    .is('image_path', null)
+    .select('id');
+  if (error) throw error;
+  return (data?.length ?? 0) > 0;
+}
+
+/** Records that fetching this recipe's photo was tried, so the backfill never tries it again. */
+export async function markPhotoAttempted(recipeId: string): Promise<void> {
+  const c = await getClient();
+  await c.from('sp_recipes').update({ image_fetch_attempted_at: new Date().toISOString() }).eq('id', recipeId);
 }
 
 export type SaveInput = {
@@ -82,13 +155,15 @@ export async function saveRecipe(householdId: string, { id, draft, photo, previo
   const recipeId = id ?? crypto.randomUUID();
 
   let imagePath = previous?.image_path ?? inheritedPhoto ?? null;
-  let oldPhoto: string | null = null;
+  let thumbPath = previous?.thumb_path ?? null;
+  let oldPhoto: (string | null)[] = [];
   if (photo && 'file' in photo) {
-    oldPhoto = imagePath;
-    imagePath = await uploadPhoto(householdId, recipeId, photo.file);
+    oldPhoto = [imagePath, thumbPath];
+    ({ imagePath, thumbPath } = await uploadPhotoPair(householdId, recipeId, photo.file, PHOTO_EDGE));
   } else if (photo && 'remove' in photo) {
-    oldPhoto = imagePath;
+    oldPhoto = [imagePath, thumbPath];
     imagePath = null;
+    thumbPath = null;
   }
 
   const row = {
@@ -103,7 +178,10 @@ export async function saveRecipe(householdId: string, { id, draft, photo, previo
     source_url: draft.sourceUrl.trim() || null,
     original_text: draft.originalText?.trim() || null,
     steps: draft.steps.map((t) => t.trim()).filter(Boolean).map((text) => ({ text })),
-    image_path: imagePath,
+    // An edit that leaves the photo alone does not write the photo columns: a photo job may have filled them since the editor opened.
+    ...(!previous || photo ? { image_path: imagePath, thumb_path: thumbPath } : {}),
+    // A new recipe from a link import keeps the photo address, so the photo job (and a later retry) can fetch it.
+    ...(!previous && !imagePath && draft.imageUrl ? { image_source_url: draft.imageUrl } : {}),
   };
   const { error } = await c.from('sp_recipes').upsert(row);
   if (error) throw error;
@@ -140,7 +218,7 @@ export async function saveRecipe(householdId: string, { id, draft, photo, previo
     const { error: e } = await c.from('sp_recipe_ingredients').delete().in('id', gone);
     if (e) throw e;
   }
-  if (oldPhoto) await removePhoto(oldPhoto);
+  await removePhoto(...oldPhoto);
   return recipeId;
 }
 

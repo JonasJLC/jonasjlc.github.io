@@ -1,4 +1,4 @@
-// Fetching a recipe page for `recipe-import` (design §4.5): HTTPS only, public addresses only (checked again after every
+// Fetching a recipe page, or a recipe photo, for `recipe-import` and `recipe-image` (design §4.5): HTTPS only, public addresses only (checked again after every
 // redirect), at most three redirects, 8 seconds in total, 2 MB of body, no cookies or credentials.
 // Known limit: the address is checked by resolving the name first and fetch() resolves it again, so a name that changes
 // its answer between the two lookups is not caught. The function holds no secrets the page could reach by that route.
@@ -96,9 +96,9 @@ async function assertPublic(u: URL, resolve: NonNullable<FetchDeps['resolve']>) 
   if (addresses.some(isPrivateAddress)) throw new HttpError(422, 'blocked');
 }
 
-async function readLimited(res: Response): Promise<Uint8Array> {
+async function readLimited(res: Response, maxBytes: number): Promise<Uint8Array> {
   const length = Number(res.headers.get('content-length'));
-  if (length > MAX_BYTES) throw new HttpError(422, 'too_large');
+  if (length > maxBytes) throw new HttpError(422, 'too_large');
   if (!res.body) return new Uint8Array();
   const reader = res.body.getReader();
   const chunks: Uint8Array[] = [];
@@ -107,7 +107,7 @@ async function readLimited(res: Response): Promise<Uint8Array> {
     const { done, value } = await reader.read();
     if (done) break;
     total += value.length;
-    if (total > MAX_BYTES) {
+    if (total > maxBytes) {
       await reader.cancel().catch(() => {});
       throw new HttpError(422, 'too_large');
     }
@@ -119,8 +119,19 @@ async function readLimited(res: Response): Promise<Uint8Array> {
   return out;
 }
 
-/** The HTML of a public web page. Throws `bad_url`, `blocked`, `too_large`, `not_html` or `fetch_failed`. */
-export async function fetchPage(rawUrl: string, deps: FetchDeps = {}): Promise<{ html: string; url: string }> {
+export interface PublicFetchOptions {
+  /** The Accept header to send. */
+  accept: string;
+  /** The content types that may be read. */
+  allowType: RegExp;
+  maxBytes: number;
+}
+
+/**
+ * The body of a public https address, under the rules in the header comment. Throws `bad_url`, `blocked`, `too_large`,
+ * `not_allowed_type` or `fetch_failed`.
+ */
+export async function fetchPublic(rawUrl: string, options: PublicFetchOptions, deps: FetchDeps = {}): Promise<{ bytes: Uint8Array; url: string; contentType: string }> {
   const doFetch = deps.fetch ?? fetch;
   const resolve = deps.resolve ?? defaultResolve;
   const signal = AbortSignal.timeout(TIMEOUT_MS);
@@ -135,7 +146,7 @@ export async function fetchPage(rawUrl: string, deps: FetchDeps = {}): Promise<{
         redirect: 'manual',
         credentials: 'omit',
         signal,
-        headers: { Accept: 'text/html,application/xhtml+xml', 'Accept-Language': 'da,en;q=0.8', 'User-Agent': 'Mozilla/5.0 (compatible; RecipeReader/1.0)' },
+        headers: { Accept: options.accept, 'Accept-Language': 'da,en;q=0.8', 'User-Agent': 'Mozilla/5.0 (compatible; RecipeReader/1.0)' },
       });
     } catch (e) {
       if (e instanceof HttpError) throw e;
@@ -153,22 +164,34 @@ export async function fetchPage(rawUrl: string, deps: FetchDeps = {}): Promise<{
       await res.body?.cancel().catch(() => {});
       throw new HttpError(502, 'fetch_failed');
     }
-    const type = res.headers.get('content-type') ?? '';
-    if (!/html|xml/i.test(type)) {
+    const contentType = res.headers.get('content-type') ?? '';
+    if (!options.allowType.test(contentType)) {
       await res.body?.cancel().catch(() => {});
-      throw new HttpError(422, 'not_html');
+      throw new HttpError(422, 'not_allowed_type');
     }
     let bytes: Uint8Array;
     try {
-      bytes = await readLimited(res);
+      bytes = await readLimited(res, options.maxBytes);
     } catch (e) {
       if (e instanceof HttpError) throw e;
       throw new HttpError(502, 'fetch_failed');
     }
-    const charset = /charset=["']?([\w-]+)/i.exec(type)?.[1] ?? 'utf-8';
-    let html: string;
-    try { html = new TextDecoder(charset).decode(bytes); } catch { html = new TextDecoder().decode(bytes); }
-    return { html, url: url.toString() };
+    return { bytes, url: url.toString(), contentType };
   }
   throw new HttpError(502, 'fetch_failed');
+}
+
+/** The HTML of a public web page. Throws `bad_url`, `blocked`, `too_large`, `not_html` or `fetch_failed`. */
+export async function fetchPage(rawUrl: string, deps: FetchDeps = {}): Promise<{ html: string; url: string }> {
+  let page: Awaited<ReturnType<typeof fetchPublic>>;
+  try {
+    page = await fetchPublic(rawUrl, { accept: 'text/html,application/xhtml+xml', allowType: /html|xml/i, maxBytes: MAX_BYTES }, deps);
+  } catch (e) {
+    if (e instanceof HttpError && e.code === 'not_allowed_type') throw new HttpError(422, 'not_html');
+    throw e;
+  }
+  const charset = /charset=["']?([\w-]+)/i.exec(page.contentType)?.[1] ?? 'utf-8';
+  let html: string;
+  try { html = new TextDecoder(charset).decode(page.bytes); } catch { html = new TextDecoder().decode(page.bytes); }
+  return { html, url: page.url };
 }

@@ -2,7 +2,7 @@ import { ChevronLeft, Clock, Users } from 'lucide-react';
 import { useState } from 'react';
 import { formatQuantity, scaleIngredient } from '../lib/recipes/scale';
 import type { Recipe } from '../lib/recipes/model';
-import { setArchived } from '../lib/recipes/repo';
+import { PHOTO_EDGE, removePhoto, setArchived, setPhoto, uploadPhotoPair } from '../lib/recipes/repo';
 import { Badge } from '../ui/badge';
 import { Button } from '../ui/button';
 import { DishImage } from '../ui/dish-image';
@@ -13,7 +13,9 @@ import { RecipeActionBar } from './RecipeActionBar';
 import { Stepper } from '../ui/stepper';
 import { notify } from '../ui/toast';
 
-type Props = { householdId: string | null; recipe: Recipe; category: string | null; photo?: string; onChanged: () => Promise<void> };
+type Props = { householdId: string | null; recipe: Recipe; category: string | null; photo?: string; /** The photo is still being fetched (Idé 1). */ pending?: boolean; onChanged: () => Promise<void> };
+
+const heroButton = 'sp-button-sm inline-flex min-h-sp-target items-center rounded-sp-pill bg-sp-surface px-3.5 text-sp-ink shadow-sp-float active:bg-sp-track';
 
 function Stat({ icon, label, value }: { icon: typeof Clock; label: string; value: string }) {
   return (
@@ -26,9 +28,52 @@ function Stat({ icon, label, value }: { icon: typeof Clock; label: string; value
 }
 
 /** One recipe (UI spec §5.11): photo, overlapping sheet, persons stepper that scales the amounts, ingredients and steps. */
-export function RecipeDetail({ householdId, recipe, category, photo, onChanged }: Props) {
+export function RecipeDetail({ householdId, recipe, category, photo, pending = false, onChanged }: Props) {
   const [persons, setPersons] = useState(recipe.base_servings);
   const [busy, setBusy] = useState(false);
+  const [photoBusy, setPhotoBusy] = useState(false);
+  const canEditPhoto = !!householdId && !recipe.archived_at;
+
+  /** Skift billede: a photo from the library or the camera replaces the current one (1600 px plus a thumbnail). */
+  const replacePhoto = async (file: File) => {
+    if (!householdId) return;
+    setPhotoBusy(true);
+    try {
+      const paths = await uploadPhotoPair(householdId, recipe.id, file, PHOTO_EDGE);
+      let before;
+      try {
+        before = await setPhoto(recipe.id, paths);
+      } catch (e) {
+        await removePhoto(paths.imagePath, paths.thumbPath);
+        throw e;
+      }
+      await removePhoto(before.image_path, before.thumb_path);
+      await onChanged();
+      notify('Billedet er skiftet.');
+    } catch {
+      notify('Billedet kunne ikke gemmes. Prøv igen.');
+    } finally {
+      setPhotoBusy(false);
+    }
+  };
+
+  /** Fjern billede, with Fortryd: the old files are deleted only when the toast goes away without it being pressed. */
+  const dropPhoto = async () => {
+    setPhotoBusy(true);
+    try {
+      const before = await setPhoto(recipe.id, null);
+      await onChanged();
+      let undone = false;
+      notify('Billedet er fjernet.', {
+        onUndo: () => { undone = true; void setPhoto(recipe.id, before).then(onChanged).catch(() => notify('Det lykkedes ikke. Prøv igen.')); },
+        onClosed: () => { if (!undone) void removePhoto(before.image_path, before.thumb_path); },
+      });
+    } catch {
+      notify('Det lykkedes ikke. Prøv igen.');
+    } finally {
+      setPhotoBusy(false);
+    }
+  };
 
   const archive = async (archived: boolean) => {
     setBusy(true);
@@ -51,7 +96,7 @@ export function RecipeDetail({ householdId, recipe, category, photo, onChanged }
   return (
     <article className={householdId && !recipe.archived_at ? 'mb-sp-action flex flex-col' : 'flex flex-col'}>
       <div className="sp-bleed-top sp-photo-hero relative -mx-sp-page-x">
-        <DishImage shape="cover" src={photo} name={recipe.title} />
+        <DishImage shape="cover" src={photo} name={recipe.title} pending={pending} live />
         <a
           href="#opskrifter"
           aria-label="Tilbage til opskrifter"
@@ -59,6 +104,16 @@ export function RecipeDetail({ householdId, recipe, category, photo, onChanged }
         >
           <Icon icon={ChevronLeft} />
         </a>
+        {canEditPhoto && (
+          <div className="absolute top-sp-page-top right-sp-page-x flex gap-2">
+            <label className={`${heroButton} cursor-pointer focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-sp-primary ${photoBusy ? 'opacity-45' : ''}`}>
+              Skift billede
+              {/* accept="image/*": iOS offers the photo library and the camera. */}
+              <input type="file" accept="image/*" className="sr-only" disabled={photoBusy} onChange={(e) => { const f = e.target.files?.[0]; e.target.value = ''; if (f) void replacePhoto(f); }} />
+            </label>
+            {recipe.image_path && <button type="button" disabled={photoBusy} onClick={() => void dropPhoto()} className={`${heroButton} disabled:opacity-45`}>Fjern billede</button>}
+          </div>
+        )}
       </div>
 
       <div className="sp-sheet-overlap relative -mx-sp-page-x flex flex-col gap-sp-gap rounded-t-sp-sheet bg-sp-surface px-sp-page-x pt-6 pb-6">
