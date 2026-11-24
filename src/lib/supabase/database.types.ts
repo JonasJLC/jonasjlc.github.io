@@ -98,6 +98,30 @@ export type Database = {
         Update: { created_at?: string; created_by?: string | null; household_id?: string; id?: string; name?: string; position?: number; updated_at?: string };
         Relationships: Rel[];
       };
+      sp_habit_completions: {
+        Row: { completed_by: string; created_at: string; date: string; habit_id: string; household_id: string; id: string; source: string };
+        Insert: { completed_by: string; created_at?: string; date: string; habit_id: string; household_id: string; id?: string; source?: string };
+        Update: { completed_by?: string; created_at?: string; date?: string; habit_id?: string; household_id?: string; id?: string; source?: string };
+        Relationships: Rel[];
+      };
+      sp_habits: {
+        Row: {
+          archived_at: string | null; color: string; created_at: string; created_by: string | null; frequency: string; household_id: string;
+          icon: string | null; id: string; owner: string; per_week_count: number | null; reminder_time: string | null; rule: Json | null;
+          title: string; tracking: string; updated_at: string; weekdays: number[] | null;
+        };
+        Insert: {
+          archived_at?: string | null; color?: string; created_at?: string; created_by?: string | null; frequency?: string; household_id: string;
+          icon?: string | null; id?: string; owner: string; per_week_count?: number | null; reminder_time?: string | null; rule?: Json | null;
+          title: string; tracking?: string; updated_at?: string; weekdays?: number[] | null;
+        };
+        Update: {
+          archived_at?: string | null; color?: string; created_at?: string; created_by?: string | null; frequency?: string; household_id?: string;
+          icon?: string | null; id?: string; owner?: string; per_week_count?: number | null; reminder_time?: string | null; rule?: Json | null;
+          title?: string; tracking?: string; updated_at?: string; weekdays?: number[] | null;
+        };
+        Relationships: Rel[];
+      };
       sp_health_connections: {
         Row: {
           connected_at: string; household_id: string; last_error: string | null; last_synced_at: string | null; person: string;

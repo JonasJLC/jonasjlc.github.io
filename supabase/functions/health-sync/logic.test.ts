@@ -1,7 +1,7 @@
 // Run: deno test --node-modules-dir=none --no-lock --allow-env supabase/functions
 import assert from 'node:assert/strict';
 import { HttpError } from '../_shared/http.ts';
-import { fakeHealthDb } from '../_shared/fakes.ts';
+import { fakeHabitsDb, fakeHealthDb } from '../_shared/fakes.ts';
 import { day } from '../_shared/health/normalise.ts';
 import type { FetchContext, HealthSource, ProviderId } from '../_shared/health/types.ts';
 import { AllInput, SelfInput, syncAll, syncPerson, THROTTLE_MS } from './logic.ts';
@@ -95,4 +95,43 @@ Deno.test('a source without an adapter is a recorded failure', async () => {
   const { db, deps } = await setup({ oura: source('oura') });
   assert.equal((await syncPerson(deps, jonas)).failed, 1);
   assert.equal(db.errors.get('h1/b/garmin'), 'no_adapter');
+});
+
+Deno.test('after the days are stored, automatic habits are completed from them (idea 15)', async () => {
+  // The fake source returns steps 1000 for `to` and sleep_score 70 for `from`.
+  const { db, deps } = await setup({ oura: source('oura') });
+  const habits = fakeHabitsDb(db);
+  habits.habits.push(
+    { ...camilla, id: 'sleep', rule: { metric: 'sleep_score', op: '>', threshold: 65 }, createdAt: '2026-11-01T10:00:00Z' },
+    { ...camilla, id: 'steps', rule: { metric: 'steps', op: '>=', threshold: 8000 }, createdAt: '2026-11-01T10:00:00Z' },
+  );
+  const counts = await syncPerson({ ...deps, habits }, camilla);
+  assert.deepEqual(counts, { synced: 1, skipped: 0, failed: 0, habits: 1 });
+  assert.deepEqual(habits.completions, [{ householdId: 'h1', habitId: 'sleep', date: '2026-11-13', person: 'a' }]);
+  assert.equal((await syncPerson({ ...deps, habits }, camilla, { force: true })).habits, 0, 'a second sync adds nothing');
+});
+
+Deno.test('a habits failure never fails the sync', async () => {
+  const { db, deps } = await setup({ oura: source('oura') });
+  const habits = fakeHabitsDb(db);
+  habits.habits.push({ ...camilla, id: 'sleep', rule: { metric: 'sleep_score', op: '>', threshold: 65 }, createdAt: '2026-11-01T10:00:00Z' });
+  habits.broken = true;
+  const log = console.error;
+  console.error = () => {};
+  try {
+    assert.deepEqual(await syncPerson({ ...deps, habits }, camilla), { synced: 1, skipped: 0, failed: 0, habits: 0 });
+  } finally {
+    console.error = log;
+  }
+  assert.equal(db.errors.get('h1/a/oura'), null);
+  assert.equal(db.days.length, 2);
+});
+
+Deno.test('a failed sync completes no habits, and mode all covers every person', async () => {
+  const { db, deps } = await setup({ oura: source('oura', new HttpError(409, 'reconnect')), garmin: source('garmin') });
+  const habits = fakeHabitsDb(db);
+  habits.habits.push({ ...jonas, id: 'j', rule: { metric: 'sleep_score', op: '>', threshold: 65 }, createdAt: '2026-11-01T10:00:00Z' });
+  const counts = await syncAll({ ...deps, habits });
+  assert.deepEqual(counts, { synced: 1, skipped: 0, failed: 1, habits: 1 });
+  assert.deepEqual(habits.completions.map((c) => c.person), ['b']);
 });

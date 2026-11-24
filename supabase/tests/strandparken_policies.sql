@@ -324,6 +324,161 @@ insert into r select 'health: another household gets zero rows', '0', count(*)::
 insert into r select 'health: another household sees no sources', '0', count(*)::text from public.sp_health_sources();
 insert into r select 'health: another household sees no sharing rows', '0', count(*)::text from public.sp_health_sharing;
 
+-- Habits (idea 15): in household 1, U1 is Jonas ('b') and U4 is Camilla ('a'). Seeded without a session, as the service role
+-- (no auth.uid()): Camilla's habit, a shared one, Jonas's, and one automatic steps habit each.
+reset role;
+select set_config('request.jwt.claims', '{"role":"service_role"}', true);
+insert into public.sp_habits (id, household_id, owner, title) values
+  ('00000000-0000-0000-0000-00000000ab01', '00000000-0000-0000-0000-0000000000a1', 'a', 'Camillas vane'),
+  ('00000000-0000-0000-0000-00000000ab02', '00000000-0000-0000-0000-0000000000a1', 'both', 'Fælles vane'),
+  ('00000000-0000-0000-0000-00000000ab03', '00000000-0000-0000-0000-0000000000a1', 'b', 'Jonas'' vane');
+insert into public.sp_habits (id, household_id, owner, title, tracking, rule) values
+  ('00000000-0000-0000-0000-00000000ab04', '00000000-0000-0000-0000-0000000000a1', 'a', 'Camilla 8.000 skridt', 'automatic', '{"metric":"steps","op":">=","threshold":8000}'),
+  ('00000000-0000-0000-0000-00000000ab05', '00000000-0000-0000-0000-0000000000a1', 'b', 'Jonas 8.000 skridt', 'automatic', '{"metric":"steps","op":">=","threshold":8000}');
+insert into r select 'habits: both tables are published to Realtime', '2', count(*)::text
+  from pg_publication_tables where pubname = 'supabase_realtime' and tablename in ('sp_habits', 'sp_habit_completions');
+insert into r select 'habits: full replica identity on both tables', '2', count(*)::text
+  from pg_class where oid in ('public.sp_habits'::regclass, 'public.sp_habit_completions'::regclass) and relreplident = 'f';
+select pg_temp.try('habits: the service role stores an automatic completion', 'ok',
+  $$insert into public.sp_habit_completions (household_id, habit_id, date, completed_by, source) values ('00000000-0000-0000-0000-0000000000a1', '00000000-0000-0000-0000-00000000ab05', current_date, 'b', 'automatic')$$);
+insert into r select 'habits: the service role keeps source automatic', 'automatic', source
+  from public.sp_habit_completions where habit_id = '00000000-0000-0000-0000-00000000ab05';
+select pg_temp.try('habits: the service role stores an automatic completion for Camilla', 'ok',
+  $$insert into public.sp_habit_completions (household_id, habit_id, date, completed_by, source) values ('00000000-0000-0000-0000-0000000000a1', '00000000-0000-0000-0000-00000000ab04', current_date, 'a', 'automatic')$$);
+
+-- Jonas
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000b1","role":"authenticated"}', true);
+set local role authenticated;
+insert into r select 'habits: a member reads every habit in the household, personal ones included', '5', count(*)::text from public.sp_habits;
+select pg_temp.try('habits: Jonas cannot add a habit for Camilla', '42501',
+  $$insert into public.sp_habits (household_id, owner, title) values ('00000000-0000-0000-0000-0000000000a1', 'a', 'Snyd')$$);
+select pg_temp.try('habits: Jonas adds his own habit', 'ok',
+  $$insert into public.sp_habits (id, household_id, owner, title) values ('00000000-0000-0000-0000-00000000ab06', '00000000-0000-0000-0000-0000000000a1', 'b', 'Drik vand')$$);
+select pg_temp.try('habits: Jonas adds a shared habit', 'ok',
+  $$insert into public.sp_habits (household_id, owner, title, frequency, per_week_count) values ('00000000-0000-0000-0000-0000000000a1', 'both', 'Gå tur', 'per_week', 3)$$);
+select pg_temp.try('habits: another household cannot be written to', '42501',
+  $$insert into public.sp_habits (household_id, owner, title) values ('00000000-0000-0000-0000-0000000000a2', 'b', 'Snyd')$$);
+select pg_temp.try('habits: a blank title is refused', '23514',
+  $$insert into public.sp_habits (household_id, owner, title) values ('00000000-0000-0000-0000-0000000000a1', 'b', '  ')$$);
+select pg_temp.try('habits: a shared habit cannot be automatic', '23514',
+  $$insert into public.sp_habits (household_id, owner, title, tracking, rule) values ('00000000-0000-0000-0000-0000000000a1', 'both', 'X', 'automatic', '{"metric":"steps","op":">=","threshold":1}')$$);
+select pg_temp.try('habits: an automatic habit needs a rule', '23514',
+  $$insert into public.sp_habits (household_id, owner, title, tracking) values ('00000000-0000-0000-0000-0000000000a1', 'b', 'X', 'automatic')$$);
+select pg_temp.try('habits: a manual habit has no rule', '23514',
+  $$insert into public.sp_habits (household_id, owner, title, rule) values ('00000000-0000-0000-0000-0000000000a1', 'b', 'X', '{"metric":"steps","op":">=","threshold":1}')$$);
+select pg_temp.try('habits: per-week needs a count', '23514',
+  $$insert into public.sp_habits (household_id, owner, title, frequency) values ('00000000-0000-0000-0000-0000000000a1', 'b', 'X', 'per_week')$$);
+select pg_temp.try('habits: weekdays must be 1 to 7', '23514',
+  $$insert into public.sp_habits (household_id, owner, title, frequency, weekdays) values ('00000000-0000-0000-0000-0000000000a1', 'b', 'X', 'weekdays', array[0, 8]::smallint[])$$);
+select pg_temp.try('habits: weekdays habit with days', 'ok',
+  $$insert into public.sp_habits (household_id, owner, title, frequency, weekdays) values ('00000000-0000-0000-0000-0000000000a1', 'b', 'Mandag og onsdag', 'weekdays', array[1, 3]::smallint[])$$);
+select pg_temp.try('habits: colour must be from the palette', '23514',
+  $$insert into public.sp_habits (household_id, owner, title, color) values ('00000000-0000-0000-0000-0000000000a1', 'b', 'X', 'pink')$$);
+with d as (update public.sp_habits set title = 'Hacked' where id = '00000000-0000-0000-0000-00000000ab01' returning 1)
+  insert into r select 'habits: Jonas cannot update Camilla''s habit', '0', count(*)::text from d;
+with d as (delete from public.sp_habits where id = '00000000-0000-0000-0000-00000000ab01' returning 1)
+  insert into r select 'habits: Jonas cannot delete Camilla''s habit', '0', count(*)::text from d;
+with d as (update public.sp_habits set title = 'Fælles vane (rettet)' where id = '00000000-0000-0000-0000-00000000ab02' returning 1)
+  insert into r select 'habits: Jonas edits a shared habit', '1', count(*)::text from d;
+select pg_temp.try('habits: owner cannot be handed over', 'ok',
+  $$update public.sp_habits set owner = 'a' where id = '00000000-0000-0000-0000-00000000ab03'$$);
+insert into r select 'habits: owner stayed', 'b', owner from public.sp_habits where id = '00000000-0000-0000-0000-00000000ab03';
+select pg_temp.try('habits: a personal habit cannot be made shared by update', 'ok',
+  $$update public.sp_habits set owner = 'both' where id = '00000000-0000-0000-0000-00000000ab03'$$);
+insert into r select 'habits: personal stayed personal', 'b', owner from public.sp_habits where id = '00000000-0000-0000-0000-00000000ab03';
+with d as (update public.sp_habits set archived_at = now() where id = '00000000-0000-0000-0000-00000000ab06' returning 1)
+  insert into r select 'habits: Jonas archives his own habit', '1', count(*)::text from d;
+
+-- Ticking
+select pg_temp.try('habits: Jonas ticks the shared habit', 'ok',
+  $$insert into public.sp_habit_completions (household_id, habit_id, date, completed_by) values ('00000000-0000-0000-0000-0000000000a1', '00000000-0000-0000-0000-00000000ab02', current_date, 'b')$$);
+select pg_temp.try('habits: completed_by cannot be spoofed', 'ok',
+  $$insert into public.sp_habit_completions (household_id, habit_id, date, completed_by) values ('00000000-0000-0000-0000-0000000000a1', '00000000-0000-0000-0000-00000000ab02', current_date - 1, 'a')$$);
+insert into r select 'habits: completed_by is the caller', 'b', completed_by
+  from public.sp_habit_completions where habit_id = '00000000-0000-0000-0000-00000000ab02' and date = current_date - 1;
+select pg_temp.try('habits: a client insert with source automatic is stored as manual', 'ok',
+  $$insert into public.sp_habit_completions (household_id, habit_id, date, completed_by, source) values ('00000000-0000-0000-0000-0000000000a1', '00000000-0000-0000-0000-00000000ab02', current_date - 2, 'b', 'automatic')$$);
+insert into r select 'habits: source was forced to manual', 'manual', source
+  from public.sp_habit_completions where habit_id = '00000000-0000-0000-0000-00000000ab02' and date = current_date - 2;
+select pg_temp.try('habits: one completion per habit and day', '23505',
+  $$insert into public.sp_habit_completions (household_id, habit_id, date, completed_by) values ('00000000-0000-0000-0000-0000000000a1', '00000000-0000-0000-0000-00000000ab02', current_date, 'b')$$);
+select pg_temp.try('habits: Jonas ticks his own habit', 'ok',
+  $$insert into public.sp_habit_completions (household_id, habit_id, date, completed_by) values ('00000000-0000-0000-0000-0000000000a1', '00000000-0000-0000-0000-00000000ab03', current_date, 'b')$$);
+select pg_temp.try('habits: Jonas cannot tick Camilla''s habit', '42501',
+  $$insert into public.sp_habit_completions (household_id, habit_id, date, completed_by) values ('00000000-0000-0000-0000-0000000000a1', '00000000-0000-0000-0000-00000000ab01', current_date, 'b')$$);
+select pg_temp.try('habits: ticking an automatic habit fails (his own)', 'P0001',
+  $$insert into public.sp_habit_completions (household_id, habit_id, date, completed_by) values ('00000000-0000-0000-0000-0000000000a1', '00000000-0000-0000-0000-00000000ab05', current_date - 1, 'b')$$);
+select pg_temp.try('habits: ticking an automatic habit fails (Camilla''s)', 'P0001',
+  $$insert into public.sp_habit_completions (household_id, habit_id, date, completed_by, source) values ('00000000-0000-0000-0000-0000000000a1', '00000000-0000-0000-0000-00000000ab04', current_date - 1, 'a', 'automatic')$$);
+select pg_temp.try('habits: a completion more than a day ahead is refused', '23514',
+  $$insert into public.sp_habit_completions (household_id, habit_id, date, completed_by) values ('00000000-0000-0000-0000-0000000000a1', '00000000-0000-0000-0000-00000000ab03', current_date + 3, 'b')$$);
+select pg_temp.try('habits: tomorrow is allowed (time zones)', 'ok',
+  $$insert into public.sp_habit_completions (household_id, habit_id, date, completed_by) values ('00000000-0000-0000-0000-0000000000a1', '00000000-0000-0000-0000-00000000ab03', current_date + 1, 'b')$$);
+select pg_temp.try('habits: a completion cannot point into another household', '42501',
+  $$insert into public.sp_habit_completions (household_id, habit_id, date, completed_by) values ('00000000-0000-0000-0000-0000000000a2', '00000000-0000-0000-0000-00000000ab02', current_date, 'b')$$);
+select pg_temp.try('habits: a completion cannot be edited', '42501',
+  $$update public.sp_habit_completions set completed_by = 'a' where habit_id = '00000000-0000-0000-0000-00000000ab02'$$);
+with d as (delete from public.sp_habit_completions where habit_id = '00000000-0000-0000-0000-00000000ab02' and date = current_date - 2 returning 1)
+  insert into r select 'habits: Jonas undoes his tick of the shared habit', '1', count(*)::text from d;
+select pg_temp.try('habits: an automatic completion cannot be undone by hand', 'P0001',
+  $$delete from public.sp_habit_completions where habit_id = '00000000-0000-0000-0000-00000000ab05'$$);
+insert into r select 'habits: the automatic completion is still there', '1', count(*)::text
+  from public.sp_habit_completions where habit_id = '00000000-0000-0000-0000-00000000ab05';
+
+-- Camilla
+reset role;
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000b4","role":"authenticated"}', true);
+set local role authenticated;
+insert into r select 'habits: Camilla reads Jonas''s personal habits too', '1', count(*)::text from public.sp_habits where id = '00000000-0000-0000-0000-00000000ab03';
+select pg_temp.try('habits: Camilla adds her own habit', 'ok',
+  $$insert into public.sp_habits (household_id, owner, title) values ('00000000-0000-0000-0000-0000000000a1', 'a', 'Strække ud')$$);
+select pg_temp.try('habits: Camilla cannot add a habit for Jonas', '42501',
+  $$insert into public.sp_habits (household_id, owner, title) values ('00000000-0000-0000-0000-0000000000a1', 'b', 'Snyd')$$);
+with d as (update public.sp_habits set title = 'Hacked' where id = '00000000-0000-0000-0000-00000000ab03' returning 1)
+  insert into r select 'habits: Camilla cannot update Jonas''s habit', '0', count(*)::text from d;
+with d as (delete from public.sp_habits where id = '00000000-0000-0000-0000-00000000ab03' returning 1)
+  insert into r select 'habits: Camilla cannot delete Jonas''s habit', '0', count(*)::text from d;
+select pg_temp.try('habits: Camilla cannot tick Jonas''s habit', '42501',
+  $$insert into public.sp_habit_completions (household_id, habit_id, date, completed_by) values ('00000000-0000-0000-0000-0000000000a1', '00000000-0000-0000-0000-00000000ab03', current_date - 1, 'a')$$);
+with d as (delete from public.sp_habit_completions where habit_id = '00000000-0000-0000-0000-00000000ab03' returning 1)
+  insert into r select 'habits: Camilla cannot undo Jonas''s tick', '0', count(*)::text from d;
+select pg_temp.try('habits: Camilla ticks her own habit', 'ok',
+  $$insert into public.sp_habit_completions (household_id, habit_id, date, completed_by) values ('00000000-0000-0000-0000-0000000000a1', '00000000-0000-0000-0000-00000000ab01', current_date, 'b')$$);
+insert into r select 'habits: completed_by is Camilla whatever was sent', 'a', completed_by
+  from public.sp_habit_completions where habit_id = '00000000-0000-0000-0000-00000000ab01';
+select pg_temp.try('habits: Camilla cannot tick her automatic habit', 'P0001',
+  $$insert into public.sp_habit_completions (household_id, habit_id, date, completed_by) values ('00000000-0000-0000-0000-0000000000a1', '00000000-0000-0000-0000-00000000ab04', current_date - 2, 'a')$$);
+with d as (delete from public.sp_habit_completions where habit_id = '00000000-0000-0000-0000-00000000ab02' and date = current_date returning 1)
+  insert into r select 'habits: either member undoes a shared tick', '1', count(*)::text from d;
+select pg_temp.try('habits: Camilla ticks the shared habit', 'ok',
+  $$insert into public.sp_habit_completions (household_id, habit_id, date, completed_by) values ('00000000-0000-0000-0000-0000000000a1', '00000000-0000-0000-0000-00000000ab02', current_date, 'a')$$);
+
+-- Cascade: deleting a habit removes its completions, automatic ones included (Jonas deletes his own automatic habit)
+reset role;
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000b1","role":"authenticated"}', true);
+set local role authenticated;
+with d as (delete from public.sp_habits where id = '00000000-0000-0000-0000-00000000ab05' returning 1)
+  insert into r select 'habits: Jonas deletes his automatic habit', '1', count(*)::text from d;
+insert into r select 'habits: its completions went with it', '0', count(*)::text
+  from public.sp_habit_completions where habit_id = '00000000-0000-0000-0000-00000000ab05';
+with d as (delete from public.sp_habits where id = '00000000-0000-0000-0000-00000000ab03' returning 1)
+  insert into r select 'habits: Jonas deletes his own manual habit', '1', count(*)::text from d;
+insert into r select 'habits: its ticks went with it', '0', count(*)::text
+  from public.sp_habit_completions where habit_id = '00000000-0000-0000-0000-00000000ab03';
+
+-- Another household (U2)
+reset role;
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000b2","role":"authenticated"}', true);
+set local role authenticated;
+insert into r select 'habits: another household sees no habits', '0', count(*)::text from public.sp_habits;
+insert into r select 'habits: another household sees no completions', '0', count(*)::text from public.sp_habit_completions;
+select pg_temp.try('habits: another household cannot add a habit to household 1', '42501',
+  $$insert into public.sp_habits (household_id, owner, title) values ('00000000-0000-0000-0000-0000000000a1', 'both', 'Snyd')$$);
+select pg_temp.try('habits: another household cannot tick a habit of household 1', '42501',
+  $$insert into public.sp_habit_completions (household_id, habit_id, date, completed_by) values ('00000000-0000-0000-0000-0000000000a1', '00000000-0000-0000-0000-00000000ab02', current_date - 3, 'a')$$);
+with d as (delete from public.sp_habits where id = '00000000-0000-0000-0000-00000000ab02' returning 1)
+  insert into r select 'habits: another household cannot delete a habit of household 1', '0', count(*)::text from d;
+
 -- Signed in, but a member of nothing (U3) --------------------------------------------------------------------
 reset role;
 select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000b3","role":"authenticated"}', true);
@@ -339,6 +494,8 @@ insert into r select 'non-member sees no ingredients', '0', count(*)::text from 
 insert into r select 'non-member sees no plan', '0', count(*)::text from public.sp_meal_plan_entries;
 insert into r select 'non-member sees no shopping list', '0', count(*)::text from public.sp_shopping_items;
 insert into r select 'non-member sees no to-dos', '0', count(*)::text from public.sp_todos;
+insert into r select 'non-member sees no habits', '0', count(*)::text from public.sp_habits;
+insert into r select 'non-member sees no habit completions', '0', count(*)::text from public.sp_habit_completions;
 insert into r select 'non-member sees no calendars', '0', count(*)::text from public.sp_calendar_sources;
 insert into r select 'non-member sees no unit preferences', '0', count(*)::text from public.sp_unit_preferences;
 insert into r select 'non-member sees no storage objects', '0', count(*)::text from storage.objects where bucket_id in ('sp-recipes', 'sp-documents');
@@ -352,6 +509,8 @@ set local role anon;
 select pg_temp.try('anon cannot read recipes', '42501', $$select * from public.sp_recipes$$);
 select pg_temp.try('anon cannot read the shopping list', '42501', $$select * from public.sp_shopping_items$$);
 select pg_temp.try('anon cannot read the to-dos', '42501', $$select * from public.sp_todos$$);
+select pg_temp.try('anon cannot read habits', '42501', $$select * from public.sp_habits$$);
+select pg_temp.try('anon cannot read habit completions', '42501', $$select * from public.sp_habit_completions$$);
 select pg_temp.try('anon cannot read calendars', '42501', $$select * from public.sp_calendar_sources$$);
 select pg_temp.try('anon cannot read unit preferences', '42501', $$select * from public.sp_unit_preferences$$);
 select pg_temp.try('anon cannot call sp_health_for', '42501', $$select * from public.sp_health_for('a', current_date, current_date)$$);

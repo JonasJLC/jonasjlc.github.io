@@ -69,6 +69,32 @@
   --sp-cal-6: #2B7676;
   --sp-cal-6-tint: #DCEFEE;
   --sp-cal-6-ink: #1B4D4D;
+  /* Idé 15: habit colours. The bare name is the fill and outline (dots, check circle, ring); -tint is the icon tile and the unfilled
+     ring; -ink is text and icon on the tint. White on the fill reaches 4.5:1, and the fill reaches 3:1 on surface and bg. */
+  --sp-habit-sage: #4E7D5B;
+  --sp-habit-sage-tint: #E4EFE3;
+  --sp-habit-sage-ink: #2F5A3A;
+  --sp-habit-moss: #6B7A2E;
+  --sp-habit-moss-tint: #ECEFD6;
+  --sp-habit-moss-ink: #4A5518;
+  --sp-habit-sky: #3F76A3;
+  --sp-habit-sky-tint: #E1ECF5;
+  --sp-habit-sky-ink: #285075;
+  --sp-habit-lavender: #7260A8;
+  --sp-habit-lavender-tint: #ECE8F6;
+  --sp-habit-lavender-ink: #4F4080;
+  --sp-habit-plum: #8E4A78;
+  --sp-habit-plum-tint: #F3E4EE;
+  --sp-habit-plum-ink: #6B2F58;
+  --sp-habit-rose: #B0485A;
+  --sp-habit-rose-tint: #F8E3E6;
+  --sp-habit-rose-ink: #8A2E40;
+  --sp-habit-clay: #B05A32;
+  --sp-habit-clay-tint: #F7E4DA;
+  --sp-habit-clay-ink: #85381B;
+  --sp-habit-sand: #8C6D2F;
+  --sp-habit-sand-tint: #F3EBD6;
+  --sp-habit-sand-ink: #66501A;
   --sp-scrim: rgba(27, 38, 32, 0.45);
   --sp-primary-pressed: color-mix(in oklab, var(--sp-primary) 96%, black); /* UI spec §5.2: pressed is 4% darker */
 
@@ -184,6 +210,30 @@
   --color-sp-cal-6: var(--sp-cal-6);
   --color-sp-cal-6-tint: var(--sp-cal-6-tint);
   --color-sp-cal-6-ink: var(--sp-cal-6-ink);
+  --color-sp-habit-sage: var(--sp-habit-sage);
+  --color-sp-habit-sage-tint: var(--sp-habit-sage-tint);
+  --color-sp-habit-sage-ink: var(--sp-habit-sage-ink);
+  --color-sp-habit-moss: var(--sp-habit-moss);
+  --color-sp-habit-moss-tint: var(--sp-habit-moss-tint);
+  --color-sp-habit-moss-ink: var(--sp-habit-moss-ink);
+  --color-sp-habit-sky: var(--sp-habit-sky);
+  --color-sp-habit-sky-tint: var(--sp-habit-sky-tint);
+  --color-sp-habit-sky-ink: var(--sp-habit-sky-ink);
+  --color-sp-habit-lavender: var(--sp-habit-lavender);
+  --color-sp-habit-lavender-tint: var(--sp-habit-lavender-tint);
+  --color-sp-habit-lavender-ink: var(--sp-habit-lavender-ink);
+  --color-sp-habit-plum: var(--sp-habit-plum);
+  --color-sp-habit-plum-tint: var(--sp-habit-plum-tint);
+  --color-sp-habit-plum-ink: var(--sp-habit-plum-ink);
+  --color-sp-habit-rose: var(--sp-habit-rose);
+  --color-sp-habit-rose-tint: var(--sp-habit-rose-tint);
+  --color-sp-habit-rose-ink: var(--sp-habit-rose-ink);
+  --color-sp-habit-clay: var(--sp-habit-clay);
+  --color-sp-habit-clay-tint: var(--sp-habit-clay-tint);
+  --color-sp-habit-clay-ink: var(--sp-habit-clay-ink);
+  --color-sp-habit-sand: var(--sp-habit-sand);
+  --color-sp-habit-sand-tint: var(--sp-habit-sand-tint);
+  --color-sp-habit-sand-ink: var(--sp-habit-sand-ink);
   --color-sp-scrim: var(--sp-scrim);
   --color-sp-primary-pressed: var(--sp-primary-pressed);
 

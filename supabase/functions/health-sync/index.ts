@@ -1,8 +1,18 @@
+import { createClient } from 'npm:@supabase/supabase-js@2';
 import { handler } from '../_shared/guard.ts';
 import { json } from '../_shared/http.ts';
 import { runtime } from '../_shared/health/runtime.ts';
 import { sameSecret } from '../_shared/health/tokens.ts';
+import { adminHabitsDb } from './habits.ts';
 import { AllInput, SelfInput, syncAll, syncPerson } from './logic.ts';
+
+// Service-role access to habits (idea 15), so automatic habits complete after each sync, in the background too.
+const syncDeps = (rt: ReturnType<typeof runtime>) => ({
+  db: rt.db,
+  sources: rt.sources,
+  now: Date.now,
+  habits: adminHabitsDb(createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!, { auth: { persistSession: false } })),
+});
 
 const log = (outcome: string, started: number, counts: Record<string, unknown> = {}) =>
   console.log(JSON.stringify({ fn: 'health-sync', outcome, ms: Date.now() - started, ...counts }));
@@ -14,7 +24,7 @@ const self = handler({
   run: async ({ caller, input }) => {
     const started = Date.now();
     const rt = runtime();
-    const counts = await syncPerson({ db: rt.db, sources: rt.sources, now: Date.now }, caller, { force: input.force });
+    const counts = await syncPerson(syncDeps(rt), caller, { force: input.force });
     log('self', started, counts);
     return counts;
   },
@@ -27,7 +37,7 @@ async function cron(req: Request): Promise<Response> {
   if (!parsed.success) return json({ error: 'bad_request' }, 400, null);
   try {
     const rt = runtime();
-    const counts = await syncAll({ db: rt.db, sources: rt.sources, now: Date.now }, { hours: parsed.data.hours });
+    const counts = await syncAll(syncDeps(rt), { hours: parsed.data.hours });
     log('all', started, counts);
     return json(counts, 200, null);
   } catch (e) {

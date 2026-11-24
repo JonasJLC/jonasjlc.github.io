@@ -4,6 +4,7 @@ import type { ModelClient } from './anthropic.ts';
 import type { UsageDb, UsageRow } from './usage.ts';
 import type { Connection, HealthDb, TokenRow, Who } from './health/db.ts';
 import type { HealthDay } from './health/types.ts';
+import type { AutomaticHabit, HabitsDb, NewCompletion } from '../health-sync/habits.ts';
 
 export interface FakeUsage extends UsageDb {
   rows: UsageRow[];
@@ -135,4 +136,43 @@ export function fakeHealthDb(now: () => number = () => Date.now()): HealthDb & {
     },
     deleteDays: (w, s) => { days = days.filter((x) => !(same(x, w) && x.source === s)); return Promise.resolve(); },
   };
+}
+
+/**
+ * An in-memory habits database over a fake health database's days. `habits` are the active automatic habits (`person` is the
+ * owner); `completions` is what was stored, unique per habit and date as in the table. `broken` makes every call throw.
+ */
+export function fakeHabitsDb(health: { days: (HealthDay & Who)[] }): HabitsDb & {
+  habits: (AutomaticHabit & Who)[];
+  completions: NewCompletion[];
+  broken: boolean;
+} {
+  const habits: (AutomaticHabit & Who)[] = [];
+  const completions: NewCompletion[] = [];
+  const db = {
+    habits,
+    completions,
+    broken: false,
+    automaticHabits: (w: Who) => {
+      if (db.broken) return Promise.reject(new Error('db'));
+      return Promise.resolve(habits.filter((h) => h.householdId === w.householdId && h.person === w.person).map(({ id, rule, createdAt }) => ({ id, rule, createdAt })));
+    },
+    days: (w: Who, from: string, to: string) => {
+      if (db.broken) return Promise.reject(new Error('db'));
+      return Promise.resolve(health.days
+        .filter((d) => d.householdId === w.householdId && d.person === w.person && d.date >= from && d.date <= to)
+        .map((d) => ({ date: d.date, source: d.source, steps: d.steps, sleep_score: d.sleep_score, activity_progress: d.activity_progress })));
+    },
+    addCompletions: (rows: NewCompletion[]) => {
+      if (db.broken) return Promise.reject(new Error('db'));
+      let added = 0;
+      for (const r of rows) {
+        if (completions.some((c) => c.habitId === r.habitId && c.date === r.date)) continue;
+        completions.push({ ...r });
+        added++;
+      }
+      return Promise.resolve(added);
+    },
+  };
+  return db;
 }
