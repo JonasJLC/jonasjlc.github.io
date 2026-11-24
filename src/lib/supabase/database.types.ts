@@ -128,20 +128,20 @@ export type Database = {
       sp_recipes: {
         Row: {
           archived_at: string | null; base_servings: number; category_id: string | null; created_at: string;
-          created_by: string | null; descriptor: string | null; household_id: string; id: string; image_path: string | null;
-          nutrition: Json | null; original_text: string | null; source_url: string | null; steps: Json; tags: string[];
+          created_by: string | null; descriptor: string | null; household_id: string; id: string; image_fetch_attempted_at: string | null; image_path: string | null;
+          image_source_url: string | null; nutrition: Json | null; original_text: string | null; source_url: string | null; steps: Json; tags: string[];
           thumb_path: string | null; title: string; total_minutes: number | null; updated_at: string;
         };
         Insert: {
           archived_at?: string | null; base_servings?: number; category_id?: string | null; created_at?: string;
-          created_by?: string | null; descriptor?: string | null; household_id: string; id?: string; image_path?: string | null;
-          nutrition?: Json | null; original_text?: string | null; source_url?: string | null; steps?: Json; tags?: string[];
+          created_by?: string | null; descriptor?: string | null; household_id: string; id?: string; image_fetch_attempted_at?: string | null; image_path?: string | null;
+          image_source_url?: string | null; nutrition?: Json | null; original_text?: string | null; source_url?: string | null; steps?: Json; tags?: string[];
           thumb_path?: string | null; title: string; total_minutes?: number | null; updated_at?: string;
         };
         Update: {
           archived_at?: string | null; base_servings?: number; category_id?: string | null; created_at?: string;
-          created_by?: string | null; descriptor?: string | null; household_id?: string; id?: string; image_path?: string | null;
-          nutrition?: Json | null; original_text?: string | null; source_url?: string | null; steps?: Json; tags?: string[];
+          created_by?: string | null; descriptor?: string | null; household_id?: string; id?: string; image_fetch_attempted_at?: string | null; image_path?: string | null;
+          image_source_url?: string | null; nutrition?: Json | null; original_text?: string | null; source_url?: string | null; steps?: Json; tags?: string[];
           thumb_path?: string | null; title?: string; total_minutes?: number | null; updated_at?: string;
         };
         Relationships: Rel[];
