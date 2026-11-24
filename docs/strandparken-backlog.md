@@ -4,12 +4,15 @@ Things found or deferred while building, outside the delivery plan in the design
 
 ## Before first real use
 
-- **Migration history is out of step with the files.** Production applied the Strandparken migrations (profiles included, 15 Nov) through the dashboard tool, so their versions differ from `supabase/migrations/`. `supabase db push` would try to re-apply them: repair the history (`supabase migration repair`) before using it. The cases in `supabase/tests/strandparken_policies.sql` have not been run against it.
-
-- **Try `recipe-import`** (deployed 15 Nov with the existing `ANTHROPIC_API_KEY` secret): one pasted caption, one screenshot and one link (a page with schema.org data and one without). The structured-output schema and the page fetch have only run against test doubles (slices 1.6 and 1.2). Spike R7 (cost and quality on 20 real imports) is still open.
-- **Try `meal-suggest` (2.2)**, deployed with `recipe-import`: `Foreslå ret` on an empty day with a few recipes saved. The structured-output schema (an enum of candidate ids) has only run against test doubles.
+- **Try `recipe-import` on more pages.** It has been used in production: 4 recipes saved (3 from links), 4 model calls (2 screenshot or vision calls on `claude-sonnet-5-5`, 2 on `claude-haiku-5-5`), no errors, 0.44 kr. in total as of 24 Nov. Still untested: a page without schema.org data, and a pasted social caption. Spike R7 (cost and quality on 20 real imports) is still open.
+- **Try `meal-suggest` (2.2):** `Foreslå ret` on an empty day with a few recipes saved. It had never been called in production as of 24 Nov; the structured-output schema (an enum of candidate ids) has only run against test doubles. Neither person has filled in a profile (dislikes, preferences) yet.
 - **Set a spend limit in the Anthropic console** as the backstop that ADR-07 recommends.
-- **Try the app on both phones** (sign-in, tick sync, review sheets). Slices 1.4 to 1.8 have been tested by unit tests and the build only, never in a browser against Supabase.
+- **Try the app on both phones** (sign-in, tick sync, review sheets). As of 24 Nov all 16 shopping rows were written by one person, so live sync between two phones has not been seen yet.
+
+## Done
+
+- **Migration history repaired (24 Nov).** Production had recorded the migrations under the versions the dashboard tool gave them, and `claim_only_verified_emails` was applied but never recorded. Each recorded migration was compared with its file (identical apart from comments). The files were then renamed to the production versions, and the missing history row was added. `supabase db push` now sees nothing to apply. `apply_migration` (dashboard or MCP) gives a migration its own version: rename the file to that version afterwards, or apply new migrations with `supabase db push` instead.
+- **Policy tests run against production (24 Nov):** `strandparken_policies.sql` 55/55, `strandparken_ai_usage.sql` 14/14, `claim_only_verified_emails.sql` 4/4. Every test ran inside a transaction that was rolled back, and no test rows remained afterwards. The database advisor reports only two items: `feature_chat_calls` has RLS on and no policies, which is intended because only the service role uses it; and leaked-password protection is off, which matters only if email sign-up is enabled (`supabase/config.toml` disables it).
 
 ## Known gaps in shipped slices
 
