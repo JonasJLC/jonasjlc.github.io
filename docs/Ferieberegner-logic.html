@@ -1,0 +1,613 @@
+<!doctype html>
+<html lang="da">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Ferieberegner</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#EEF3F2; --surface:#FFFFFF; --ink:#13252C; --muted:#566B72; --line:#D3DEDD;
+  --sea:#1F6F63; --sea-soft:#D3E9E3; --sun:#C98A12; --sun-soft:#FBEBC8; --warn:#B63E2F; --warn-soft:#F7DDD8;
+  --focus:#2B7FD6;
+  color-scheme:light;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0E191D; --surface:#152429; --ink:#E3EDEB; --muted:#93A8AD; --line:#2A3B40;
+    --sea:#5BC0AC; --sea-soft:#183B35; --sun:#F0BC4E; --sun-soft:#3A2F15; --warn:#F0806F; --warn-soft:#3F201C;
+    --focus:#7DB8F5; color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0E191D; --surface:#152429; --ink:#E3EDEB; --muted:#93A8AD; --line:#2A3B40;
+  --sea:#5BC0AC; --sea-soft:#183B35; --sun:#F0BC4E; --sun-soft:#3A2F15; --warn:#F0806F; --warn-soft:#3F201C;
+  --focus:#7DB8F5; color-scheme:dark;
+}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Schibsted Grotesk",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;font-size:16px;line-height:1.5;-webkit-font-smoothing:antialiased}
+.num{font-variant-numeric:tabular-nums}
+main{max-width:920px;margin:0 auto;padding:28px 20px 64px}
+h1{font-size:15px;font-weight:600;color:var(--muted);margin:0 0 14px;letter-spacing:.01em}
+h2{font-size:21px;font-weight:700;margin:0 0 4px;letter-spacing:-.01em}
+.lede{color:var(--muted);margin:0 0 16px;font-size:15px;max-width:62ch}
+section{margin-top:44px}
+a{color:var(--sea)}
+:focus-visible{outline:2px solid var(--focus);outline-offset:2px;border-radius:4px}
+
+/* Hero */
+.hero{font-size:clamp(30px,6.4vw,54px);line-height:1.08;font-weight:700;letter-spacing:-.025em;margin:0;max-width:18ch}
+.hero .big{color:var(--sea);white-space:nowrap}
+.hero-sub{font-size:clamp(17px,2.4vw,20px);color:var(--muted);margin:14px 0 0;max-width:46ch}
+.hero-sub strong{color:var(--ink);font-weight:600}
+
+.facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:2px;margin-top:28px;background:var(--line);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.fact{background:var(--surface);padding:14px 16px}
+.fact .k{font-size:13px;color:var(--muted)}
+.fact .v{font-size:22px;font-weight:700;letter-spacing:-.01em;margin-top:2px}
+.fact .s{font-size:13px;color:var(--muted)}
+.fact.sun .v{color:var(--sun)}
+.fact.warn .v{color:var(--warn)}
+.fact.ok .v{color:var(--sea)}
+
+/* Panels */
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px}
+label{display:block;font-size:13px;font-weight:600;color:var(--muted);margin-bottom:5px}
+input,select{font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:9px;padding:9px 11px;width:100%;min-height:42px}
+input:focus,select:focus{border-color:var(--sea);outline:none;box-shadow:0 0 0 3px var(--sea-soft)}
+.grid{display:grid;gap:12px}
+.form-grid{grid-template-columns:1fr 1fr}
+.form-grid .wide{grid-column:1/-1}
+@media (min-width:720px){.form-grid{grid-template-columns:1fr 1fr .8fr 1fr}.form-grid .wide{grid-column:auto}.form-grid .note{grid-column:1/-1}}
+.hint{font-size:13px;color:var(--muted);margin-top:6px;min-height:20px}
+.row-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px;align-items:center}
+button{font:inherit;font-weight:600;border-radius:9px;padding:9px 16px;min-height:42px;cursor:pointer;border:1px solid transparent}
+.btn-primary{background:var(--sea);color:var(--surface)}
+.btn-primary:hover{filter:brightness(1.07)}
+.btn-ghost{background:transparent;color:var(--ink);border-color:var(--line)}
+.btn-ghost:hover{background:var(--bg)}
+.btn-link{background:none;border:none;color:var(--sea);padding:4px 6px;min-height:auto;font-size:14px}
+.btn-link.danger{color:var(--warn)}
+.err{color:var(--warn);font-size:14px}
+
+/* Entries */
+.entries{list-style:none;margin:0;padding:0;display:grid;gap:10px}
+.entry{background:var(--surface);border:1px solid var(--line);border-left:4px solid var(--sun);border-radius:12px;padding:12px 14px;display:grid;grid-template-columns:1fr auto;gap:4px 14px}
+.entry.lukning{border-left-color:var(--muted)}
+.entry.past{opacity:.78}
+.entry .when{font-weight:600}
+.entry .meta{font-size:14px;color:var(--muted)}
+.entry .amt{text-align:right;font-weight:700;font-size:18px;white-space:nowrap}
+.entry .amt small{display:block;font-weight:500;font-size:13px;color:var(--muted)}
+.entry .foot{grid-column:1/-1;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;font-size:13px;color:var(--muted);border-top:1px dashed var(--line);padding-top:6px;margin-top:4px}
+.tag{display:inline-block;font-size:12px;font-weight:600;padding:1px 8px;border-radius:99px;background:var(--sun-soft);color:var(--ink);margin-left:6px;vertical-align:1px}
+.tag.grey{background:var(--bg)}
+.tag.warn{background:var(--warn-soft);color:var(--warn)}
+.empty{padding:22px;text-align:center;color:var(--muted);border:1px dashed var(--line);border-radius:12px}
+
+/* Pots */
+.pots{display:grid;gap:14px}
+.pot{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px 18px}
+.pot-head{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:baseline}
+.pot-title{font-size:18px;font-weight:700}
+.pot-now{font-size:14px;color:var(--muted)}
+.pot-now strong{color:var(--sea);font-size:18px}
+.pot-period{font-size:14px;color:var(--muted);margin:2px 0 12px}
+.bar{display:flex;height:14px;border-radius:99px;overflow:hidden;background:var(--bg)}
+.bar span{display:block;height:100%}
+.bar .u{background:var(--sun)}
+.bar .r{background:var(--sea)}
+.bar .l{background:var(--warn)}
+.legend{display:flex;flex-wrap:wrap;gap:6px 18px;margin-top:10px;font-size:14px}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;vertical-align:0}
+.pot-warn{margin-top:10px;font-size:14px;background:var(--warn-soft);color:var(--warn);padding:8px 12px;border-radius:9px}
+
+/* Chart + table */
+.chart-wrap{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px 8px 6px}
+svg text{font-family:inherit;fill:var(--muted);font-size:12px}
+.scroll{overflow-x:auto;margin-top:14px;border:1px solid var(--line);border-radius:12px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;min-width:460px;font-size:14px}
+th,td{padding:8px 12px;text-align:right;white-space:nowrap}
+th:first-child,td:first-child{text-align:left}
+thead th{font-size:13px;color:var(--muted);font-weight:600;border-bottom:1px solid var(--line);background:var(--bg)}
+tbody tr+tr td{border-top:1px solid var(--line)}
+td.pos{color:var(--sea)} td.neg{color:var(--sun)} td.lost{color:var(--warn)}
+tr.now td{background:var(--sea-soft)}
+
+/* Lookup */
+.lookup{display:grid;grid-template-columns:minmax(0,220px) 1fr;gap:16px;align-items:end}
+@media (max-width:560px){.lookup{grid-template-columns:1fr}}
+.lookup-out{font-size:15px;color:var(--muted)}
+.lookup-out strong{font-size:26px;color:var(--ink);display:block;letter-spacing:-.01em}
+
+details.settings{margin-top:44px;background:var(--surface);border:1px solid var(--line);border-radius:14px}
+details.settings summary{cursor:pointer;padding:16px 18px;font-weight:700;font-size:18px;list-style:none}
+details.settings summary::-webkit-details-marker{display:none}
+details.settings summary::after{content:"＋";float:right;color:var(--muted);font-weight:400}
+details.settings[open] summary::after{content:"－"}
+.settings-body{padding:0 18px 18px}
+.set-grid{grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
+.checks{display:flex;flex-wrap:wrap;gap:8px 18px;margin-top:4px}
+.checks label{display:flex;align-items:center;gap:8px;font-weight:500;color:var(--ink);font-size:15px;margin:0}
+.checks input{width:18px;height:18px;min-height:0}
+.fine{font-size:13px;color:var(--muted);margin-top:14px;max-width:70ch}
+.status{font-size:13px;color:var(--muted);margin-top:28px;text-align:center}
+@media (prefers-reduced-motion:no-preference){.bar span{transition:width .35s ease}}
+</style>
+</head>
+<body>
+<main>
+  <h1>Ferieberegner</h1>
+  <p class="hero" id="hero">Beregner …</p>
+  <p class="hero-sub" id="heroSub"></p>
+  <div class="facts" id="facts"></div>
+
+  <section aria-labelledby="h-add">
+    <h2 id="h-add">Registrér ferie</h2>
+    <p class="lede">Vælg perioden. Timerne udfyldes ud fra arbejdsdage (weekender og helligdage tæller ikke med) – ret dem, hvis du fx kun holder en halv dag.</p>
+    <div class="panel">
+      <div class="grid form-grid">
+        <div><label for="fFrom">Fra og med</label><input id="fFrom" type="date"></div>
+        <div><label for="fTo">Til og med</label><input id="fTo" type="date"></div>
+        <div><label for="fHours">Timer</label><input id="fHours" type="text" inputmode="decimal" autocomplete="off"></div>
+        <div><label for="fKind">Type</label>
+          <select id="fKind"><option value="ferie">Ferie</option><option value="lukning">Lukkedage (fx jul)</option></select></div>
+        <div class="wide note"><label for="fNote">Note (valgfri)</label><input id="fNote" type="text" maxlength="80" placeholder="Fx sommerferie"></div>
+      </div>
+      <div class="hint num" id="fHint"></div>
+      <div class="row-actions">
+        <button class="btn-primary" id="fSave" type="button">Tilføj ferie</button>
+        <button class="btn-ghost" id="fCancel" type="button" hidden>Annullér redigering</button>
+        <span class="err" id="fErr" role="alert"></span>
+      </div>
+    </div>
+  </section>
+
+  <section aria-labelledby="h-list">
+    <h2 id="h-list">Din ferie</h2>
+    <p class="lede">Ferie trækkes fra det, der udløber først. Udløber feriefridage og ferie samme dag, bruges feriefridagene først.</p>
+    <ul class="entries" id="entries"></ul>
+  </section>
+
+  <section aria-labelledby="h-pots">
+    <h2 id="h-pots">Ferieår</h2>
+    <p class="lede">Ferie optjenes 1. sep.–31. aug. og kan holdes, mens den optjenes, og frem til 31. dec. året efter. Feriefridage tildeles 1. jan. og skal holdes samme kalenderår.</p>
+    <div class="pots" id="pots"></div>
+  </section>
+
+  <section aria-labelledby="h-chart">
+    <h2 id="h-chart">Saldo måned for måned</h2>
+    <p class="lede">Forventet saldo ved udgangen af hver måned, med al registreret ferie trukket fra.</p>
+    <div class="chart-wrap" id="chart"></div>
+    <div class="scroll"><table id="table"></table></div>
+  </section>
+
+  <section aria-labelledby="h-look">
+    <h2 id="h-look">Hvad har jeg på en bestemt dato?</h2>
+    <div class="panel lookup">
+      <div><label for="lDate">Dato</label><input id="lDate" type="date"></div>
+      <div class="lookup-out num" id="lOut" aria-live="polite"></div>
+    </div>
+  </section>
+
+  <details class="settings" id="settings">
+    <summary>Startsaldo og indstillinger</summary>
+    <div class="settings-body">
+      <p class="lede">Tag tallene fra din seneste lønseddel eller dit HR-system. Når du opdaterer saldoen, så sæt datoen til den dag, tallene gælder for.</p>
+      <div class="grid set-grid">
+        <div><label for="sAsOf">Saldo gælder pr.</label><input id="sAsOf" type="date"></div>
+        <div><label for="sPrev" id="sPrevLbl">Timer fra sidste ferieår</label><input id="sPrev" type="text" inputmode="decimal"></div>
+        <div><label for="sCurr" id="sCurrLbl">Timer optjent i nuværende ferieår</label><input id="sCurr" type="text" inputmode="decimal"></div>
+        <div><label for="sMonthly">Optjening pr. måned (timer)</label><input id="sMonthly" type="text" inputmode="decimal"></div>
+        <div><label for="sDay">Timer pr. feriedag</label><input id="sDay" type="text" inputmode="decimal"></div>
+        <div><label for="sFf">Feriefridage pr. år, tildeles 1. jan. (timer)</label><input id="sFf" type="text" inputmode="decimal"></div>
+        <div><label for="sFfOpen">Feriefridage tilbage i år pr. saldodato (timer)</label><input id="sFfOpen" type="text" inputmode="decimal"></div>
+      </div>
+      <div style="margin-top:16px">
+        <label>Faste fridage ud over helligdage</label>
+        <div class="checks">
+          <label><input type="checkbox" data-md="06-05"> Grundlovsdag</label>
+          <label><input type="checkbox" data-md="12-24"> Juleaftensdag</label>
+          <label><input type="checkbox" data-md="12-31"> Nytårsaftensdag</label>
+        </div>
+      </div>
+      <div class="row-actions">
+        <button class="btn-ghost" id="sReset" type="button">Nulstil alt til startværdier</button>
+      </div>
+      <p class="fine">Næste måneds optjening lægges til ved månedens udgang. Ferie registreret før saldodatoen regnes som allerede trukket. Ikke afholdt ferie skal som udgangspunkt holdes inden 31. dec.; dage ud over 20 kan overføres efter skriftlig aftale med arbejdsgiveren. Tjek altid de præcise tal med løn/HR.</p>
+    </div>
+  </details>
+
+  <p class="status" id="status"></p>
+</main>
+
+<script>
+(function(){
+"use strict";
+const DAY = 864e5;
+const KEY = "ferieberegner.v1";
+const DEFAULT = {
+  v:1,
+  settings:{asOf:"2026-10-28",prevHours:4.28,currEarned:30.82,monthlyHours:15.41,hoursPerDay:7.4,ffHours:37,ffOpening:0,
+            extraOff:{"06-05":false,"12-24":true,"12-31":true}},
+  entries:[{id:"jul2026",from:"2026-12-28",to:"2027-01-03",hours:22.5,kind:"lukning",note:"Julelukning – kontoret holder lukket"}]
+};
+let state = clone(DEFAULT);
+let editingId = null, hoursManual = false;
+let store = {kind:"memory"}, ready = false, saveTimer = null;
+
+/* ---------- utils ---------- */
+function clone(o){return JSON.parse(JSON.stringify(o));}
+const pad = n => String(n).padStart(2,"0");
+const D = s => {const [y,m,d] = s.split("-").map(Number); return new Date(Date.UTC(y,m-1,d));};
+const iso = dt => dt.toISOString().slice(0,10);
+const todayIso = () => {const n = new Date(); return n.getFullYear()+"-"+pad(n.getMonth()+1)+"-"+pad(n.getDate());};
+const fyOf = dt => dt.getUTCMonth() >= 8 ? dt.getUTCFullYear() : dt.getUTCFullYear()-1;
+const fyLabel = y => y+"/"+pad((y+1)%100);
+const num = v => {const n = parseFloat(String(v).replace(/\s/g,"").replace(",",".")); return isFinite(n) ? n : NaN;};
+const nf = new Intl.NumberFormat("da-DK",{minimumFractionDigits:2,maximumFractionDigits:2});
+const h = x => nf.format(Math.abs(x) < 0.005 ? 0 : x) + " t";
+const hd = x => nf.format(Math.abs(x) < 0.005 ? 0 : x);
+const days = x => nf.format(x / (state.settings.hoursPerDay || 7.4)) + " dage";
+const dShort = s => D(s).toLocaleDateString("da-DK",{day:"numeric",month:"short",year:"numeric",timeZone:"UTC"});
+const dMonth = s => D(s).toLocaleDateString("da-DK",{month:"short",year:"numeric",timeZone:"UTC"});
+const esc = s => String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const $ = id => document.getElementById(id);
+
+function easter(y){
+  const a=y%19,b=Math.floor(y/100),c=y%100,d=Math.floor(b/4),e=b%4,f=Math.floor((b+8)/25),
+        g=Math.floor((b-f+1)/3),hh=(19*a+b-d-g+15)%30,i=Math.floor(c/4),k=c%4,
+        l=(32+2*e+2*i-hh-k)%7,m=Math.floor((a+11*hh+22*l)/451),
+        mo=Math.floor((hh+l-7*m+114)/31),da=((hh+l-7*m+114)%31)+1;
+  return new Date(Date.UTC(y,mo-1,da));
+}
+function holidaySet(y, extra){
+  const e = easter(y), s = new Set([y+"-01-01", y+"-12-25", y+"-12-26"]);
+  [-3,-2,1,39,50].forEach(o => s.add(iso(new Date(e.getTime()+o*DAY)))); // skærtorsdag, langfredag, 2. påskedag, Kr. himmelfart, 2. pinsedag
+  Object.keys(extra||{}).forEach(md => { if (extra[md]) s.add(y+"-"+md); });
+  return s;
+}
+function workdays(from, to, extra){
+  const out = []; if (!from) return out;
+  const a = D(from), b = D(to || from); if (b < a) return out;
+  const cache = {};
+  for (let t = a; t <= b; t = new Date(t.getTime()+DAY)){
+    const w = t.getUTCDay(); if (w === 0 || w === 6) continue;
+    const y = t.getUTCFullYear(); const hs = cache[y] || (cache[y] = holidaySet(y, extra));
+    const s = iso(t); if (!hs.has(s)) out.push(s);
+  }
+  return out;
+}
+
+/* ---------- engine ---------- */
+function compute(st, cutoff){
+  const s = st.settings, asOf = s.asOf, asOfD = D(asOf), Y = fyOf(asOfD);
+  const pots = {};
+  const pot = y => pots["fy"+y] || (pots["fy"+y] = {key:"fy"+y, kind:"fy", y, label:"Ferieår "+fyLabel(y), opening:0, accrued:0, used:0, lost:0, bal:0, start:y+"-09-01", expires:(y+1)+"-12-31", expired:false});
+  const ffPot = y => pots["ff"+y] || (pots["ff"+y] = {key:"ff"+y, kind:"ff", y, label:"Feriefridage "+y, opening:0, accrued:0, used:0, lost:0, bal:0, start:y+"-01-01", expires:y+"-12-31", expired:false});
+  const potByKey = k => k.slice(0,2) === "ff" ? ffPot(+k.slice(2)) : pot(+k.slice(2));
+  const pPrev = pot(Y-1); pPrev.opening = pPrev.bal = num(s.prevHours) || 0;
+  const pCur = pot(Y); pCur.opening = pCur.bal = num(s.currEarned) || 0;
+  const ffOpen = num(s.ffOpening) || 0;
+  if (ffOpen > 0){ const pf = ffPot(asOfD.getUTCFullYear()); pf.opening = pf.bal = ffOpen; }
+
+  let endY = Y+1;
+  st.entries.forEach(e => { const y = D(e.to || e.from).getUTCFullYear(); if (y > endY) endY = y; });
+  endY = Math.min(endY, Y+4);
+  const horizon = endY+"-12-31";
+
+  const ev = [];
+  let y = asOfD.getUTCFullYear(), m = asOfD.getUTCMonth()+1;
+  for(;;){ if (m > 11){m = 0; y++;} const end = new Date(Date.UTC(y, m+1, 0)); if (iso(end) > horizon) break;
+    ev.push({date:iso(end), t:0, h:num(s.monthlyHours)||0, key:"fy"+fyOf(end)}); m++; }
+  const ffH = num(s.ffHours) || 0;
+  if (ffH > 0) for (let yy = asOfD.getUTCFullYear(); yy <= endY; yy++){ const d = yy+"-01-01"; if (d > asOf){ ffPot(yy); ev.push({date:d, t:0, h:ffH, key:"ff"+yy}); } }
+
+  const info = {};
+  st.entries.forEach(e => {
+    const wd = workdays(e.from, e.to, s.extraOff);
+    const list = wd.length ? wd : [e.from];
+    const per = (num(e.hours)||0) / list.length;
+    const counted = list.filter(d => d >= asOf);
+    info[e.id] = {workdays:wd.length, alloc:{}, forskud:0, baseline:counted.length === 0, partial:counted.length>0 && counted.length<list.length};
+    counted.forEach(d => ev.push({date:d, t:1, h:per, id:e.id, fy:fyOf(D(d))}));
+  });
+  for (let k = Y-1; k < endY; k++){ const d = (k+1)+"-12-31"; if (d >= asOf) ev.push({date:d, t:2, key:"fy"+k}); }
+  Object.values(pots).filter(p => p.kind === "ff" && p.expires >= asOf && p.expires <= horizon).forEach(p => ev.push({date:p.expires, t:2, key:p.key}));
+  ev.sort((a,b) => a.date < b.date ? -1 : a.date > b.date ? 1 : a.t - b.t);
+
+  const opening = Object.values(pots).reduce((a,p) => a + p.bal, 0);
+  let total = opening;
+  const run = cutoff ? ev.filter(e => e.date <= cutoff) : ev;
+  run.forEach(e => {
+    if (e.t === 0){ const p = potByKey(e.key); p.accrued += e.h; p.bal += e.h; total += e.h; }
+    else if (e.t === 1){
+      let need = e.h; const it = info[e.id];
+      // Det der udløber først bruges først; ved samme udløbsdato bruges feriefridage før ferie
+      Object.values(pots).filter(p => !p.expired && p.bal > 0 && p.start <= e.date)
+        .sort((a,b) => a.expires < b.expires ? -1 : a.expires > b.expires ? 1 : a.kind === b.kind ? a.y - b.y : (a.kind === "ff" ? -1 : 1))
+        .forEach(p => { if (need < 1e-9) return;
+          const take = Math.min(need, p.bal); p.bal -= take; p.used += take; it.alloc[p.key] = (it.alloc[p.key]||0)+take; need -= take; });
+      if (need > 1e-9){ const p = pot(e.fy); p.bal -= need; p.used += need; it.alloc[p.key] = (it.alloc[p.key]||0)+need; it.forskud += need; }
+      total -= e.h;
+    } else {
+      const p = potByKey(e.key); const lost = Math.max(p.bal, 0); p.lost += lost; p.bal -= lost; p.expired = true; total -= lost; e.lost = lost;
+    }
+    e.total = total;
+  });
+  return {Y, pots, ev:run, allEv:ev, opening, total, horizon, info, asOf};
+}
+function balanceAt(st, date){ return compute(st, date); }
+
+/* ---------- render ---------- */
+function render(){
+  const s = state.settings;
+  const full = compute(state);
+  const today = todayIso() < s.asOf ? s.asOf : todayIso();
+  const now = balanceAt(state, today);
+  const Y = full.Y;
+  const yearEnd = D(today).getUTCFullYear()+"-12-31";
+  const atYearEnd = balanceAt(state, yearEnd);
+  const lostYearEnd = Object.values(atYearEnd.pots).filter(p => p.expires === yearEnd).reduce((a,p)=>a+p.lost,0);
+  const nextAcc = full.ev.find(e => e.t === 0 && e.date > today);
+  const future = full.ev.filter(e => e.t === 1 && e.date >= today).reduce((a,e)=>a+e.h,0);
+  const monthly = num(s.monthlyHours)||0;
+
+  $("hero").innerHTML = 'Du har <span class="big num">'+esc(h(now.total))+'</span> ferie til rådighed i dag';
+  $("heroSub").innerHTML = 'Det svarer til <strong class="num">'+esc(days(now.total))+'</strong>. Du optjener <strong class="num">'+esc(h(monthly))+'</strong> om måneden, eller <strong class="num">'+esc(days(monthly))+'</strong>.';
+
+  const facts = [];
+  if (nextAcc) facts.push({c:"ok", k:"Næste optjening", v:"+"+h(nextAcc.h), s:dShort(nextAcc.date)});
+  facts.push({c:"sun", k:"Planlagt ferie fremover", v:h(future), s:days(future)});
+  facts.push({c:"", k:"Saldo "+dShort(yearEnd), v:h(atYearEnd.total), s:"efter optjening og planlagt ferie"});
+  facts.push({c:lostYearEnd > 0.005 ? "warn" : "ok", k:"Går tabt "+dShort(yearEnd), v:h(lostYearEnd), s:lostYearEnd > 0.005 ? "planlæg ferie inden nytår" : "alt bliver brugt"});
+  $("facts").innerHTML = facts.map(f => '<div class="fact '+f.c+'"><div class="k">'+esc(f.k)+'</div><div class="v num">'+esc(f.v)+'</div><div class="s num">'+esc(f.s)+'</div></div>').join("");
+
+  renderEntries(full, today);
+  renderPots(full, now);
+  renderChart(full, today);
+  renderTable(full, today);
+  renderLookup();
+  $("sPrevLbl").textContent = "Timer fra ferieår "+fyLabel(Y-1);
+  $("sCurrLbl").textContent = "Timer optjent i ferieår "+fyLabel(Y);
+}
+
+function renderEntries(full, today){
+  const list = state.entries.slice().sort((a,b) => a.from < b.from ? -1 : 1);
+  if (!list.length){ $("entries").innerHTML = '<li class="empty">Ingen ferie registreret endnu. Tilføj din første periode ovenfor.</li>'; return; }
+  $("entries").innerHTML = list.map(e => {
+    const it = full.info[e.id] || {alloc:{}};
+    const past = (e.to||e.from) < today;
+    const range = e.to && e.to !== e.from ? dShort(e.from)+" – "+dShort(e.to) : dShort(e.from);
+    const allocTxt = Object.keys(it.alloc).sort((a,b) => full.pots[a].start < full.pots[b].start ? -1 : 1).map(k => full.pots[k].label+": "+h(it.alloc[k])).join(", ");
+    let foot = it.baseline ? "Ligger før saldodatoen og indgår allerede i startsaldoen"
+             : "Trækkes fra "+(allocTxt || "–") + (it.partial ? " (dage før saldodatoen er ikke trukket)" : "");
+    const tags = (e.kind === "lukning" ? '<span class="tag grey">Lukkedage</span>' : "")
+               + (past ? '<span class="tag grey">Afholdt</span>' : '<span class="tag">Planlagt</span>')
+               + (it.forskud > 0.005 ? '<span class="tag warn">Forskud '+esc(h(it.forskud))+'</span>' : "");
+    return '<li class="entry '+(e.kind==="lukning"?"lukning ":"")+(past?"past":"")+'">'
+      + '<div><div class="when">'+esc(range)+tags+'</div>'
+      + '<div class="meta">'+(e.note ? esc(e.note)+" · " : "")+it.workdays+' arbejdsdag'+(it.workdays===1?"":"e")+'</div></div>'
+      + '<div class="amt num">−'+esc(h(num(e.hours)||0))+'<small>'+esc(days(num(e.hours)||0))+'</small></div>'
+      + '<div class="foot num"><span>'+esc(foot)+'</span><span>'
+      + '<button class="btn-link" data-edit="'+esc(e.id)+'" type="button">Redigér</button>'
+      + '<button class="btn-link danger" data-del="'+esc(e.id)+'" type="button">Slet</button></span></div></li>';
+  }).join("");
+}
+
+function renderPots(full, now){
+  const keys = Object.keys(full.pots).sort((a,b) => full.pots[a].start < full.pots[b].start ? -1 : 1)
+    .filter(k => { const p = full.pots[k]; return p.opening + p.accrued + p.used > 0.005; });
+  $("pots").innerHTML = keys.map(k => {
+    const p = full.pots[k], pn = now.pots[k];
+    const earned = p.opening + p.accrued;
+    const base = Math.max(earned, p.used + Math.max(p.bal,0) + p.lost, 0.01);
+    const restEnd = Math.max(p.bal, 0);
+    const expiresInHorizon = p.expires <= full.horizon;
+    const nowBal = pn ? pn.bal : 0;
+    const period = p.kind === "ff" ? "Tildeles "+dShort(p.start)+". Holdes senest "+dShort(p.expires)+"."
+      : "Optjenes "+dShort(p.start)+" – "+dShort((p.y+1)+"-08-31")+". Holdes senest "+dShort(p.expires)+".";
+    const w = x => (Math.max(x,0)/base*100).toFixed(2)+"%";
+    let warn = "";
+    if (p.lost > 0.005) warn = '<div class="pot-warn num">'+esc(h(p.lost))+' ('+esc(days(p.lost))+') går tabt '+esc(dShort(p.expires))+', hvis den ikke afholdes eller overføres.</div>';
+    if (p.bal < -0.005) warn += '<div class="pot-warn num">Ferieåret er i minus med '+esc(h(-p.bal))+' (forskudsferie).</div>';
+    return '<div class="pot">'
+      + '<div class="pot-head"><div class="pot-title">'+esc(p.label)+'</div>'
+      + '<div class="pot-now num">I dag: <strong>'+esc(h(nowBal))+'</strong></div></div>'
+      + '<div class="pot-period">'+esc(period)+'</div>'
+      + '<div class="bar" role="img" aria-label="Brugt '+esc(h(p.used))+', rest '+esc(h(restEnd))+', tabt '+esc(h(p.lost))+'">'
+      + '<span class="u" style="width:'+w(p.used)+'"></span><span class="r" style="width:'+w(restEnd)+'"></span><span class="l" style="width:'+w(p.lost)+'"></span></div>'
+      + '<div class="legend num">'
+      + '<span>'+(p.kind === "ff" ? "Tildelt" : "Optjent i alt")+' <strong>'+esc(h(earned))+'</strong>'+(p.accrued>0.005?' (heraf '+esc(h(p.accrued))+' kommende)':'')+'</span>'
+      + '<span><i style="background:var(--sun)"></i>Afholdt/planlagt '+esc(h(p.used))+'</span>'
+      + '<span><i style="background:var(--sea)"></i>'+(expiresInHorizon?'Tilbage':'Tilbage pr. '+esc(dShort(full.horizon)))+' '+esc(h(restEnd))+'</span>'
+      + (p.lost>0.005?'<span><i style="background:var(--warn)"></i>Tabt '+esc(h(p.lost))+'</span>':'')
+      + '</div>'+warn+'</div>';
+  }).join("");
+}
+
+function monthRows(full){
+  const rows = []; const asOfD = D(full.asOf);
+  let y = asOfD.getUTCFullYear(), m = asOfD.getUTCMonth();
+  let total = full.opening;
+  const byMonth = {};
+  full.allEv.forEach(e => { const k = e.date.slice(0,7); (byMonth[k] = byMonth[k] || []).push(e); });
+  for(;;){
+    const key = y+"-"+pad(m+1); if (key+"-01" > full.horizon) break;
+    const evs = byMonth[key] || [];
+    let acc=0, used=0, lost=0;
+    evs.forEach(e => { if (e.t===0) acc+=e.h; else if (e.t===1) used+=e.h; else lost+=(e.lost||0); if (e.total!==undefined) total = e.total; });
+    rows.push({key, acc, used, lost, total});
+    m++; if (m>11){m=0;y++;}
+  }
+  return rows;
+}
+
+function renderTable(full, today){
+  const rows = monthRows(full); const anyLost = rows.some(r => r.lost > 0.005);
+  const curKey = today.slice(0,7);
+  $("table").innerHTML = '<thead><tr><th>Måned</th><th>Optjent</th><th>Afholdt</th>'+(anyLost?'<th>Tabt</th>':'')+'<th>Saldo</th><th>Dage</th></tr></thead><tbody>'
+    + rows.map(r => '<tr class="num'+(r.key===curKey?' now':'')+'"><td>'+esc(dMonth(r.key+"-01"))+'</td>'
+      + '<td class="'+(r.acc>0?'pos':'')+'">'+(r.acc>0?'+'+hd(r.acc):'–')+'</td>'
+      + '<td class="'+(r.used>0?'neg':'')+'">'+(r.used>0?'−'+hd(r.used):'–')+'</td>'
+      + (anyLost?'<td class="'+(r.lost>0?'lost':'')+'">'+(r.lost>0.005?'−'+hd(r.lost):'–')+'</td>':'')
+      + '<td><strong>'+hd(r.total)+'</strong></td><td>'+nf.format(r.total/(state.settings.hoursPerDay||7.4))+'</td></tr>').join("")
+    + '</tbody>';
+}
+
+function renderChart(full, today){
+  const rows = monthRows(full);
+  const el = $("chart"); const W = Math.max(300, el.clientWidth - 16), H = 220;
+  const pl = 44, pr = 12, pt = 14, pb = 28;
+  const pts = [{key:"start", total:full.opening, used:0}].concat(rows);
+  const vals = pts.map(p => p.total);
+  let max = Math.max.apply(null, vals), min = Math.min(0, Math.min.apply(null, vals));
+  const step = max - min > 120 ? 50 : 20;
+  max = Math.ceil(max/step)*step || step; min = Math.floor(min/step)*step;
+  const x = i => pl + (W-pl-pr) * (i/(pts.length-1 || 1));
+  const yv = v => pt + (H-pt-pb) * (1 - (v-min)/(max-min || 1));
+  let g = "";
+  for (let v = min; v <= max + 1e-9; v += step){
+    g += '<line x1="'+pl+'" x2="'+(W-pr)+'" y1="'+yv(v)+'" y2="'+yv(v)+'" stroke="var(--line)" stroke-width="1"'+(v===0&&min<0?'':'')+'/>'
+       + '<text x="'+(pl-8)+'" y="'+(yv(v)+4)+'" text-anchor="end">'+v+' t</text>';
+  }
+  const line = pts.map((p,i) => (i?"L":"M")+x(i).toFixed(1)+" "+yv(p.total).toFixed(1)).join(" ");
+  const area = line + " L"+x(pts.length-1).toFixed(1)+" "+yv(Math.max(min,0))+" L"+x(0)+" "+yv(Math.max(min,0))+" Z";
+  const every = W < 520 ? 3 : 2;
+  let labels = "", dots = "";
+  pts.forEach((p,i) => {
+    if (i>0 && (i-1) % every === 0) labels += '<text x="'+x(i)+'" y="'+(H-8)+'" text-anchor="middle">'+esc(D(p.key+"-01").toLocaleDateString("da-DK",{month:"short",timeZone:"UTC"}).replace(".",""))+'</text>';
+    if (p.used > 0.005) dots += '<circle cx="'+x(i)+'" cy="'+yv(p.total)+'" r="5" fill="var(--sun)" stroke="var(--surface)" stroke-width="2"><title>'+esc(dMonth(p.key+"-01"))+': −'+esc(h(p.used))+'</title></circle>';
+  });
+  const ti = pts.findIndex(p => p.key === today.slice(0,7));
+  const todayMark = ti > 0 ? '<line x1="'+x(ti-0.5)+'" x2="'+x(ti-0.5)+'" y1="'+pt+'" y2="'+(H-pb)+'" stroke="var(--muted)" stroke-dasharray="3 4"/><text x="'+(x(ti-0.5)+5)+'" y="'+(pt+10)+'">i dag</text>' : "";
+  el.innerHTML = '<svg width="'+W+'" height="'+H+'" viewBox="0 0 '+W+' '+H+'" role="img" aria-label="Forventet feriesaldo pr. måned">'
+    + g + '<path d="'+area+'" fill="var(--sea-soft)" opacity=".8"/>'
+    + '<path d="'+line+'" fill="none" stroke="var(--sea)" stroke-width="2.5" stroke-linejoin="round"/>'
+    + todayMark + dots + labels + '</svg>';
+}
+
+function renderLookup(){
+  const d = $("lDate").value; const out = $("lOut");
+  if (!d){ out.textContent = ""; return; }
+  if (d < state.settings.asOf){ out.innerHTML = "Vælg en dato fra "+esc(dShort(state.settings.asOf))+", hvor startsaldoen gælder."; return; }
+  const r = balanceAt(state, d);
+  const parts = Object.keys(r.pots).sort((a,b) => r.pots[a].start < r.pots[b].start ? -1 : 1)
+    .filter(k => !r.pots[k].expired && Math.abs(r.pots[k].bal) > 0.005)
+    .map(k => r.pots[k].label+": "+h(r.pots[k].bal));
+  out.innerHTML = '<strong>'+esc(h(r.total))+'</strong>'+esc(days(r.total))+' pr. '+esc(dShort(d))+(parts.length? '. Fordelt på '+esc(parts.join(", ")) : "")+'.';
+}
+
+/* ---------- form ---------- */
+function autoHours(){
+  const f = $("fFrom").value, t = $("fTo").value || f;
+  if (!f){ $("fHint").textContent = ""; return; }
+  const n = workdays(f, t, state.settings.extraOff).length;
+  const hp = state.settings.hoursPerDay || 7.4;
+  if (!hoursManual) $("fHours").value = hd(n*hp);
+  $("fHint").textContent = n+" arbejdsdag"+(n===1?"":"e")+" × "+nf.format(hp)+" t = "+h(n*hp)+(hoursManual ? " (du har rettet timerne manuelt)" : "");
+}
+function resetForm(){
+  editingId = null; hoursManual = false;
+  ["fFrom","fTo","fHours","fNote"].forEach(id => $(id).value = "");
+  $("fKind").value = "ferie"; $("fSave").textContent = "Tilføj ferie"; $("fCancel").hidden = true; $("fHint").textContent = ""; $("fErr").textContent = "";
+}
+$("fFrom").addEventListener("change", () => { if (!$("fTo").value || $("fTo").value < $("fFrom").value) $("fTo").value = $("fFrom").value; autoHours(); });
+$("fTo").addEventListener("change", autoHours);
+$("fHours").addEventListener("input", () => { hoursManual = $("fHours").value.trim() !== ""; autoHours(); });
+$("fCancel").addEventListener("click", resetForm);
+$("fSave").addEventListener("click", () => {
+  const from = $("fFrom").value, to = $("fTo").value || from, hrs = num($("fHours").value);
+  if (!from) return $("fErr").textContent = "Vælg en startdato.";
+  if (to < from) return $("fErr").textContent = "Slutdatoen ligger før startdatoen.";
+  if (!(hrs > 0)) return $("fErr").textContent = "Angiv antal timer (større end 0).";
+  const entry = {id: editingId || ("e"+Date.now().toString(36)), from, to, hours:Math.round(hrs*100)/100, kind:$("fKind").value, note:$("fNote").value.trim()};
+  if (editingId) state.entries = state.entries.map(e => e.id === editingId ? entry : e); else state.entries.push(entry);
+  resetForm(); changed();
+});
+$("entries").addEventListener("click", ev => {
+  const del = ev.target.closest("[data-del]"), ed = ev.target.closest("[data-edit]");
+  if (del){ const e = state.entries.find(x => x.id === del.dataset.del); if (e && confirm("Slet ferien "+dShort(e.from)+"?")){ state.entries = state.entries.filter(x => x.id !== e.id); if (editingId === e.id) resetForm(); changed(); } }
+  if (ed){ const e = state.entries.find(x => x.id === ed.dataset.edit); if (!e) return;
+    editingId = e.id; hoursManual = true;
+    $("fFrom").value = e.from; $("fTo").value = e.to || e.from; $("fHours").value = hd(e.hours); $("fKind").value = e.kind || "ferie"; $("fNote").value = e.note || "";
+    $("fSave").textContent = "Gem ændringer"; $("fCancel").hidden = false; autoHours();
+    $("h-add").scrollIntoView({behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth"}); }
+});
+
+/* ---------- settings ---------- */
+function fillSettings(){
+  const s = state.settings;
+  $("sAsOf").value = s.asOf; $("sPrev").value = hd(s.prevHours); $("sCurr").value = hd(s.currEarned);
+  $("sMonthly").value = hd(s.monthlyHours); $("sDay").value = nf.format(s.hoursPerDay);
+  $("sFf").value = hd(s.ffHours || 0); $("sFfOpen").value = hd(s.ffOpening || 0);
+  document.querySelectorAll(".checks input").forEach(c => c.checked = !!(s.extraOff||{})[c.dataset.md]);
+}
+function readSettings(){
+  const s = state.settings;
+  if ($("sAsOf").value) s.asOf = $("sAsOf").value;
+  [["sPrev","prevHours"],["sCurr","currEarned"],["sMonthly","monthlyHours"],["sDay","hoursPerDay"],["sFf","ffHours"],["sFfOpen","ffOpening"]].forEach(([id,k]) => { const v = num($(id).value); if (isFinite(v) && v >= 0) s[k] = v; });
+  if (!(s.hoursPerDay > 0)) s.hoursPerDay = 7.4;
+  s.extraOff = {}; document.querySelectorAll(".checks input").forEach(c => s.extraOff[c.dataset.md] = c.checked);
+  changed();
+}
+["sAsOf","sPrev","sCurr","sMonthly","sDay","sFf","sFfOpen"].forEach(id => $(id).addEventListener("change", readSettings));
+document.querySelectorAll(".checks input").forEach(c => c.addEventListener("change", readSettings));
+$("sReset").addEventListener("click", () => { if (confirm("Nulstil saldo, indstillinger og al registreret ferie til startværdierne?")){ state = clone(DEFAULT); fillSettings(); resetForm(); changed(); } });
+$("lDate").addEventListener("change", renderLookup);
+
+let rT; window.addEventListener("resize", () => { clearTimeout(rT); rT = setTimeout(() => renderChart(compute(state), todayIso() < state.settings.asOf ? state.settings.asOf : todayIso()), 120); });
+
+/* ---------- persistence ---------- */
+function setStatus(){
+  $("status").textContent = store.kind === "db" ? "Dine tal gemmes automatisk på din konto og er kun synlige for dig."
+    : store.kind === "local" ? "Dine tal gemmes automatisk i denne browser."
+    : "Dine tal gemmes ikke her – ændringer forsvinder, når siden lukkes.";
+}
+function changed(){ render(); if (!ready) return; clearTimeout(saveTimer); saveTimer = setTimeout(save, 400); }
+async function save(){
+  const data = JSON.parse(JSON.stringify(state));
+  try {
+    if (store.kind === "db") { await store.ref.set({state:data, savedAt:new Date().toISOString()}); }
+    else if (store.kind === "local") { localStorage.setItem(KEY, JSON.stringify(data)); }
+  } catch(e){ $("status").textContent = "Kunne ikke gemme lige nu – prøv igen om lidt."; return; }
+  setStatus();
+}
+function valid(s){ return s && s.settings && Array.isArray(s.entries); }
+async function init(){
+  let loaded = null;
+  try {
+    if (window.claude && typeof window.claude.use === "function"){
+      const db = await window.claude.use("db");
+      const user = db ? await window.claude.use("user") : null;
+      const id = user ? await user.id() : null;
+      if (db && id){
+        store = {kind:"db", ref: db.collection("data/users/"+id).doc("ferieberegner")};
+        const snap = await store.ref.get();
+        if (snap.exists){ const d = snap.data(); if (d && valid(d.state)) loaded = d.state; }
+      }
+    }
+  } catch(e){ store = {kind:"memory"}; }
+  if (store.kind !== "db"){
+    try { const raw = localStorage.getItem(KEY); store = {kind:"local"}; if (raw){ const d = JSON.parse(raw); if (valid(d)) loaded = d; } }
+    catch(e){ store = {kind:"memory"}; }
+  }
+  if (loaded){ loaded.settings = Object.assign(clone(DEFAULT.settings), loaded.settings); state = loaded; fillSettings(); render(); }
+  ready = true; setStatus();
+}
+
+/* ---------- boot ---------- */
+fillSettings();
+$("lDate").value = D(todayIso()).getUTCFullYear()+"-12-31";
+render();
+init();
+})();
+</script>
+</body>
+</html>

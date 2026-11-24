@@ -1,0 +1,1 @@
+In "Rejseplan" when clicking on "Hvor sover vi" under "Dag for dag" in the searchbar I would like to integrate with Google Maps, such that whenever I search for a hotel (or w/e), then it should use google maps to search if that makes sense. Is that possible? Does it require anything?

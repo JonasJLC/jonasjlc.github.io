@@ -1,0 +1,1863 @@
+<!doctype html>
+<html lang="da">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Ferieplan</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#EAF0EF; --surface:#FFFFFF; --surface2:#F5F8F7; --ink:#15232B; --muted:#5A6A72; --line:#D3DDDC;
+  --a:#2867B0; --b:#B8457F; --warn:#C23D2A; --ok:#2C7D53; --hol:#C98A12; --cash:#17796A; --onc:#FFFFFF;
+  color-scheme:light;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0E171B; --surface:#152127; --surface2:#1A2930; --ink:#E4EDEF; --muted:#94A6AD; --line:#283A41;
+    --a:#6EA6EA; --b:#E57DB0; --warn:#F07A63; --ok:#5DC08B; --hol:#E9B547; --cash:#57C7B0; --onc:#0E171B;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0E171B; --surface:#152127; --surface2:#1A2930; --ink:#E4EDEF; --muted:#94A6AD; --line:#283A41;
+  --a:#6EA6EA; --b:#E57DB0; --warn:#F07A63; --ok:#5DC08B; --hol:#E9B547; --cash:#57C7B0; --onc:#0E171B;
+  color-scheme:dark;
+}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*,*::before,*::after{box-sizing:inherit}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 Figtree,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1180px;margin:0 auto;padding:32px 20px 64px}
+h1,h2,h3,.disp{font-family:"Bricolage Grotesque",Figtree,system-ui,sans-serif}
+h1{font-size:clamp(2.4rem,6vw,4rem);line-height:1;margin:0;font-weight:800;letter-spacing:-.03em}
+h2{font-size:1.45rem;margin:0 0 14px;font-weight:700;letter-spacing:-.01em}
+button,input,select{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--a);outline-offset:2px}
+.num{font-variant-numeric:tabular-nums}
+
+/* header */
+.top{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:16px 24px}
+.titlerow{display:flex;align-items:baseline;gap:18px;flex-wrap:wrap}
+.years{display:inline-flex;background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:3px}
+.years button{border:0;background:none;padding:6px 14px;border-radius:999px;cursor:pointer;font-weight:600;color:var(--muted)}
+.years button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+.lede{color:var(--muted);margin:10px 0 0;max-width:62ch}
+.sync{font-size:.85rem;color:var(--muted);display:flex;align-items:center;gap:8px}
+.sync i{width:8px;height:8px;border-radius:50%;background:var(--muted);display:inline-block}
+.sync.shared i{background:var(--ok)}
+.sync.local i{background:var(--hol)}
+
+/* people */
+.people{display:grid;grid-template-columns:1fr 1fr;margin-top:28px;border-top:1px solid var(--line)}
+.person{padding:18px 4px 0;display:flex;flex-direction:column;gap:10px;position:relative}
+.person+.person{padding-left:24px;border-left:1px solid var(--line)}
+.person::before{content:"";position:absolute;top:-1px;left:0;right:0;height:4px;background:var(--c)}
+.person+.person::before{left:0}
+.pname{font-family:"Bricolage Grotesque",Figtree,sans-serif;font-weight:700;font-size:1.6rem;border:0;background:transparent;padding:0;width:100%;color:var(--c);letter-spacing:-.01em}
+.pname:hover{text-decoration:underline dotted;text-underline-offset:6px}
+.stats{display:flex;flex-wrap:wrap;gap:6px 28px}
+.stat b{display:block;font-family:"Bricolage Grotesque",Figtree,sans-serif;font-size:1.9rem;font-weight:700;line-height:1.1}
+.stat span{font-size:.85rem;color:var(--muted)}
+.stat.neg b{color:var(--warn)}
+
+/* chart */
+.chartbox{margin-top:26px;background:var(--surface);border-radius:20px;padding:18px 16px 10px;position:relative}
+.charthead{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap;padding:0 6px 6px}
+.legend{display:flex;gap:16px;font-size:.88rem;color:var(--muted);flex-wrap:wrap}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend i{width:18px;height:3px;border-radius:2px;display:inline-block}
+#chart{width:100%;position:relative}
+#chart svg{display:block;width:100%;height:auto;overflow:visible}
+.ax{font-size:11px;fill:var(--muted)}
+.grid{stroke:var(--line);stroke-width:1}
+.zero{stroke:var(--muted);stroke-width:1}
+.tip{transition:opacity .12s,left .09s ease-out;position:absolute;pointer-events:none;background:var(--ink);color:var(--bg);padding:8px 11px;border-radius:10px;font-size:.84rem;line-height:1.4;white-space:nowrap;transform:translate(-50%,-100%);opacity:0;transition:opacity .12s}
+.tip.on{opacity:1}
+.tip .t{font-weight:700}
+
+/* layout */
+.cols{display:grid;grid-template-columns:minmax(0,1fr) 380px;gap:28px;margin-top:40px;align-items:start}
+.panel{background:var(--surface);border-radius:20px;padding:20px}
+.sticky{position:sticky;top:calc(16px + env(safe-area-inset-top,0px))}
+
+/* trips */
+.trips{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+.trip{display:grid;grid-template-columns:6px 1fr auto;gap:0 14px;padding:14px 4px;border-bottom:1px solid var(--line);cursor:pointer;border-radius:6px}
+.trip:hover{background:var(--surface2)}
+.trip.past{opacity:.55}
+.trip.editing{background:var(--surface2)}
+.bar{grid-row:1/span 2;border-radius:3px;background:var(--c)}
+.bar.both{background:linear-gradient(var(--a) 50%,var(--b) 50%)}
+.trip h3{margin:0;font-size:1.1rem;font-weight:700}
+.trip .when{color:var(--muted);font-size:.9rem}
+.trip .days{text-align:right;font-family:"Bricolage Grotesque",Figtree,sans-serif;font-weight:700;font-size:1.3rem;line-height:1.1}
+.trip .days small{display:block;font-family:Figtree,sans-serif;font-weight:500;font-size:.78rem;color:var(--muted)}
+.checks{grid-column:2/span 2;display:flex;flex-wrap:wrap;gap:4px 18px;margin-top:6px;font-size:.88rem}
+.chk{display:inline-flex;align-items:center;gap:6px}
+.chk::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--c)}
+.chk.bad{color:var(--warn);font-weight:600}
+.ready{grid-column:2/span 2;font-size:.86rem;color:var(--warn);margin-top:2px}
+.empty{color:var(--muted);padding:18px 4px;border:1px dashed var(--line);border-radius:12px;text-align:center}
+
+/* form */
+.f{display:flex;flex-direction:column;gap:14px}
+.f label{display:flex;flex-direction:column;gap:5px;font-size:.88rem;font-weight:600;color:var(--muted)}
+.f input[type=text],.f input[type=date],.f input[type=number],.set input,.set select,.finder input{background:var(--surface2);border:1px solid var(--line);border-radius:10px;padding:9px 11px;color:var(--ink);font-weight:500;min-width:0;width:100%}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.seg{display:flex;background:var(--surface2);border:1px solid var(--line);border-radius:12px;padding:3px;gap:3px}
+.seg label{flex:1;margin:0;cursor:pointer}
+.seg input{position:absolute;opacity:0;pointer-events:none}
+.seg span{display:block;text-align:center;padding:7px 6px;border-radius:9px;color:var(--ink);font-weight:600;font-size:.9rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.seg input:checked+span{background:var(--ink);color:var(--bg)}
+.seg input:focus-visible+span{outline:2px solid var(--a);outline-offset:1px}
+.hint{font-size:.84rem;color:var(--muted);font-weight:400}
+.preview{background:var(--surface2);border-radius:12px;padding:12px 14px;font-size:.9rem;display:flex;flex-direction:column;gap:6px}
+.preview .pv{display:flex;justify-content:space-between;gap:10px}
+.preview .pv b{font-variant-numeric:tabular-nums}
+.preview .bad{color:var(--warn)}
+.btns{display:flex;gap:8px;flex-wrap:wrap}
+.btn{border:0;border-radius:12px;padding:11px 16px;font-weight:700;cursor:pointer;background:var(--ink);color:var(--bg)}
+.btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
+.btn.danger{background:transparent;color:var(--warn);border:1px solid var(--line);margin-left:auto}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+
+/* calendar */
+.calhead{display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:8px 20px;margin-top:48px}
+.calhint{color:var(--muted);font-size:.92rem}
+.calhint.active{color:var(--ink);font-weight:600}
+.months{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:26px 28px;margin-top:14px}
+.month h3{margin:0 0 6px;font-size:1.05rem;font-weight:700}
+.mgrid{display:grid;grid-template-columns:22px repeat(7,1fr);gap:3px}
+.mgrid .h{font-size:.72rem;color:var(--muted);text-align:center;padding-bottom:2px}
+.mgrid .wk{font-size:.68rem;color:var(--muted);display:flex;align-items:center;justify-content:center;opacity:.8}
+.d{aspect-ratio:1;border:0;border-radius:7px;background:var(--surface);font-size:.8rem;cursor:pointer;position:relative;padding:0;font-variant-numeric:tabular-nums}
+.d:hover{box-shadow:inset 0 0 0 1.5px var(--ink)}
+.d.we{background:transparent;color:var(--muted)}
+.d.hol{color:var(--hol);font-weight:700}
+.d.hol::after{content:"";position:absolute;left:50%;bottom:3px;width:4px;height:4px;margin-left:-2px;border-radius:50%;background:var(--hol)}
+.d.today{box-shadow:inset 0 0 0 2px var(--ink);font-weight:700}
+.d.va{background:var(--a);color:var(--onc);font-weight:600}
+.d.vb{background:var(--b);color:var(--onc);font-weight:600}
+.d.vab{background:linear-gradient(135deg,var(--a) 50%,var(--b) 50%);color:var(--onc);font-weight:600}
+.d.soft.va{background:color-mix(in srgb,var(--a) 30%,transparent);color:var(--ink)}
+.d.soft.vb{background:color-mix(in srgb,var(--b) 30%,transparent);color:var(--ink)}
+.d.soft.vab{background:linear-gradient(135deg,color-mix(in srgb,var(--a) 30%,transparent) 50%,color-mix(in srgb,var(--b) 30%,transparent) 50%);color:var(--ink)}
+.d.sel{box-shadow:inset 0 0 0 2px var(--ink);background-image:repeating-linear-gradient(135deg,transparent 0 4px,color-mix(in srgb,var(--ink) 14%,transparent) 4px 6px)}
+.callegend{display:flex;flex-wrap:wrap;gap:6px 18px;font-size:.85rem;color:var(--muted);margin-top:18px}
+.callegend span{display:inline-flex;align-items:center;gap:6px}
+.sw{width:14px;height:14px;border-radius:4px;display:inline-block}
+
+/* finder */
+.finder{margin-top:48px;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:28px;align-items:start}
+.findform{display:flex;flex-wrap:wrap;align-items:center;gap:10px;font-size:1.05rem}
+.findform input{width:80px;text-align:center;font-weight:700}
+.findform .seg{min-width:260px}
+.answer{font-family:"Bricolage Grotesque",Figtree,sans-serif;font-size:clamp(1.5rem,3.4vw,2.2rem);font-weight:700;line-height:1.15;margin:0}
+.answer.bad{color:var(--warn)}
+.ansnote{color:var(--muted);margin:8px 0 14px;font-size:.92rem;max-width:52ch}
+
+/* settings */
+details.settings{margin-top:48px;background:var(--surface);border-radius:20px;padding:4px 20px}
+details.settings summary{cursor:pointer;padding:16px 0;font-family:"Bricolage Grotesque",Figtree,sans-serif;font-weight:700;font-size:1.2rem;list-style-position:inside}
+.set{display:grid;grid-template-columns:minmax(150px,1.2fr) 1fr 1fr;gap:10px 16px;align-items:center;padding-bottom:18px}
+.set .lab{font-size:.92rem;font-weight:600}
+.set .lab small{display:block;font-weight:400;color:var(--muted)}
+.set .ph{font-weight:700;color:var(--c)}
+.togg{display:flex;align-items:flex-start;gap:10px;padding:4px 0 20px;font-size:.95rem;border-top:1px solid var(--line);padding-top:16px}
+.togg input{width:18px;height:18px;margin-top:3px;accent-color:var(--ink)}
+.foot{margin-top:28px;color:var(--muted);font-size:.84rem;max-width:80ch}
+.notice{margin-top:18px;background:color-mix(in srgb,var(--hol) 16%,var(--surface));border-radius:12px;padding:10px 14px;font-size:.92rem;display:none}
+.notice.on{display:block}
+.toast{position:fixed;left:50%;top:calc(14px + env(safe-area-inset-top,0px));transform:translateX(-50%) translateY(-16px);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:12px;font-size:.92rem;opacity:0;transition:.2s;pointer-events:none;z-index:20;max-width:90vw}
+.toast.on{opacity:1;transform:translateX(-50%)}
+.ro .editonly{display:none !important}
+.meter{height:10px;border-radius:999px;background:var(--surface);overflow:hidden;margin-top:4px}
+.meter i{display:block;height:100%;border-radius:999px;background:var(--c);width:0}
+.meter.over i{background:var(--warn)}
+.metercap{font-size:.85rem;color:var(--muted)}
+.metercap.over{color:var(--warn);font-weight:600}
+.selbar{position:fixed;left:50%;bottom:calc(16px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);width:min(560px,calc(100% - 24px));background:var(--ink);color:var(--bg);border-radius:18px;padding:10px 10px 10px 18px;display:flex;align-items:center;gap:8px;z-index:15;box-shadow:0 12px 32px rgba(8,20,26,.28)}
+.selbar[hidden]{display:none}
+.selinfo{flex:1;min-width:0;display:flex;flex-direction:column;line-height:1.3}
+.selinfo b{font-family:"Bricolage Grotesque",Figtree,sans-serif;font-size:1.05rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.selinfo span{font-size:.84rem;opacity:.78}
+.selinfo span.bad{opacity:1;color:color-mix(in srgb,var(--warn) 70%,var(--bg))}
+.selbar .btn{background:var(--bg);color:var(--ink);padding:10px 16px}
+.selbar .btn.ghost{background:transparent;color:var(--bg);border:1px solid color-mix(in srgb,var(--bg) 30%,transparent)}
+
+/* tabs */
+.tabs{display:flex;margin-top:26px;position:relative;border-bottom:1px solid var(--line)}
+.tabs button{border:0;background:none;cursor:pointer;padding:10px 2px 12px;margin-right:26px;font-family:"Bricolage Grotesque",Figtree,sans-serif;font-weight:700;font-size:1.3rem;color:var(--muted);letter-spacing:-.01em}
+.tabs button[aria-selected="true"]{color:var(--ink)}
+.tabind{position:absolute;bottom:-2px;left:0;width:0;height:3px;border-radius:3px;background:var(--ink)}
+.tabs+.tabpane .people{margin-top:0;border-top:0}
+/* rejsekassen */
+.mhero{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));margin-top:4px}
+.mhero>div{padding:20px 18px 4px 0;display:flex;flex-direction:column;gap:4px;min-width:0}
+.mhero>div+div{padding-left:22px;border-left:1px solid var(--line)}
+.lbl{font-size:.88rem;color:var(--muted);font-weight:600}
+.big{font-family:"Bricolage Grotesque",Figtree,sans-serif;font-size:clamp(1.8rem,3.6vw,2.6rem);font-weight:700;line-height:1.05;letter-spacing:-.02em}
+.big.neg{color:var(--warn)}
+.sub{font-size:.85rem;color:var(--muted)}
+.lookrow{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.lookrow input{background:var(--surface);border:1px solid var(--line);border-radius:9px;padding:4px 8px;color:var(--ink);font-weight:600}
+.verdict{margin-top:26px;border-radius:20px;padding:24px 26px;background:var(--ink);color:var(--bg);display:flex;flex-direction:column;align-items:flex-start;gap:18px}
+.verdict h2{font-size:clamp(1.55rem,3.4vw,2.35rem);margin:0;line-height:1.1;letter-spacing:-.02em}
+.verdict p{margin:8px 0 0;opacity:.82;max-width:62ch}
+.verdict .btn{background:var(--bg);color:var(--ink)}
+.opts{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:12px;width:100%}
+.opt{background:color-mix(in srgb,var(--bg) 9%,transparent);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:6px;align-items:flex-start}
+.opt b{font-family:"Bricolage Grotesque",Figtree,sans-serif;font-size:1.15rem}
+.opt span{opacity:.86;font-size:.94rem;flex:1}
+.opt .btn{margin-top:6px}
+.mbar{transform-box:fill-box}
+.mbar.up{transform-origin:50% 100%}
+.mbar.dn{transform-origin:50% 0%}
+.steps{background:var(--surface2);border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;gap:6px;font-size:.92rem}
+.steprow{display:flex;justify-content:space-between;gap:10px}
+#monthlyBox[hidden]{display:none}
+.verdict.bad h2{color:color-mix(in srgb,var(--warn) 65%,var(--bg))}
+.scen{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px 16px;align-items:center;padding:14px 6px 8px;margin-top:6px;border-top:1px solid var(--line)}
+.scen label{font-weight:600;font-size:.95rem;display:flex;justify-content:space-between;gap:10px}
+.scen output{font-family:"Bricolage Grotesque",Figtree,sans-serif;font-weight:700}
+.scen input[type=range]{width:100%;accent-color:var(--hol)}
+.scen .scentext{grid-column:1/-1;font-size:.88rem;color:var(--muted);min-height:1.3em}
+.scen .btns{grid-row:1/span 2;grid-column:2}
+.bud{padding:16px 0 18px;border-bottom:1px solid var(--line)}
+.bud header{display:grid;grid-template-columns:6px 1fr auto;gap:0 14px;align-items:start}
+.bud header .bar{grid-row:auto;align-self:stretch;min-height:40px}
+.bud h3{margin:0;font-size:1.15rem}
+.bud .when{color:var(--muted);font-size:.9rem}
+.bud .tot{text-align:right;font-family:"Bricolage Grotesque",Figtree,sans-serif;font-weight:700;font-size:1.35rem;line-height:1.1}
+.bud .tot small{display:block;font-family:Figtree,sans-serif;font-weight:500;font-size:.78rem;color:var(--muted)}
+.bprog{height:6px;border-radius:99px;background:var(--surface);overflow:hidden;margin:12px 0 0 20px}
+.bprog i{display:block;height:100%;background:var(--cash);border-radius:99px}
+.bstats{display:flex;flex-wrap:wrap;gap:4px 22px;font-size:.88rem;color:var(--muted);margin:8px 0 0 20px}
+.bstats b{color:var(--ink);font-variant-numeric:tabular-nums}
+.bstats .bad b,.bstats .bad{color:var(--warn)}
+.items{margin:8px 0 0 20px;display:flex;flex-direction:column;gap:6px}
+.item{display:flex;justify-content:space-between;align-items:center;width:100%;text-align:left;background:transparent;border:1px dashed var(--line);border-radius:12px;padding:9px 12px;cursor:pointer;gap:12px;color:var(--ink)}
+.item.paid{background:var(--surface);border:1px solid transparent}
+.item:hover{border-color:var(--muted)}
+.il{display:flex;flex-direction:column;min-width:0}
+.il b{font-weight:700}
+.il span{font-size:.84rem;color:var(--muted)}
+.item.paid .il b::after{content:" ✓";color:var(--ok)}
+.ir{text-align:right;font-weight:700;white-space:nowrap}
+.item.dep .ir{color:var(--cash)}
+.ir small{display:block;font-weight:500;font-size:.78rem;color:var(--muted)}
+.ir small.bad{color:var(--warn)}
+.ir small.good{color:var(--ok)}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0 0 20px}
+.chip{border:1px solid var(--line);background:transparent;border-radius:999px;padding:5px 12px;font-size:.85rem;font-weight:600;cursor:pointer;color:var(--ink)}
+.chip:hover{background:var(--surface)}
+.bnote{font-size:.86rem;margin:8px 0 0 20px;color:var(--muted)}
+.bnote.bad{color:var(--warn);font-weight:600}
+.others .items,.others .chips,.others .bnote{margin-left:0}
+.mlegend{display:flex;flex-wrap:wrap;gap:6px 18px;font-size:.85rem;color:var(--muted);margin:-4px 0 6px}
+.mlegend span{display:inline-flex;align-items:center;gap:6px}
+.mlegend i{width:22px;height:14px;border-radius:5px;display:inline-block}
+.settle{margin-top:20px;border-top:1px solid var(--line);padding-top:16px}
+.settle h3{margin:0 0 6px;font-size:1.1rem}
+.settle .big{font-size:1.5rem}
+.settle ul{margin:10px 0 0;padding:0;list-style:none;font-size:.86rem;color:var(--muted);display:flex;flex-direction:column;gap:3px}
+.f [hidden]{display:none !important}
+dialog{border:0;border-radius:20px;padding:0;background:var(--surface);color:var(--ink);width:min(480px,calc(100% - 24px));max-height:calc(100% - 32px)}
+dialog::backdrop{background:rgba(8,20,26,.45)}
+dialog .f{padding:22px}
+dialog select,.f select{background:var(--surface2);border:1px solid var(--line);border-radius:10px;padding:9px 11px;color:var(--ink);font-weight:500;width:100%}
+@media (max-width:620px){
+  dialog{margin:auto 0 0;width:100%;max-width:100%;border-radius:22px 22px 0 0}
+  dialog .f{padding-bottom:calc(22px + env(safe-area-inset-bottom,0px))}
+  .mhero{grid-template-columns:1fr}
+  .mhero>div+div{padding-left:0;border-left:0;border-top:1px solid var(--line);margin-top:14px}
+  .scen{grid-template-columns:1fr}
+  .scen .btns{grid-row:auto;grid-column:auto}
+  .tabs button{font-size:1.15rem;margin-right:20px}
+}
+/* rejseplan */
+.tpick{display:flex;gap:10px;overflow-x:auto;padding:20px 2px 6px;scroll-snap-type:x proximity}
+.tcard{flex:0 0 auto;min-width:180px;max-width:240px;text-align:left;border:1px solid var(--line);background:var(--surface);border-radius:16px;padding:12px 14px;cursor:pointer;scroll-snap-align:start;color:var(--ink)}
+.tcard[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.tcard b{display:block;font-family:"Bricolage Grotesque",Figtree,sans-serif;font-size:1.05rem}
+.tcard span{font-size:.8rem;opacity:.75}
+.tbar{height:4px;border-radius:9px;background:color-mix(in srgb,currentColor 15%,transparent);margin-top:8px;overflow:hidden}
+.tbar i{display:block;height:100%;background:var(--ok);border-radius:9px}
+.tbar.big{height:6px;margin:0 0 8px;background:var(--surface2)}
+.phead{display:flex;justify-content:space-between;align-items:flex-end;gap:20px;margin-top:20px;flex-wrap:wrap}
+.pkicker{font-size:.8rem;font-weight:700;color:var(--cash);text-transform:uppercase;letter-spacing:.08em}
+.ptitle{font-size:clamp(2.2rem,6vw,3.6rem);margin:4px 0 6px;font-weight:800;letter-spacing:-.03em;line-height:1}
+.pmeta{color:var(--muted)}
+.pstats{margin-top:14px}
+.pstats .stat b{font-size:1.45rem}
+.pring{position:relative;width:104px;height:104px;flex:0 0 auto}
+.ringtxt{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.1}
+.ringtxt b{font-family:"Bricolage Grotesque",Figtree,sans-serif;font-size:1.3rem}
+.ringtxt span{font-size:.75rem;color:var(--muted)}
+.route{margin-top:24px;background:var(--surface);border-radius:20px;padding:18px 18px 16px}
+.rscroll{overflow-x:auto;padding-bottom:6px}
+.rline{display:flex;align-items:flex-start;min-width:max-content}
+.rstop{display:flex;flex-direction:column;align-items:center;gap:3px;min-width:92px;max-width:150px;border:0;background:none;color:var(--ink);padding:0 4px;text-align:center;font:inherit}
+button.rstop{cursor:pointer}
+button.rstop:hover b{text-decoration:underline}
+.rdot{width:18px;height:18px;border-radius:50%;background:var(--surface);border:4px solid var(--cash);margin-bottom:4px}
+.rstop.home .rdot{border-color:var(--muted);border-width:3px}
+.rstop.none .rdot{border-style:dashed;border-color:var(--muted);border-width:2px}
+.rstop b{font-size:.95rem;line-height:1.2}
+.rstop span{font-size:.78rem;color:var(--muted)}
+.rstop.none b{color:var(--muted);font-weight:600}
+.rleg{flex:1 0 80px;min-width:80px;max-width:220px;position:relative;padding-top:24px;text-align:center}
+.rleg::before{content:"";position:absolute;top:8px;left:-6px;right:-6px;height:2px;background:repeating-linear-gradient(90deg,var(--cash) 0 6px,transparent 6px 10px)}
+.rleg span{font-size:.75rem;color:var(--muted);display:block;line-height:1.25}
+.pcols{margin-top:30px}
+.pdays{display:flex;flex-direction:column;gap:14px}
+.pday{background:var(--surface);border-radius:18px;padding:14px 16px 14px}
+.pday header{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:4px 14px;align-items:center}
+.dnum{font-family:"Bricolage Grotesque",Figtree,sans-serif;font-weight:800;font-size:1.7rem;line-height:.95;color:var(--cash);min-width:2.4ch;text-align:center}
+.dnum small{display:block;font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+.pday h3{margin:0;font-size:1.05rem}
+.dtag{font-size:.75rem;font-weight:700;color:var(--cash);margin-left:4px;font-family:Figtree,sans-serif}
+.dbase{border:0;border-bottom:1px dashed transparent;background:transparent;padding:2px 0;font-size:.9rem;color:var(--ink);width:100%;font-weight:500}
+.dbase::placeholder{color:var(--muted);font-weight:400}
+.dbase:hover{border-bottom-color:var(--line)}
+.dbase:focus{outline:none;border-bottom-color:var(--cash)}
+.dbase-static{font-size:.9rem;color:var(--muted)}
+.load{font-size:.74rem;font-weight:700;padding:3px 10px;border-radius:99px;background:var(--surface2);color:var(--muted);white-space:nowrap}
+.load.mid{background:color-mix(in srgb,var(--hol) 18%,transparent);color:color-mix(in srgb,var(--hol) 75%,var(--ink))}
+.load.busy{background:color-mix(in srgb,var(--warn) 15%,transparent);color:var(--warn)}
+.plist{display:flex;flex-direction:column;gap:6px;margin-top:10px;min-height:8px;border-radius:12px}
+.plist:empty{min-height:40px;border:1px dashed var(--line)}
+.plist.ideas:empty::before,.pday .plist:empty::before{content:"Træk planer hertil";display:block;text-align:center;font-size:.82rem;color:var(--muted);padding:10px}
+.pitem{display:grid;grid-template-columns:44px 26px minmax(0,1fr) auto auto;gap:10px;align-items:center;padding:9px 10px;border-radius:12px;background:var(--surface2);cursor:pointer;border:1px solid transparent;user-select:none}
+.pitem:hover{border-color:var(--line)}
+.pitem.s-idea{background:transparent;border:1px dashed var(--line)}
+.ptime{font-weight:700;font-size:.86rem}
+.picon{font-size:1.15rem;text-align:center}
+.pbody{min-width:0}
+.pbody b{display:block;font-weight:600;overflow-wrap:anywhere}
+.pbody span{display:block;font-size:.82rem;color:var(--muted);overflow-wrap:anywhere}
+.plink{font-size:.8rem;font-weight:600;color:var(--a)}
+.pprice{font-size:.88rem;font-weight:600;color:var(--muted);white-space:nowrap}
+.pprice-m{display:none !important}
+.pstat{border:0;border-radius:99px;padding:5px 11px;font-size:.76rem;font-weight:700;cursor:pointer;white-space:nowrap;font-family:inherit}
+.pstat.idea{background:var(--surface);color:var(--muted);box-shadow:inset 0 0 0 1px var(--line)}
+.pstat.tobook{background:color-mix(in srgb,var(--hol) 24%,transparent);color:color-mix(in srgb,var(--hol) 70%,var(--ink))}
+.pstat.booked{background:color-mix(in srgb,var(--ok) 18%,transparent);color:var(--ok)}
+.sortable-ghost{opacity:.35}
+.sortable-chosen{box-shadow:0 10px 24px rgba(8,20,26,.18)}
+.pday .chips,.pside .chips{margin-left:0}
+.pside{display:flex;flex-direction:column;gap:16px}
+.pside .panel{padding:18px}
+.pside h3{margin:0 0 10px;font-size:1.1rem;display:flex;justify-content:space-between;align-items:baseline}
+.cnt{font-size:.85rem;color:var(--muted);font-family:Figtree,sans-serif}
+.tbk{display:flex;justify-content:space-between;gap:10px;width:100%;padding:9px 0;border:0;border-bottom:1px solid var(--line);background:none;cursor:pointer;font:inherit;font-size:.92rem;color:var(--ink);text-align:left}
+.tbk small{color:var(--muted);white-space:nowrap}
+.tbk.soon small{color:color-mix(in srgb,var(--hol) 75%,var(--ink));font-weight:700}
+.tbk.over small{color:var(--warn);font-weight:700}
+.chk-row{display:flex;align-items:center;gap:8px;padding:4px 0;font-size:.95rem}
+.chk-row label{display:flex;align-items:center;gap:10px;cursor:pointer;flex:1}
+.chk-row input{width:18px;height:18px;accent-color:var(--ok);flex:0 0 auto}
+.chk-row.done span{text-decoration:line-through;color:var(--muted)}
+.chk-row .x{border:0;background:none;color:var(--muted);cursor:pointer;font-size:1.15rem;line-height:1;padding:2px 6px}
+.addrow{display:flex;gap:6px;margin-top:10px}
+.addrow input{flex:1;min-width:0;background:var(--surface2);border:1px solid var(--line);border-radius:10px;padding:9px 11px;color:var(--ink)}
+.addrow .btn{padding:9px 14px}
+.typegrid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}
+.typegrid label{cursor:pointer;margin:0;display:block !important}
+.typegrid input{position:absolute;opacity:0;pointer-events:none}
+.typegrid span{display:flex;flex-direction:column;align-items:center;gap:3px;padding:9px 2px;border-radius:12px;border:1px solid var(--line);font-size:.72rem;font-weight:600;color:var(--ink)}
+.typegrid span i{font-style:normal;font-size:1.3rem}
+.typegrid input:checked+span{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.typegrid input:focus-visible+span{outline:2px solid var(--a);outline-offset:1px}
+.f .chkline{flex-direction:row;align-items:flex-start;gap:10px;color:var(--ink)}
+.f .chkline input{width:18px;height:18px;margin-top:2px;accent-color:var(--cash)}
+.f textarea{background:var(--surface2);border:1px solid var(--line);border-radius:10px;padding:9px 11px;color:var(--ink);font:inherit;font-weight:500;resize:vertical;width:100%}
+.f input[type=time],.f input[type=url]{background:var(--surface2);border:1px solid var(--line);border-radius:10px;padding:9px 11px;color:var(--ink);font-weight:500;min-width:0;width:100%}
+.planlink{margin:6px 0 0;padding:3px 10px;font-size:.78rem}
+@media (max-width:620px){
+  .pitem{grid-template-columns:38px 22px minmax(0,1fr) auto;gap:8px}
+  .pprice{display:none}
+  .pprice-m{display:block !important}
+  .pring{width:84px;height:84px}.pring svg{width:84px;height:84px}
+  .pday{padding:12px}
+  .pday header{grid-template-columns:auto minmax(0,1fr)}
+  .load{grid-column:2;justify-self:start}
+}
+@media (max-width:900px){
+  .cols{grid-template-columns:1fr}
+  .sticky{position:static}
+  .finder{grid-template-columns:1fr}
+}
+@media (max-width:620px){
+  .wrap{padding:22px 14px 48px}
+  .people{grid-template-columns:1fr}
+  .person+.person{padding-left:4px;border-left:0;margin-top:18px}
+  .stat b{font-size:1.45rem}
+  .stats{gap:6px 18px}
+  .stat span{font-size:.78rem}
+  .set{grid-template-columns:1fr 1fr}
+  .set .lab{grid-column:1/-1;margin-top:6px}
+  .set .lab:first-child{display:none}
+}
+@media (prefers-reduced-motion: reduce){ *{transition:none !important;animation:none !important} }
+</style>
+</head>
+<body>
+<div class="wrap" id="app">
+  <div class="top">
+    <div>
+      <div class="titlerow">
+        <h1>Ferieplan</h1>
+        <div class="years" id="years" role="group" aria-label="Vælg år"></div>
+      </div>
+      <p class="lede">Jeres feriedage, rejsekasse og rejseplaner samlet ét sted. Læg rejser ind, se om I har sparet nok op til dem, og planlæg dagene, når I kommer så langt.</p>
+    </div>
+    <div class="sync" id="sync"><i></i><span>Forbinder…</span></div>
+  </div>
+  <div class="notice" id="notice"></div>
+
+  <nav class="tabs" id="tabs" role="tablist" aria-label="Visning">
+    <button type="button" role="tab" data-tab="feriedage" aria-selected="true">Feriedage</button>
+    <button type="button" role="tab" data-tab="rejsekassen" aria-selected="false">Rejsekassen</button>
+    <button type="button" role="tab" data-tab="rejseplan" aria-selected="false">Rejseplan</button>
+    <span class="tabind" id="tabind"></span>
+  </nav>
+  <div class="tabpane" id="tab-days">
+  <section class="people" id="people"></section>
+
+  <section class="chartbox" aria-label="Saldo over året">
+    <div class="charthead">
+      <h2 style="margin:0" id="charttitle">Feriesaldo</h2>
+      <div class="legend" id="legend"></div>
+    </div>
+    <div id="chart"></div>
+    <div class="tip" id="tip"></div>
+  </section>
+
+  <div class="cols">
+    <section>
+      <h2>Rejser</h2>
+      <ul class="trips" id="trips"></ul>
+    </section>
+    <aside class="panel sticky editonly" id="formpanel">
+      <h2 id="formtitle">Ny rejse</h2>
+      <form class="f" id="tripform" autocomplete="off">
+        <label>Hvor går turen hen?
+          <input type="text" id="fname" placeholder="Fx Lissabon" maxlength="60">
+        </label>
+        <div class="row2">
+          <label>Fra<input type="date" id="ffrom" required></label>
+          <label>Til<input type="date" id="fto" required></label>
+        </div>
+        <div>
+          <div class="hint" style="margin-bottom:5px;font-weight:600">Hvem tager med?</div>
+          <div class="seg" id="fwho"></div>
+        </div>
+        <label>Feriedage
+          <input type="number" id="fdays" min="0" step="0.5" inputmode="decimal">
+          <span class="hint" id="fdayshint">Tælles automatisk uden weekender og helligdage. Skriv selv et tal, hvis det skal være anderledes.</span>
+        </label>
+        <div class="preview" id="preview"></div>
+        <div class="btns">
+          <button class="btn" type="submit" id="fsave">Gem rejse</button>
+          <button class="btn ghost" type="button" id="fcancel">Ryd</button>
+          <button class="btn danger" type="button" id="fdel" hidden>Slet</button>
+        </div>
+      </form>
+    </aside>
+  </div>
+
+  <div class="calhead">
+    <h2 style="margin:0" id="caltitle">Kalender</h2>
+    <div class="calhint" id="calhint">Klik på en startdato og derefter en slutdato for at lægge en rejse ind.</div>
+  </div>
+  <div class="months" id="months"></div>
+  <div class="callegend" id="callegend"></div>
+
+  <section class="finder">
+    <div>
+      <h2>Hvornår har vi råd?</h2>
+      <div class="findform">
+        <span>Vi skal bruge</span>
+        <input type="number" id="nneed" value="5" min="0.5" step="0.5" inputmode="decimal" aria-label="Antal feriedage">
+        <span>feriedage</span>
+        <div class="seg" id="nwho"></div>
+      </div>
+    </div>
+    <div>
+      <p class="answer" id="answer"></p>
+      <p class="ansnote" id="ansnote"></p>
+      <button class="btn ghost editonly" id="useanswer" type="button">Læg en rejse ind fra den dato</button>
+    </div>
+  </section>
+
+  <details class="settings editonly" id="settings">
+    <summary>Optjening og indstillinger</summary>
+    <div class="set" id="setgrid"></div>
+    <label class="togg"><input type="checkbox" id="extraoff"><span>Vi har også fri grundlovsdag, juleaften og nytårsaftensdag<br><span class="hint">Så tæller de dage ikke som feriedage.</span></span></label>
+  </details>
+
+  <p class="foot">Sådan regner planen: optjente dage lægges til den 1. i hver måned, og en rejses feriedage trækkes på afrejsedagen. Weekender og helligdage tæller ikke med. Planen tager ikke højde for, hvornår ubrugte feriedage udløber, så tjek jeres egne regler for det.</p>
+  </div>
+  <div class="tabpane" id="tab-money" hidden>
+    <section class="mhero">
+      <div><span class="lbl">På kontoen i dag</span><b class="big num" id="mNow"></b><span class="sub" id="mNowSub"></span></div>
+      <div><span class="lookrow"><label class="lbl" for="mLook">Saldo d.</label><input type="date" id="mLook" data-kf="look"></span><b class="big num" id="mLookVal"></b><span class="sub" id="mLookSub"></span></div>
+      <div><span class="lbl" id="mDepLbl">Fast indskud pr. måned</span><b class="big num" id="mDep"></b><span class="sub" id="mDepSub"></span><button type="button" class="chip editonly" id="editDep" style="align-self:flex-start;margin-top:6px">Ret saldo og indskud</button></div>
+    </section>
+    <section class="verdict" id="verdict"></section>
+    <section class="chartbox" id="monthlyBox" aria-label="Måned for måned" hidden>
+      <div class="charthead"><h2 style="margin:0">Måned for måned</h2></div>
+      <div class="mlegend" id="molegend"></div>
+      <div id="monthly"></div>
+    </section>
+    <section class="chartbox" aria-label="Kontoen over tid">
+      <div class="charthead"><h2 style="margin:0">Kontoen over tid</h2></div>
+      <div class="mlegend" id="mlegend"></div>
+      <div id="mchart"></div>
+      <div class="tip" id="mtip"></div>
+      <div class="scen editonly">
+        <label for="scen">Prøv et andet månedligt beløb <output id="scenOut"></output></label>
+        <div class="btns"><button type="button" class="btn" id="scenUse" hidden>Brug beløbet</button><button type="button" class="btn ghost" id="scenReset" hidden>Nulstil</button></div>
+        <input type="range" id="scen" min="0" max="10000" step="50">
+        <div class="scentext" id="scenText"></div>
+      </div>
+    </section>
+    <div class="cols">
+      <section>
+        <h2>Budget pr. rejse</h2>
+        <div id="budgets"></div>
+        <div class="others" style="margin-top:34px">
+          <h2>Andre udgifter og ekstra indskud</h2>
+          <p class="hint" style="margin:-6px 0 4px">Fx feriepenge, skat tilbage eller en bonus, der ryger på kontoen, eller udgifter, der ikke hører til en bestemt rejse.</p>
+          <div class="items" id="others"></div>
+          <div class="chips editonly"><button type="button" class="chip" id="addDeposit">+ Ekstra indskud</button><button type="button" class="chip" id="addOther">+ Anden udgift</button></div>
+        </div>
+      </section>
+      <aside class="panel sticky">
+        <h2>Kontoen</h2>
+        <div class="f" id="kform">
+          <div class="row2">
+            <label>Saldo<input type="number" id="kStart" data-kf="start" step="1" inputmode="numeric"></label>
+            <label>Pr. dato<input type="date" id="kStartDate" data-kf="startDate"></label>
+          </div>
+          <div class="row2">
+            <label><span id="kDepALbl">Person 1 pr. md.</span><input type="number" id="kDepA" data-kf="depA" min="0" step="50" inputmode="numeric"></label>
+            <label><span id="kDepBLbl">Person 2 pr. md.</span><input type="number" id="kDepB" data-kf="depB" min="0" step="50" inputmode="numeric"></label>
+          </div>
+          <div id="kSteps"></div>
+          <label>Pengene går ind d.<select id="kDay" data-kf="depDay"></select></label>
+          <div class="row2">
+            <label>Margin på estimater (%)<input type="number" id="kMargin" data-kf="margin" min="0" max="100" step="1"><span class="hint">Lægges oven i det, der ikke er betalt endnu</span></label>
+            <label>Mindst på kontoen<input type="number" id="kBuffer" data-kf="buffer" min="0" step="100" inputmode="numeric"><span class="hint">Kontoen må ikke komme under</span></label>
+          </div>
+        </div>
+        <div class="settle" id="settle"></div>
+      </aside>
+    </div>
+    <p class="foot">Sådan regner rejsekassen: de faste indskud går ind på den valgte dag hver måned, og udgifter trækkes på den dato, de betales. Beløb, der ikke er betalt endnu, får lagt sikkerhedsmarginen oveni. Betalinger fra før saldodatoen regnes som allerede trukket. Udgifter, som en af jer har lagt ud, trækkes ikke fra kontoen, men tæller med i rejsens pris og i afregningen. Stiplede rækker er estimater, hele rækker er betalt.</p>
+  </div>
+
+  <div class="tabpane" id="tab-plan" hidden>
+    <div class="tpick" id="tpick" role="group" aria-label="Vælg rejse"></div>
+    <div id="pmain"></div>
+    <p class="foot">Tip: træk planerne mellem dagene og idébanken. Tryk på status for at skifte mellem Idé, Skal bookes og Booket. Planer med en pris kan lægges direkte i rejsekassen.</p>
+  </div>
+</div>
+<dialog id="planDlg" aria-labelledby="pdlgTitle">
+  <form class="f" id="planForm" autocomplete="off">
+    <h2 id="pdlgTitle" style="margin:0">Ny plan</h2>
+    <div class="typegrid" id="pType" role="radiogroup" aria-label="Type"></div>
+    <label>Hvad?<input type="text" id="pTitle" maxlength="80"></label>
+    <div class="row2">
+      <label>Dag<select id="pDay"></select></label>
+      <label>Tidspunkt<input type="time" id="pTime"></label>
+    </div>
+    <label>Sted eller adresse<input type="text" id="pPlace" maxlength="80" placeholder="Valgfrit"></label>
+    <div><div class="hint" style="margin-bottom:5px;font-weight:600">Status</div><div class="seg" id="pStatus"></div></div>
+    <label id="pBookWrap">Skal være booket senest<input type="date" id="pBook"><span class="hint">Så kommer den på listen over ting, der skal bookes</span></label>
+    <div class="row2">
+      <label>Pris (kr.)<input type="number" id="pPrice" min="0" step="1" inputmode="numeric" placeholder="Valgfrit"></label>
+      <label>Link<input type="url" id="pLink" placeholder="Booking, billetter …"></label>
+    </div>
+    <label class="chkline"><input type="checkbox" id="pBudget"><span>Læg prisen i rejsekassen<br><span class="hint" id="pBudgetHint"></span></span></label>
+    <label>Noter<textarea id="pNote" rows="2" maxlength="400" placeholder="Fx bookingnummer eller mødested"></textarea></label>
+    <div class="btns">
+      <button class="btn" type="submit">Gem</button>
+      <button class="btn ghost" type="button" id="pCancel">Annullér</button>
+      <button class="btn danger" type="button" id="pDel" hidden>Slet</button>
+    </div>
+  </form>
+</dialog>
+<dialog id="itemDlg" aria-labelledby="dlgTitle">
+  <form class="f" id="itemForm" autocomplete="off">
+    <h2 id="dlgTitle" style="margin:0">Ny udgift</h2>
+    <div class="seg" id="dKind"></div>
+    <label id="dTripWrap">Rejse<select id="dTrip"></select></label>
+    <label id="dCatWrap">Kategori<select id="dCat"></select></label>
+    <label>Beskrivelse<input type="text" id="dLabel" maxlength="60" placeholder="Fx flybilletter t/r"></label>
+    <div class="row2">
+      <label><span id="dEstLbl">Estimeret beløb</span><input type="number" id="dEst" min="0" step="1" inputmode="numeric" placeholder="kr."></label>
+      <label><span id="dActLbl">Faktisk beløb</span><input type="number" id="dAct" min="0" step="1" inputmode="numeric" placeholder="Når det er betalt"></label>
+    </div>
+    <label><span id="dDateLbl">Hvornår betales det?</span><input type="date" id="dDate"></label>
+    <div id="dPayerWrap"><div class="hint" style="margin-bottom:5px;font-weight:600">Betales af</div><div class="seg" id="dPayer"></div></div>
+    <div class="btns">
+      <button class="btn" type="submit">Gem</button>
+      <button class="btn ghost" type="button" id="dCancel">Annullér</button>
+      <button class="btn danger" type="button" id="dDel" hidden>Slet</button>
+    </div>
+  </form>
+</dialog>
+<div class="toast" id="toast" role="status"></div>
+<div class="selbar editonly" id="selbar" hidden aria-live="polite">
+  <div class="selinfo"><b id="selrange"></b><span id="seldays"></span></div>
+  <button type="button" class="btn ghost" id="selclear">Ryd</button>
+  <button type="button" class="btn" id="selgo">Fortsæt</button>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/motion@11.11.13/dist/motion.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
+<script>
+(function(){
+'use strict';
+const $=s=>document.querySelector(s);
+const DAY=864e5;
+const MONTHS=['januar','februar','marts','april','maj','juni','juli','august','september','oktober','november','december'];
+const MSH=['jan.','feb.','mar.','apr.','maj','jun.','jul.','aug.','sep.','okt.','nov.','dec.'];
+const WD=['søndag','mandag','tirsdag','onsdag','torsdag','fredag','lørdag'];
+const now=new Date();
+const TODAY=Date.UTC(now.getFullYear(),now.getMonth(),now.getDate());
+const PK=['a','b'];
+const M=window.Motion||null;
+const RM=matchMedia('(prefers-reduced-motion: reduce)').matches;
+function anim(el,kf,opt){if(!el||RM||!M||typeof M.animate!=='function')return null;try{return M.animate(el,kf,opt);}catch(e){return null;}}
+function tween(dur,onUpdate){
+  let done=false;const fin=()=>{if(!done){done=true;onUpdate(1);}};
+  if(RM){fin();return {stop(){}};}
+  if(M&&typeof M.animate==='function'){
+    try{const c=M.animate(0,1,{duration:dur,ease:[.22,.8,.24,1],onUpdate:v=>{if(!done)onUpdate(v);},onComplete:fin});
+      const guard=setTimeout(fin,dur*1000+300);
+      return {stop(){done=true;clearTimeout(guard);try{c.stop();}catch(e){}}};}catch(e){}
+  }
+  const st=performance.now();let raf;
+  const step=now=>{if(done)return;const p=Math.min(1,(now-st)/(dur*1000));onUpdate(1-Math.pow(1-p,3));if(p<1)raf=requestAnimationFrame(step);else done=true;};
+  raf=requestAnimationFrame(step);return {stop(){done=true;cancelAnimationFrame(raf);}};
+}
+
+const defPerson=name=>({name,start:0,rate:2.08,first:'2026-11',extra:5,extraMonth:5});
+const DEFAULTS={year:2027,extraOff:false,people:{a:defPerson('Person 1'),b:defPerson('Person 2')}};
+const clone=o=>JSON.parse(JSON.stringify(o));
+function normSettings(s){
+  const d=clone(DEFAULTS); if(!s||typeof s!=='object') return d;
+  const p=s.people||{};
+  return {year:+s.year||d.year,extraOff:!!s.extraOff,people:{a:Object.assign({},d.people.a,p.a||{}),b:Object.assign({},d.people.b,p.b||{})}};
+}
+
+let S={settings:clone(DEFAULTS),trips:[]};
+let db=null, readOnly=false, editingId=null, sel={from:null,to:null}, selecting=false, hoverT=null, firstChart=true;
+
+/* ---------- storage ---------- */
+const LS='ferieplan-v1';
+function loadLocal(){try{const r=localStorage.getItem(LS);if(r){const o=JSON.parse(r);S.settings=normSettings(o.settings);S.trips=Array.isArray(o.trips)?o.trips:[];S.kasse=normKasse(o.kasse);S.money=Array.isArray(o.money)?o.money:[];S.itin=Array.isArray(o.itin)?o.itin:[];S.tdays=Array.isArray(o.tdays)?o.tdays:[];S.checks=Array.isArray(o.checks)?o.checks:[];}}catch(e){}}
+function saveLocal(){try{localStorage.setItem(LS,JSON.stringify(S));}catch(e){}}
+
+/* ---------- dates ---------- */
+const toD=s=>{if(!s)return NaN;const [y,m,d]=s.split('-').map(Number);return Date.UTC(y,m-1,d);};
+const toS=t=>new Date(t).toISOString().slice(0,10);
+const gd=t=>new Date(t);
+const cap=s=>s.charAt(0).toUpperCase()+s.slice(1);
+function fmtShort(t,withYear){const d=gd(t);return d.getUTCDate()+'. '+MSH[d.getUTCMonth()]+(withYear?' '+d.getUTCFullYear():'');}
+function fmtLong(t){const d=gd(t);return WD[d.getUTCDay()]+' '+d.getUTCDate()+'. '+MONTHS[d.getUTCMonth()]+' '+d.getUTCFullYear();}
+function fmtRange(a,b){
+  const A=gd(a),B=gd(b), y=S.settings.year;
+  const showY=A.getUTCFullYear()!==y||B.getUTCFullYear()!==y;
+  if(a===b) return fmtShort(a,showY);
+  if(A.getUTCMonth()===B.getUTCMonth()&&A.getUTCFullYear()===B.getUTCFullYear()) return A.getUTCDate()+'.–'+fmtShort(b,showY);
+  return fmtShort(a,showY&&A.getUTCFullYear()!==B.getUTCFullYear())+'–'+fmtShort(b,showY);
+}
+const fmtN=v=>{const r=Math.round(v*100)/100;return (Object.is(r,-0)?0:r).toLocaleString('da-DK',{maximumFractionDigits:2});};
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function easter(y){const a=y%19,b=Math.floor(y/100),c=y%100,d=Math.floor(b/4),e=b%4,f=Math.floor((b+8)/25),g=Math.floor((b-f+1)/3),h=(19*a+b-d-g+15)%30,i=Math.floor(c/4),k=c%4,l=(32+2*e+2*i-h-k)%7,m=Math.floor((a+11*h+22*l)/451),mo=Math.floor((h+l-7*m+114)/31),da=((h+l-7*m+114)%31)+1;return Date.UTC(y,mo-1,da);}
+let holCache={};
+function holidays(y){
+  const key=y+':'+S.settings.extraOff; if(holCache[key]) return holCache[key];
+  const m=new Map(), E=easter(y), add=(t,n)=>m.set(t,n);
+  add(Date.UTC(y,0,1),'Nytårsdag'); add(E-3*DAY,'Skærtorsdag'); add(E-2*DAY,'Langfredag'); add(E,'Påskedag'); add(E+DAY,'2. påskedag');
+  if(y<2024) add(E+26*DAY,'Store bededag');
+  add(E+39*DAY,'Kristi himmelfartsdag'); add(E+49*DAY,'Pinsedag'); add(E+50*DAY,'2. pinsedag');
+  add(Date.UTC(y,11,25),'Juledag'); add(Date.UTC(y,11,26),'2. juledag');
+  if(S.settings.extraOff){add(Date.UTC(y,5,5),'Grundlovsdag');add(Date.UTC(y,11,24),'Juleaften');add(Date.UTC(y,11,31),'Nytårsaftensdag');}
+  holCache[key]=m; return m;
+}
+const holName=t=>holidays(gd(t).getUTCFullYear()).get(t);
+const isWeekend=t=>{const w=gd(t).getUTCDay();return w===0||w===6;};
+const isWork=t=>!isWeekend(t)&&!holName(t);
+function countWork(a,b){let n=0;for(let t=a;t<=b;t+=DAY) if(isWork(t)) n++;return n;}
+function addWork(start,n){let t=start,c=0;const need=Math.max(1,Math.ceil(n));for(let i=0;i<500;i++){if(isWork(t)){c++;if(c>=need)return t;}t+=DAY;}return t;}
+function isoWeek(t){const day=(gd(t).getUTCDay()+6)%7;const th=t-day*DAY+3*DAY;const y=gd(th).getUTCFullYear();const j4=Date.UTC(y,0,4);const ft=j4-((gd(j4).getUTCDay()+6)%7)*DAY+3*DAY;return 1+Math.round((th-ft)/(7*DAY));}
+
+/* ---------- ledger ---------- */
+const P=k=>S.settings.people[k];
+const nm=k=>(P(k).name||'').trim()||(k==='a'?'Person 1':'Person 2');
+const involves=(tr,k)=>tr.who==='both'||tr.who===k;
+const whoKeys=w=>w==='both'?['a','b']:[w];
+function tripDays(tr){if(tr.days!==null&&tr.days!==undefined&&tr.days!==''&&!isNaN(+tr.days))return +tr.days;const a=toD(tr.from),b=toD(tr.to);return (isNaN(a)||isNaN(b))?0:countWork(a,b);}
+function credits(k,endT){
+  const p=P(k),out=[];const parts=String(p.first||'2026-11').split('-').map(Number);
+  let y=parts[0]||2026,m=(parts[1]||11)-1;const rate=+p.rate||0,extra=+p.extra||0,em=(+p.extraMonth||5)-1;
+  for(let i=0;i<600;i++){const t=Date.UTC(y,m,1);if(t>endT)break;if(rate)out.push({t,amt:rate});if(extra&&m===em)out.push({t,amt:extra});m++;if(m>11){m=0;y++;}}
+  return out;
+}
+function balAt(k,t,excl){
+  let b=+P(k).start||0;
+  for(const c of credits(k,t)) b+=c.amt;
+  for(const tr of S.trips){if(tr.id===excl||!involves(tr,k))continue;if(toD(tr.from)<=t) b-=tripDays(tr);}
+  return b;
+}
+function series(k,st,en,excl){
+  const n=Math.round((en-st)/DAY)+1,delta=new Float64Array(n);let base=+P(k).start||0;
+  for(const c of credits(k,en)){if(c.t<st)base+=c.amt;else delta[Math.round((c.t-st)/DAY)]+=c.amt;}
+  for(const tr of S.trips){if(tr.id===excl||!involves(tr,k))continue;const t=toD(tr.from);if(isNaN(t))continue;const d=tripDays(tr);if(t<st)base-=d;else if(t<=en)delta[Math.round((t-st)/DAY)]-=d;}
+  const out=new Float64Array(n);let r=base;for(let i=0;i<n;i++){r+=delta[i];out[i]=r;}return out;
+}
+function earliest(need,keys,excl){
+  const st=TODAY,en=Date.UTC(S.settings.year+2,11,31);
+  const sufs=keys.map(k=>{const b=series(k,st,en,excl);const s=new Float64Array(b.length);let mn=Infinity;for(let i=b.length-1;i>=0;i--){mn=Math.min(mn,b[i]);s[i]=mn;}return s;});
+  for(let i=0;i<sufs[0].length;i++){const t=st+i*DAY;if(!isWork(t))continue;if(sufs.every(s=>s[i]>=need-1e-9))return t;}
+  return null;
+}
+const sortedTrips=()=>S.trips.slice().sort((x,y)=>(x.from||'').localeCompare(y.from||'')||(x.created||0)-(y.created||0));
+
+/* ---------- render: header ---------- */
+function renderYears(){
+  const y=S.settings.year,opts=[y-1,y,y+1];
+  $('#years').innerHTML=opts.map(v=>`<button type="button" data-y="${v}" aria-pressed="${v===y}">${v}</button>`).join('');
+}
+const prevStat={},prevMeter={};
+function renderPeople(){
+  const Y=S.settings.year,end=Date.UTC(Y,11,31),st=Date.UTC(Y,0,1);
+  const box=$('#people');
+  if(!box.dataset.built){
+    box.innerHTML=PK.map(k=>`<div class="person" style="--c:var(--${k})">
+      <input class="pname" data-k="${k}" aria-label="Navn" maxlength="30">
+      <div class="stats" data-stats="${k}"></div>
+      <div class="meter" data-meter="${k}" role="img"><i></i></div>
+      <div class="metercap" data-cap="${k}"></div></div>`).join('');
+    box.dataset.built='1';
+  }
+  PK.forEach(k=>{
+    const inp=box.querySelector(`.pname[data-k="${k}"]`);
+    if(document.activeElement!==inp) inp.value=P(k).name||'';
+    inp.disabled=readOnly;
+    const today=balAt(k,TODAY), yearEnd=balAt(k,end);
+    let used=0;for(const tr of S.trips){if(!involves(tr,k))continue;const t=toD(tr.from);if(t>=st&&t<=end)used+=tripDays(tr);}
+    const ser=series(k,st,end);let mn=Infinity;for(const v of ser) mn=Math.min(mn,v);
+    const stats=[
+      {id:'today',v:today,l:'saldo i dag'},
+      {id:'used',v:used,l:'planlagt brugt i '+Y,plain:true},
+      {id:'end',v:yearEnd,l:'tilbage 31. dec.'},
+    ];
+    if(mn<-1e-9) stats.push({id:'min',v:mn,l:'laveste saldo i '+Y});
+    const el=box.querySelector(`[data-stats="${k}"]`);
+    el.innerHTML=stats.map(s=>`<div class="stat${!s.plain&&s.v<-1e-9?' neg':''}"><b class="num" data-key="${k+s.id}" data-v="${s.v}"></b><span>${s.l}</span></div>`).join('');
+    el.querySelectorAll('b[data-key]').forEach(b=>{
+      const key=b.dataset.key,to=+b.dataset.v,from=prevStat[key]===undefined?0:prevStat[key];prevStat[key]=to;
+      if(Math.abs(from-to)<1e-9){b.textContent=fmtN(to);return;}
+      b.textContent=fmtN(from);tween(.8,p=>{b.textContent=fmtN(p>=1?to:from+(to-from)*p);});
+    });
+    // year meter: how much of this year's available days is planned
+    const avail=used+yearEnd,over=yearEnd<-1e-9;
+    const pct=over?100:(avail>0?Math.min(100,used/avail*100):0);
+    const mtr=box.querySelector(`[data-meter="${k}"]`),fill=mtr.querySelector('i');
+    mtr.classList.toggle('over',over);
+    const was=prevMeter[k]===undefined?0:prevMeter[k];prevMeter[k]=pct;
+    fill.style.width=pct+'%';
+    if(Math.abs(was-pct)>.01) anim(fill,{width:[was+'%',pct+'%']},{type:'spring',bounce:.18,duration:.8});
+    const cap=box.querySelector(`[data-cap="${k}"]`);
+    cap.classList.toggle('over',over);
+    cap.textContent=over?`${fmtN(-yearEnd)} dage for meget planlagt i ${Y}`:`${fmtN(used)} af ${fmtN(avail)} optjente dage er planlagt i ${Y}`;
+    mtr.setAttribute('aria-label',cap.textContent);
+  });
+}
+
+/* ---------- render: chart ---------- */
+let chartGeo=null,shown=null,chartTween=null;
+function renderChart(){
+  const box=$('#chart');const W=Math.max(300,Math.round(box.clientWidth||900));const mobile=W<560;const H=mobile?260:320;
+  const Y=S.settings.year,st=Date.UTC(Y,0,1),en=Date.UTC(Y,11,31),n=Math.round((en-st)/DAY)+1;
+  const ser={a:series('a',st,en),b:series('b',st,en)};
+  let lo=0,hi=5;for(const k of PK)for(const v of ser[k]){if(v<lo)lo=v;if(v>hi)hi=v;}
+  const step=(hi-lo)>45?10:5;lo=Math.floor(lo/step)*step;hi=Math.ceil((hi+0.8)/step)*step;
+  const L=mobile?30:40,R=10,T=12,rows=42,B=24+rows,pw=W-L-R,ph=H-T-B;
+  const x=i=>L+i/n*pw, yv=v=>T+(hi-v)/(hi-lo)*ph;
+  let g='';
+  if(lo<0) g+=`<rect x="${L}" y="${yv(0)}" width="${pw}" height="${yv(lo)-yv(0)}" style="fill:var(--warn);opacity:.08"/>`;
+  for(let v=lo;v<=hi;v+=step){g+=`<line class="${v===0?'zero':'grid'}" x1="${L}" x2="${W-R}" y1="${yv(v)}" y2="${yv(v)}"/><text class="ax" x="${L-6}" y="${yv(v)+4}" text-anchor="end">${v}</text>`;}
+  for(let m=0;m<12;m++){
+    const i=Math.round((Date.UTC(Y,m,1)-st)/DAY),i2=Math.round((Date.UTC(Y,m+1,1)-st)/DAY);
+    if(m>0) g+=`<line class="grid" x1="${x(i)}" x2="${x(i)}" y1="${T}" y2="${T+ph}" style="opacity:.6"/>`;
+    const lab=mobile?MSH[m].charAt(0).toUpperCase():cap(MSH[m]);
+    g+=`<text class="ax" x="${(x(i)+x(i2))/2}" y="${T+ph+16}" text-anchor="middle">${lab}</text>`;
+  }
+  // trips rows
+  const rowY={a:T+ph+26,b:T+ph+40};
+  PK.forEach(k=>{
+    g+=`<circle cx="${L-10}" cy="${rowY[k]+4.5}" r="4" style="fill:var(--${k})"><title>${esc(nm(k))}</title></circle>`;
+    g+=`<line x1="${L}" x2="${W-R}" y1="${rowY[k]+4}" y2="${rowY[k]+4}" class="grid" style="stroke-dasharray:2 4"/>`;
+    for(const tr of S.trips){
+      if(!involves(tr,k))continue;let a=toD(tr.from),b=toD(tr.to);if(isNaN(a)||isNaN(b)||b<st||a>en)continue;
+      a=Math.max(a,st);b=Math.min(b,en);const i=(a-st)/DAY,j=(b-st)/DAY+1;
+      g+=`<rect x="${x(i)}" y="${rowY[k]}" width="${Math.max(3,x(j)-x(i))}" height="9" rx="3" style="fill:var(--${k})"><title>${esc(tr.name||'Rejse')}</title></rect>`;
+    }
+  });
+  let today='';
+  if(TODAY>=st&&TODAY<=en){const i=(TODAY-st)/DAY;today=`<line x1="${x(i)}" x2="${x(i)}" y1="${T}" y2="${T+ph}" style="stroke:var(--ink);stroke-width:1.5;stroke-dasharray:3 3"/><text class="ax" x="${x(i)+5}" y="${T+10}" style="fill:var(--ink);font-weight:700">I dag</text>`;}
+  const grads=PK.map(k=>`<linearGradient id="gr${k}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color:var(--${k});stop-opacity:.26"/><stop offset="1" style="stop-color:var(--${k});stop-opacity:0"/></linearGradient>`).join('');
+  box.innerHTML=`<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img" aria-label="Feriesaldo gennem ${Y} for ${esc(nm('a'))} og ${esc(nm('b'))}">
+    <defs>${grads}<clipPath id="plotclip"><rect x="${L}" y="${T-4}" width="${pw}" height="${ph+8}"/></clipPath></defs>
+    ${g}
+    <g clip-path="url(#plotclip)">
+      <path id="fa" style="fill:url(#gra)"/><path id="fb" style="fill:url(#grb)"/>
+      <path id="la" style="fill:none;stroke:var(--a);stroke-width:3;stroke-linejoin:round"/>
+      <path id="lb" style="fill:none;stroke:var(--b);stroke-width:3;stroke-linejoin:round;stroke-dasharray:7 6"/>
+    </g>${today}
+    <line id="guide" x1="0" x2="0" y1="${T}" y2="${T+ph+rows+10}" style="stroke:var(--ink);stroke-width:1;opacity:0"/>
+    <circle id="dota" r="5" style="fill:var(--a);stroke:var(--surface);stroke-width:2;opacity:0"/><circle id="dotb" r="5" style="fill:var(--b);stroke:var(--surface);stroke-width:2;opacity:0"/>
+    <rect id="hit" x="${L}" y="${T}" width="${pw}" height="${ph+rows+10}" style="fill:transparent;cursor:crosshair"/>
+  </svg>`;
+  const svg=box.querySelector('svg'),els={};['fa','fb','la','lb'].forEach(id=>els[id]=svg.querySelector('#'+id));
+  const pathOf=b=>{let d=`M${x(0)},${yv(b[0])}`;for(let i=1;i<n;i++){if(Math.abs(b[i]-b[i-1])>1e-6)d+=`H${x(i)}V${yv(b[i])}`;}return d+`H${x(n)}`;};
+  const draw=(A,B)=>{const pa=pathOf(A),pb=pathOf(B),z=`V${yv(0)}H${x(0)}Z`;els.la.setAttribute('d',pa);els.lb.setAttribute('d',pb);els.fa.setAttribute('d',pa+z);els.fb.setAttribute('d',pb+z);shown={a:A,b:B};};
+  const same=(A,B)=>{for(let i=0;i<n;i++)if(Math.abs(A[i]-B[i])>1e-9)return false;return true;};
+  if(chartTween){chartTween.stop();chartTween=null;}
+  let from=(!firstChart&&shown&&shown.a.length===n)?shown:null;
+  if(!from){const z=new Float64Array(n);from={a:z,b:z};}
+  if(same(from.a,ser.a)&&same(from.b,ser.b)) draw(ser.a,ser.b);
+  else{
+    const fa=from.a,fb=from.b,ta=ser.a,tb=ser.b;
+    const mix=(A,B,p)=>{const o=new Float64Array(n);for(let i=0;i<n;i++)o[i]=A[i]+(B[i]-A[i])*p;return o;};
+    draw(fa,fb);
+    chartTween=tween(firstChart?1.1:.6,p=>{if(p>=1)draw(ta,tb);else draw(mix(fa,ta,p),mix(fb,tb,p));});
+  }
+  firstChart=false;
+  chartGeo={st,n,L,pw,x,yv,ser,T,ph};
+  $('#charttitle').textContent='Feriesaldo gennem '+Y;
+  $('#legend').innerHTML=PK.map(k=>`<span><i style="background:var(--${k})"></i>${esc(nm(k))}</span>`).join('')+`<span>Bjælkerne nederst er rejser</span>`;
+  const hit=box.querySelector('#hit');
+  hit.addEventListener('pointermove',chartHover);hit.addEventListener('pointerleave',chartOut);hit.addEventListener('pointerdown',chartHover);
+}
+function chartHover(e){
+  if(!chartGeo)return;const svg=$('#chart svg');const r=svg.getBoundingClientRect();const scale=r.width/svg.viewBox.baseVal.width;
+  const px=(e.clientX-r.left)/scale;const g=chartGeo;let i=Math.floor((px-g.L)/g.pw*g.n);i=Math.max(0,Math.min(g.n-1,i));
+  const t=g.st+i*DAY,cx=g.x(i+.5);
+  const guide=svg.querySelector('#guide');guide.setAttribute('x1',cx);guide.setAttribute('x2',cx);guide.style.opacity=.35;
+  PK.forEach(k=>{const d=svg.querySelector('#dot'+k);d.setAttribute('cx',cx);d.setAttribute('cy',g.yv(g.ser[k][i]));d.style.opacity=1;});
+  const on=S.trips.filter(tr=>toD(tr.from)<=t&&toD(tr.to)>=t).map(tr=>esc(tr.name||'Rejse'));
+  const tip=$('#tip');
+  tip.innerHTML=`<div class="t">${fmtShort(t,true)}</div>`+PK.map(k=>`${esc(nm(k))}: <b>${fmtN(g.ser[k][i])}</b> dage`).join('<br>')+(on.length?`<br>På tur: ${on.join(', ')}`:'')+(holName(t)?`<br>${holName(t)}`:'');
+  const box=$('.chartbox').getBoundingClientRect();
+  let left=cx*scale+(r.left-box.left);left=Math.max(90,Math.min(box.width-90,left));
+  tip.style.left=left+'px';tip.style.top=(g.T*scale+(r.top-box.top)+4)+'px';tip.classList.add('on');
+}
+function chartOut(){const svg=$('#chart svg');if(!svg)return;svg.querySelector('#guide').style.opacity=0;PK.forEach(k=>svg.querySelector('#dot'+k).style.opacity=0);$('#tip').classList.remove('on');}
+
+/* ---------- render: trips ---------- */
+function tripCheck(tr){
+  const t=toD(tr.from),d=tripDays(tr),keys=whoKeys(tr.who);
+  const rows=keys.map(k=>{const before=balAt(k,t,tr.id);return {k,before,after:before-d};});
+  const short=rows.some(r=>r.after<-1e-9);
+  return {rows,short,d,ready:short?earliest(d,keys,tr.id):null};
+}
+let knownTrips=null;
+function renderTrips(){
+  const list=sortedTrips();const ul=$('#trips');
+  if(!list.length){knownTrips=new Set();ul.innerHTML=`<li class="empty">Ingen rejser endnu. Klik på to datoer i kalenderen herunder, eller udfyld formularen.</li>`;return;}
+  ul.innerHTML=list.map(tr=>{
+    const a=toD(tr.from),b=toD(tr.to),c=tripCheck(tr);
+    const bar=tr.who==='both'?'<span class="bar both"></span>':`<span class="bar" style="--c:var(--${tr.who})"></span>`;
+    const checks=c.rows.map(r=>`<span class="chk${r.after<-1e-9?' bad':''}" style="--c:var(--${r.k})">${esc(nm(r.k))}: ${fmtN(r.before)} → ${fmtN(r.after)}</span>`).join('');
+    let ready='';
+    if(c.short){ready=`<div class="ready">${c.ready?`Mangler feriedage. Med resten af planen er der nok fra ${fmtShort(c.ready,gd(c.ready).getUTCFullYear()!==S.settings.year)}.`:'Mangler feriedage, og der bliver ikke nok inden for de næste år.'}</div>`;}
+    const who=tr.who==='both'?'Begge':esc(nm(tr.who));
+    return `<li class="trip${b<TODAY?' past':''}${tr.id===editingId?' editing':''}" data-id="${esc(tr.id)}" tabindex="0">
+      ${bar}<div><h3>${esc(tr.name||'Rejse')}</h3><div class="when">${fmtRange(a,b)}, ${who}</div></div>
+      <div class="days num">${fmtN(c.d)}<small>feriedage</small></div>
+      <div class="checks">${checks}</div>${ready}<div style="grid-column:2/span 2"><button type="button" class="chip planlink" data-plantrip="${esc(tr.id)}">Planlæg dagene →</button></div></li>`;
+  }).join('');
+  if(knownTrips) ul.querySelectorAll('.trip').forEach(li=>{if(!knownTrips.has(li.dataset.id))anim(li,{opacity:[0,1],transform:['translateY(-10px)','translateY(0px)']},{duration:.45,ease:[.22,.8,.24,1]});});
+  knownTrips=new Set(list.map(t=>t.id));
+}
+
+/* ---------- render: calendar ---------- */
+function dayMap(Y){
+  const m=new Map(),st=Date.UTC(Y,0,1),en=Date.UTC(Y,11,31);
+  for(const tr of S.trips){const a=toD(tr.from),b=toD(tr.to);if(isNaN(a)||isNaN(b))continue;
+    for(let t=Math.max(a,st);t<=Math.min(b,en);t+=DAY){let e=m.get(t);if(!e){e={a:[],b:[]};m.set(t,e);}whoKeys(tr.who).forEach(k=>e[k].push(tr));}}
+  return m;
+}
+function renderCalendar(){
+  const Y=S.settings.year,map=dayMap(Y);let h='';
+  for(let mo=0;mo<12;mo++){
+    const first=Date.UTC(Y,mo,1),last=Date.UTC(Y,mo+1,0),off=(gd(first).getUTCDay()+6)%7;
+    h+=`<div class="month"><h3>${cap(MONTHS[mo])}</h3><div class="mgrid"><span class="h">uge</span>${['M','T','O','T','F','L','S'].map(d=>`<span class="h">${d}</span>`).join('')}`;
+    let t=first-off*DAY;
+    while(t<=last){
+      h+=`<span class="wk">${isoWeek(t)}</span>`;
+      for(let i=0;i<7;i++,t+=DAY){
+        if(t<first||t>last){h+='<span></span>';continue;}
+        const hn=holName(t),we=isWeekend(t),e=map.get(t);
+        let cls='d';if(we)cls+=' we';if(hn)cls+=' hol';if(t===TODAY)cls+=' today';
+        const tips=[];if(hn)tips.push(hn);
+        if(e&&(e.a.length||e.b.length)){
+          cls+=e.a.length&&e.b.length?' vab':(e.a.length?' va':' vb');
+          if(we||hn)cls+=' soft';
+          const names=[...new Set([...e.a,...e.b].map(x=>x.name||'Rejse'))];tips.push(names.join(', '));
+        }
+        h+=`<button type="button" class="${cls}" data-t="${t}" title="${esc(tips.join(' – '))}" aria-label="${esc(fmtLong(t)+(tips.length?', '+tips.join(', '):''))}">${gd(t).getUTCDate()}</button>`;
+      }
+    }
+    h+='</div></div>';
+  }
+  $('#months').innerHTML=h;$('#caltitle').textContent='Kalender '+Y;
+  $('#callegend').innerHTML=`<span><i class="sw" style="background:var(--a)"></i>${esc(nm('a'))}</span><span><i class="sw" style="background:var(--b)"></i>${esc(nm('b'))}</span><span><i class="sw" style="background:linear-gradient(135deg,var(--a) 50%,var(--b) 50%)"></i>Begge</span><span><i class="sw" style="background:color-mix(in srgb,var(--ink) 18%,transparent)"></i>Lys farve: weekend eller helligdag, koster ingen feriedage</span><span><i class="sw" style="background:var(--hol);width:6px;height:6px;border-radius:50%"></i>Helligdag</span>`;
+  highlightSel();
+}
+function highlightSel(){
+  const a=sel.from,b=selecting?(hoverT??sel.from):sel.to;
+  const lo=a==null?null:Math.min(a,b??a),hi=a==null?null:Math.max(a,b??a);
+  document.querySelectorAll('#months .d').forEach(c=>{const t=+c.dataset.t;c.classList.toggle('sel',lo!=null&&t>=lo&&t<=hi);});
+  updateSelbar();
+}
+let formVisible=false,selbarShown=false,selHideT;
+function updateSelbar(){
+  const bar=$('#selbar');if(!bar)return;
+  const show=!readOnly&&!editingId&&sel.from!=null&&!formVisible&&activeTab==='feriedage';
+  if(show){
+    const info=$('#seldays');info.classList.remove('bad');
+    if(selecting){$('#selrange').textContent='Fra '+fmtShort(sel.from,gd(sel.from).getUTCFullYear()!==S.settings.year);info.textContent='Vælg slutdatoen i kalenderen';$('#selgo').hidden=true;}
+    else{
+      const a=sel.from,b=sel.to==null?sel.from:sel.to,dv=$('#fdays').value,d=dv===''?countWork(a,b):+dv;
+      const shortOf=whoKeys(formWho).some(k=>balAt(k,a,null)-d<-1e-9);
+      $('#selrange').textContent=fmtRange(a,b);
+      info.textContent=fmtN(d)+' feriedage, '+(shortOf?'ikke nok sparet op endnu':(formWho==='both'?'I har begge nok':'der er nok'));
+      info.classList.toggle('bad',shortOf);$('#selgo').hidden=false;
+    }
+  }
+  if(show===selbarShown)return;
+  selbarShown=show;clearTimeout(selHideT);
+  if(show){bar.hidden=false;anim(bar,{opacity:[0,1],transform:['translateX(-50%) translateY(28px)','translateX(-50%) translateY(0px)']},{type:'spring',bounce:.28,duration:.55});}
+  else{const a=anim(bar,{opacity:[1,0],transform:['translateX(-50%) translateY(0px)','translateX(-50%) translateY(28px)']},{duration:.2});if(a)selHideT=setTimeout(()=>{if(!selbarShown)bar.hidden=true;},220);else bar.hidden=true;}
+}
+
+/* ---------- form ---------- */
+function renderSeg(el,name,val,onchg){
+  const opts=[['both','Begge'],['a',nm('a')],['b',nm('b')]];
+  el.innerHTML=opts.map(([v,l])=>`<label><input type="radio" name="${name}" value="${v}"${v===val?' checked':''}><span>${esc(l)}</span></label>`).join('');
+  el.onchange=e=>{if(e.target.name===name)onchg(e.target.value);};
+}
+let formWho='both',findWho='both';
+function readForm(){
+  const from=$('#ffrom').value,to=$('#fto').value||from,dv=$('#fdays').value;
+  return {id:editingId,name:$('#fname').value.trim(),from,to,who:formWho,days:dv===''?null:+dv};
+}
+function updatePreview(){
+  updateSelbar();
+  const f=readForm(),pv=$('#preview');const a=toD(f.from),b=toD(f.to);
+  if(isNaN(a)){pv.innerHTML='<span class="hint">Vælg datoer for at se, hvordan rejsen påvirker jeres saldo.</span>';$('#fdays').placeholder='';return;}
+  if(!isNaN(b)&&b<a){pv.innerHTML='<span class="bad">Slutdatoen ligger før startdatoen.</span>';return;}
+  const auto=countWork(a,isNaN(b)?a:b);$('#fdays').placeholder=String(auto);
+  const d=f.days==null?auto:f.days;const keys=whoKeys(f.who);
+  let h=`<div class="pv"><span>Feriedage</span><b>${fmtN(d)}</b></div>`;
+  let short=false;
+  keys.forEach(k=>{const before=balAt(k,a,editingId),after=before-d;if(after<-1e-9)short=true;h+=`<div class="pv${after<-1e-9?' bad':''}"><span>${esc(nm(k))} ved afrejse</span><b>${fmtN(before)} → ${fmtN(after)}</b></div>`;});
+  if(short){const r=earliest(d,keys,editingId);h+=`<div class="bad">${r?'Der er nok feriedage fra '+fmtLong(r)+'.':'Der bliver ikke nok feriedage inden for de næste år.'}</div>`;}
+  pv.innerHTML=h;
+}
+function resetForm(){
+  editingId=null;$('#tripform').reset();formWho='both';$('#formtitle').textContent='Ny rejse';$('#fsave').textContent='Gem rejse';$('#fdel').hidden=true;
+  sel={from:null,to:null};selecting=false;hoverT=null;setCalHint();
+  renderSeg($('#fwho'),'fwho',formWho,v=>{formWho=v;updatePreview();});updatePreview();highlightSel();
+  document.querySelectorAll('.trip.editing').forEach(x=>x.classList.remove('editing'));
+}
+function editTrip(id){
+  const tr=S.trips.find(x=>x.id===id);if(!tr||readOnly)return;
+  editingId=id;$('#fname').value=tr.name||'';$('#ffrom').value=tr.from;$('#fto').value=tr.to;$('#fdays').value=(tr.days==null||tr.days==='')?'':tr.days;
+  formWho=tr.who||'both';renderSeg($('#fwho'),'fwho',formWho,v=>{formWho=v;updatePreview();});
+  $('#formtitle').textContent='Ret rejse';$('#fsave').textContent='Gem ændringer';$('#fdel').hidden=false;
+  sel={from:toD(tr.from),to:toD(tr.to)};selecting=false;highlightSel();setCalHint();updatePreview();
+  document.querySelectorAll('.trip').forEach(x=>x.classList.toggle('editing',x.dataset.id===id));
+  scrollToForm();
+}
+function scrollToForm(){if(innerWidth<=900)$('#formpanel').scrollIntoView({behavior:'smooth',block:'start'});else $('#fname').focus({preventScroll:true});}
+function setDates(a,b){$('#ffrom').value=toS(a);$('#fto').value=toS(b);updatePreview();}
+function setCalHint(){const h=$('#calhint');if(selecting){h.textContent='Klik nu på slutdatoen. Tryk Esc for at fortryde.';h.classList.add('active');}else{h.textContent='Klik på en startdato og derefter en slutdato for at lægge en rejse ind. Klik på en rejse for at rette den.';h.classList.remove('active');}}
+
+/* ---------- finder ---------- */
+let lastAnswer=null;
+function renderFinder(){
+  const need=+$('#nneed').value;const keys=whoKeys(findWho);
+  const ans=$('#answer'),note=$('#ansnote'),btn=$('#useanswer');
+  if(!(need>0)){ans.textContent='Skriv et antal dage';ans.classList.remove('bad');note.textContent='';btn.hidden=true;return;}
+  const r=earliest(need,keys,null);lastAnswer=r;
+  const who=findWho==='both'?'I':esc(nm(findWho));
+  if(r){ans.textContent=cap(fmtLong(r));ans.classList.remove('bad');
+    note.textContent=`Det er den første arbejdsdag, hvor ${findWho==='both'?'I begge':nm(findWho)} kan bruge ${fmtN(need)} feriedage og stadig have nok til alle de rejser, der allerede er planlagt.`;btn.hidden=false;}
+  else{ans.textContent='Ikke inden for de næste år';ans.classList.add('bad');note.textContent=`${who} når ikke at spare ${fmtN(need)} dage op ved siden af de planlagte rejser.`;btn.hidden=true;}
+}
+
+/* ---------- settings ---------- */
+function renderSettings(){
+  const g=$('#setgrid');
+  if(!g.dataset.built){
+    const mOpts=MONTHS.map((m,i)=>`<option value="${i+1}">${cap(m)}</option>`).join('');
+    const rows=[
+      ['start','Saldo i dag','Feriedage I har lige nu','number','step="0.01"'],
+      ['rate','Optjening pr. måned','Typisk 2,08 dage','number','step="0.01" min="0"'],
+      ['first','Første optjening','Måneden hvor de første dage lægges til','month',''],
+      ['extra','Ekstra feriedage','Fx feriefridage, gives én gang om året','number','step="0.5" min="0"'],
+      ['extraMonth','Måned for ekstra dage','','select',''],
+    ];
+    let h=`<div class="lab"></div>${PK.map(k=>`<div class="ph" style="--c:var(--${k})" data-ph="${k}"></div>`).join('')}`;
+    rows.forEach(([f,l,s,type,attr])=>{
+      h+=`<div class="lab">${l}${s?`<small>${s}</small>`:''}</div>`;
+      PK.forEach(k=>{h+=type==='select'?`<select data-k="${k}" data-f="${f}" aria-label="${l}, ${k}">${mOpts}</select>`:`<input type="${type}" ${attr} data-k="${k}" data-f="${f}" aria-label="${l}">`;});
+    });
+    g.innerHTML=h;g.dataset.built='1';
+  }
+  PK.forEach(k=>{g.querySelector(`[data-ph="${k}"]`).textContent=nm(k);});
+  g.querySelectorAll('[data-f]').forEach(el=>{if(document.activeElement===el)return;el.value=P(el.dataset.k)[el.dataset.f];});
+  $('#extraoff').checked=!!S.settings.extraOff;
+}
+
+/* ---------- rejsekassen ---------- */
+const DEF_KASSE={start:0,startDate:toS(TODAY),depA:0,depB:0,depDay:1,margin:10,buffer:0,look:'2027-10-01',steps:[]};
+function normKasse(k){const d=Object.assign({},DEF_KASSE,{steps:[]});if(!k||typeof k!=='object')return d;Object.assign(d,k);if(!Array.isArray(d.steps))d.steps=[];return d;}
+S.kasse=normKasse(null);S.money=[];
+const K=()=>S.kasse;
+const CATS=['Fly','Overnatning','Transport','Mad og drikke','Oplevelser','Forsikring','Andet'];
+const kr=v=>{const r=Math.round(v);return (Object.is(r,-0)?0:r).toLocaleString('da-DK')+' kr.';};
+const krAx=v=>Math.round(v).toLocaleString('da-DK');
+const ceil50=v=>Math.ceil(v/50-1e-9)*50;
+const hasAct=it=>it.act!==null&&it.act!==undefined&&it.act!==''&&!isNaN(+it.act);
+const hasEst=it=>it.est!==null&&it.est!==undefined&&it.est!==''&&!isNaN(+it.est);
+function itAmt(it){if(hasAct(it))return +it.act;const e=hasEst(it)?+it.est:0;return it.kind==='deposit'?e:e*(1+(+K().margin||0)/100);}
+const depTotal=()=>(+K().depA||0)+(+K().depB||0);
+const kStart=()=>{const t=toD(K().startDate);return isNaN(t)?TODAY:t;};
+function moneyEnd(){
+  let e=Date.UTC(S.settings.year,11,31);const lk=toD(K().look);if(!isNaN(lk))e=Math.max(e,lk);
+  for(const it of S.money){const t=toD(it.date);if(!isNaN(t))e=Math.max(e,t);}
+  return Math.max(e+31*DAY,kStart()+150*DAY);
+}
+function depositDays(st,en){
+  const out=[],d0=gd(st);let y=d0.getUTCFullYear(),m=d0.getUTCMonth();const day=Math.min(31,Math.max(1,+K().depDay||1));
+  for(let i=0;i<600;i++){const dim=new Date(Date.UTC(y,m+1,0)).getUTCDate();const t=Date.UTC(y,m,Math.min(day,dim));if(t>en)break;if(t>st)out.push(t);m++;if(m>11){m=0;y++;}}
+  return out;
+}
+function accountEvents(st){
+  const ev=[];
+  for(const it of S.money){
+    const dep=it.kind==='deposit';
+    if(!dep&&it.payer&&it.payer!=='acc')continue;
+    let t=toD(it.date);if(isNaN(t))t=st;
+    if(t<st){if(hasAct(it))continue;t=st;}
+    ev.push({t,amt:dep?itAmt(it):-itAmt(it),it});
+  }
+  return ev.sort((a,b)=>a.t-b.t);
+}
+const hasSteps=()=>Array.isArray(K().steps)&&K().steps.length>0;
+const share=()=>{const a=+K().depA||0,b=+K().depB||0;return a+b>0?a/(a+b):.5;};
+function schedAmt(t){if(hasSteps()){const ym=toS(t).slice(0,7);let v=null;for(const x of K().steps){if(x.from<=ym)v=+x.total||0;}if(v!==null)return v;}return depTotal();}
+function curRate(){const st=kStart(),nx=depositDays(st,st+62*DAY)[0];return schedAmt(nx||st);}
+const monthOf=t=>{const d=gd(t);return MONTHS[d.getUTCMonth()]+(d.getUTCFullYear()!==S.settings.year?' '+d.getUTCFullYear():'');};
+function moneyModel(D){
+  const st=kStart(),en=moneyEnd(),n=Math.round((en-st)/DAY)+1;
+  const fixed=new Float64Array(n),depMark=new Uint8Array(n),depAmt=new Float64Array(n),ev=accountEvents(st);
+  for(const e of ev){const i=Math.round((e.t-st)/DAY);if(i>=0&&i<n)fixed[i]+=e.amt;}
+  for(const t of depositDays(st,en)){const i=Math.round((t-st)/DAY);depMark[i]=1;depAmt[i]=D!=null?D:schedAmt(t);}
+  const bal=new Float64Array(n),cum=new Float64Array(n),depN=new Int32Array(n),depCum=new Float64Array(n);
+  let c=+K().start||0,N=0,dc=0,mn=Infinity,mnI=0;
+  for(let i=0;i<n;i++){c+=fixed[i];if(depMark[i]){N++;dc+=depAmt[i];}cum[i]=c;depN[i]=N;depCum[i]=dc;bal[i]=c+dc;if(bal[i]<mn-1e-9){mn=bal[i];mnI=i;}}
+  return {st,en,n,bal,cum,depN,depCum,depMark,depAmt,ev,D:D!=null?D:curRate(),min:mn,minT:st+mnI*DAY};
+}
+const idxOf=(m,t)=>Math.max(0,Math.min(m.n-1,Math.round((t-m.st)/DAY)));
+/* Finds (1) the single fixed amount that would cover everything, and (2) a stepped plan:
+   the lowest possible amount up to each big payment, then the lowest amount for the rest. */
+function analyze(){
+  const m=moneyModel(0),buf=+K().buffer||0,n=m.n,depIdx=[];
+  for(let i=0;i<n;i++)if(m.depMark[i])depIdx.push(i);
+  let inf=null;for(let i=0;i<n&&m.depN[i]===0;i++){const need=buf-m.cum[i];if(need>.5&&(!inf||need>inf.short))inf={t:m.st+i*DAY,short:need};}
+  const off=inf?Math.ceil(inf.short/100)*100:0;
+  let cReq=0,cBind=null;
+  for(let i=0;i<n;i++){const N=m.depN[i];if(!N)continue;const d=(buf-m.cum[i]-off)/N;if(d>cReq+1e-9){cReq=d;cBind=m.st+i*DAY;}}
+  const segs=[];let p=0,A=off,s0=0;
+  while(p<depIdx.length&&segs.length<24){
+    let best=-Infinity,bi=-1;
+    for(let i=s0;i<n;i++){const N=m.depN[i];if(N<=p)continue;const r=(buf-m.cum[i]-A)/(N-p);if(r>=best-1e-6){best=r;bi=i;}}
+    if(bi<0||best<=.5)break;
+    const rate=ceil50(best),k=m.depN[bi];
+    segs.push({rate,from:m.st+depIdx[p]*DAY,to:m.st+depIdx[k-1]*DAY,count:k-p,bind:m.st+bi*DAY,k0:p,k1:k});
+    A+=rate*(k-p);p=k;s0=bi+1;
+  }
+  let oneOff=null;
+  if(segs.length){
+    const r2=segs.length>1?segs[1].rate:segs[0].rate;let need1=0;
+    for(let i=0;i<n;i++){const v=buf-m.cum[i]-r2*m.depN[i];if(v>need1)need1=v;}
+    oneOff={amount:Math.ceil(need1/100)*100,rate:r2};
+  }
+  return {m,cReq:ceil50(cReq),cBind,segs,inf,off,oneOff};
+}
+function eventLabel(e){const tr=e.it.tripId&&S.trips.find(t=>t.id===e.it.tripId);return tr?(tr.name||'Rejse'):(e.it.label||e.it.cat||'Udgift');}
+function bindingInfo(m,t){if(t==null)return null;let best=null;for(const e of m.ev){if(e.amt<0&&e.t<=t&&(!best||e.t>=best.t))best=e;}return best?{name:eventLabel(best),t:best.t}:null;}
+function bindingText(m,t){const b=bindingInfo(m,t);return b?`${b.name}, der betales ${fmtShort(b.t,true)}`:'';}
+function planSentence(segs){
+  return segs.map((sg,i)=>{
+    if(i===segs.length-1&&i>0)return `derefter ${kr(sg.rate)} om måneden`;
+    if(sg.count===1)return `${kr(sg.rate)} i ${monthOf(sg.from)}`;
+    return `${kr(sg.rate)} om måneden i ${monthOf(sg.from)}–${monthOf(sg.to)}`;
+  }).join(', ');
+}
+function nextChangeTxt(){
+  if(!hasSteps())return '';const st=kStart(),nd=depositDays(st,st+62*DAY)[0]||st,ym=toS(nd).slice(0,7);const nx=K().steps.find(x=>x.from>ym);
+  return nx?`Fra ${monthOf(toD(nx.from+'-01'))} sætter I ${kr(nx.total)} ind om måneden.`:'';
+}
+function applyPlan(segs){
+  const steps=[];
+  for(const sg of segs){const from=toS(sg.from).slice(0,7);if(steps.length&&steps[steps.length-1].total===sg.rate)continue;steps.push({from,total:sg.rate});}
+  K().steps=steps;scenD=null;kasseChanged();toast('Trappeplanen er gemt.');
+}
+function addOneOff(amount){
+  persistItem({id:newId(),kind:'deposit',tripId:null,cat:'Indskud',label:'Engangsindskud',est:amount,act:null,date:toS(Math.max(TODAY,kStart())),payer:'acc',created:Date.now()});
+}
+function applyOneOff(amount,rate){
+  addOneOff(amount);const a=Math.round(rate*share());K().depA=a;K().depB=Math.max(0,rate-a);K().steps=[];scenD=null;kasseChanged();
+  toast(`Engangsindskud på ${kr(amount)} er lagt ind, og det faste beløb er nu ${kr(rate)}`);
+}
+let scenD=null;
+function setDeposit(total){
+  const a=+K().depA||0,b=+K().depB||0,t=a+b;
+  if(t>0){K().depA=Math.round(total*a/t);K().depB=Math.max(0,Math.round(total)-K().depA);}
+  else{K().depA=Math.round(total/2);K().depB=Math.round(total)-K().depA;}
+  K().steps=[];scenD=null;kasseChanged();toast('Det månedlige indskud er nu '+kr(depTotal()));
+}
+
+/* rendering */
+function renderMoney(){
+  if(!$('#tab-money'))return;
+  const m=moneyModel(null),a=analyze();
+  renderKasseForm();renderMoneyHero(m);const rec=renderVerdict(m,a);renderMonthly(m,a,rec);renderMoneyChart();renderBudgets(m);renderSettle();
+}
+function renderKasseForm(){
+  const sel=$('#kDay');
+  if(!sel.options.length){let h='';for(let d=1;d<=28;d++)h+=`<option value="${d}">${d}.</option>`;h+='<option value="31">Sidste dag i måneden</option>';sel.innerHTML=h;}
+  $('#kDepALbl').textContent=nm('a')+' pr. md.';$('#kDepBLbl').textContent=nm('b')+' pr. md.';
+  document.querySelectorAll('[data-kf]').forEach(el=>{if(document.activeElement===el)return;const v=K()[el.dataset.kf];el.value=(v===null||v===undefined)?'':v;});
+  document.querySelectorAll('#kform input,#kform select,#mLook').forEach(el=>el.disabled=readOnly);
+  const ks=$('#kSteps');
+  ks.innerHTML=hasSteps()?`<div class="steps"><b>Trappeplan</b>${K().steps.map(x=>`<div class="steprow"><span>Fra ${monthOf(toD(x.from+'-01'))}</span><b class="num">${kr(x.total)}</b></div>`).join('')}<span class="hint">Planen bestemmer det samlede beløb. Felterne ovenfor bestemmer, hvordan det fordeles mellem jer.</span><button type="button" class="chip editonly" data-dropsteps>Fjern trappeplanen</button></div>`:'';
+}
+function renderMoneyHero(m){
+  const D=m.D,now=m.bal[idxOf(m,TODAY)];
+  setBig($('#mNow'),'now',TODAY<m.st?(+K().start||0):now);
+  $('#mNowSub').textContent=m.st===TODAY?'Ud fra saldoen i dag':`Ud fra saldoen d. ${fmtShort(m.st,true)} og det, der er sket siden`;
+  const lk=toD(K().look);
+  if(isNaN(lk)||lk<m.st){$('#mLookVal').textContent='–';$('#mLookSub').textContent='Vælg en dato efter '+fmtShort(m.st,true);}
+  else{
+    const i=idxOf(m,lk);setBig($('#mLookVal'),'look',m.bal[i]);
+    let ins=m.depCum[i],out=0;for(const e of m.ev){if(e.t>lk)break;if(e.amt>0)ins+=e.amt;else out-=e.amt;}
+    $('#mLookSub').textContent=`Frem til da: ${kr(ins)} ind og ${kr(out)} ud`;
+  }
+  setBig($('#mDep'),'dep',D,true);
+  $('#mDepLbl').textContent=hasSteps()?'Indskud pr. måned lige nu':'Fast indskud pr. måned';
+  const day=+K().depDay===31?'sidste dag i måneden':'d. '+(+K().depDay||1)+'.',a=Math.round(D*share());
+  let sub=D>0?`${nm('a')} ${kr(a)}, ${nm('b')} ${kr(D-a)}, ${day}`:'Skriv jeres faste beløb under Kontoen';
+  const nx=nextChangeTxt();if(nx)sub+=(sub.endsWith('.')?' ':'. ')+nx;
+  $('#mDepSub').textContent=sub;
+}
+const prevBig={};
+function setBig(el,key,v,plain){
+  el.classList.toggle('neg',!plain&&v<-0.5);const from=prevBig[key]===undefined?0:prevBig[key];prevBig[key]=v;
+  if(Math.abs(from-v)<.5){el.textContent=kr(v);return;}
+  el.textContent=kr(from);tween(.7,p=>{el.textContent=kr(p>=1?v:from+(v-from)*p);});
+}
+function optCard(title,txt,btn){return `<div class="opt"><b>${esc(title)}</b><span>${esc(txt)}</span>${btn}</div>`;}
+function renderVerdict(m,a){
+  const v=$('#verdict'),D=m.D,hasOut=S.money.some(it=>it.kind!=='deposit');
+  const margin=+K().margin||0,mnote=margin>0?` Der er regnet med ${margin} % margin på det, der ikke er betalt endnu.`:'';
+  v.classList.remove('bad');
+  if(!hasOut){v.innerHTML=`<div class="vmain"><h2>Læg udgifter ind på jeres rejser</h2><p>Så regner rejsekassen ud, om ${D>0?kr(D)+' om måneden':'jeres opsparing'} er nok, og hvor meget I skal skrue op eller ned.</p></div>`;return null;}
+  const buf=+K().buffer||0,curOk=m.min>=buf-.5,segs=a.segs,steps=hasSteps();
+  const stepped=segs.length>1&&segs[1].rate<=segs[0].rate*.75;
+  const planBtn=`<button type="button" class="btn editonly" data-plan>Brug trappeplanen</button>`;
+  const oo=a.oneOff,hasOO=oo&&oo.amount>0&&segs.length>1;
+  const ooCard=hasOO?optCard('Engangsbeløb',`Sæt ${kr(oo.amount)} ind én gang nu, og hold derefter ${kr(oo.rate)} om måneden.`,`<button type="button" class="btn editonly" data-oneoff="${oo.amount}" data-rate="${oo.rate}">Brug engangsbeløbet</button>`):'';
+  const planCard=segs.length?optCard('Trappeplan',cap(planSentence(segs))+'.',planBtn):'';
+  let h,p,opts='',btn='',rec=null;
+  if(a.inf){
+    v.classList.add('bad');
+    h=`Der mangler ${kr(a.inf.short)} d. ${fmtShort(a.inf.t,true)}`;
+    p='Det er før næste indskud, så det skal dækkes af et engangsindskud nu.'+mnote;
+    if(segs.length){opts=optCard('Engangsbeløb + trappeplan',`Sæt ${kr(a.off)} ind nu og derefter ${planSentence(segs)}.`,`<button type="button" class="btn editonly" data-plan data-plus="${a.off}">Brug den</button>`);rec=segs;}
+    else opts=optCard('Engangsbeløb',`Sæt ${kr(a.off)} ind nu.`,`<button type="button" class="btn editonly" data-oneoff="${a.off}" data-rate="${Math.round(D)}">Læg det ind</button>`);
+  }else if(steps){
+    if(curOk){h='Jeres trappeplan holder';p=(nextChangeTxt()?nextChangeTxt()+' ':'')+`Den laveste saldo bliver ${kr(m.min)} d. ${fmtShort(m.minT,true)}.`+mnote;}
+    else{v.classList.add('bad');h='Trappeplanen er ikke nok længere';p='Der er kommet udgifter til, siden planen blev lavet. Sådan ser den ud nu:'+mnote;opts=optCard('Ny trappeplan',cap(planSentence(segs))+'.',planBtn)+ooCard;rec=segs;}
+  }else if(stepped){
+    const after=segs[1].rate,bi=bindingInfo(a.m,segs[0].bind),months=segs[0].count===1?'én måned':segs[0].count+' måneder';
+    if(curOk){
+      h=`Jeres ${kr(D)} om måneden holder`;
+      if(D>after){p=`Men I har kun brug for så meget frem til ${bi?bi.name+' ('+fmtShort(bi.t,true)+')':'den store betaling'}. Derefter er ${kr(after)} om måneden nok.`+mnote;opts=planCard;rec=segs;}
+      else p=`Den laveste saldo bliver ${kr(m.min)} d. ${fmtShort(m.minT,true)}.`+mnote;
+    }else{
+      h=`Der skal ekstra ind før ${bi?bi.name:'den store betaling'}`;
+      p=`Et fast beløb skulle være ${kr(a.cReq)} om måneden hele vejen, men det er kun ${months}, der kræver så meget. Efter ${bi?bi.name+' ('+fmtShort(bi.t,true)+')':'den store betaling'} er ${kr(after)} om måneden nok.`+mnote;
+      opts=planCard+ooCard;rec=segs;
+    }
+  }else{
+    const req=a.cReq,diff=req-D,bt=bindingText(a.m,a.cBind);
+    if(diff>0){h=`Skru op med ${kr(diff)} om måneden`;p=`I sætter ${kr(D)} ind nu. Med ${kr(req)} om måneden har I råd til det hele${bt?', også '+bt:''}.`+mnote;btn=`<button type="button" class="btn editonly" data-usedep="${req}">Brug ${kr(req)} om måneden</button>`;}
+    else if(-diff>=50){h=`I kan skrue ned med ${kr(-diff)} om måneden`;p=`${kr(req)} om måneden er nok til alt, I har planlagt${bt?', også '+bt:''}. Med det nuværende beløb bliver den laveste saldo ${kr(m.min)} d. ${fmtShort(m.minT,true)}.`+mnote;btn=`<button type="button" class="btn editonly" data-usedep="${req}">Brug ${kr(req)} om måneden</button>`;}
+    else{h='Jeres opsparing passer til planen';p=`Den laveste saldo bliver ${kr(m.min)} d. ${fmtShort(m.minT,true)}.`+mnote;}
+  }
+  v.innerHTML=`<div class="vmain"><h2>${esc(h)}</h2><p>${esc(p)}</p></div>${opts?`<div class="opts">${opts}</div>`:''}${btn}`;
+  return rec;
+}
+
+/* month by month */
+let lastMo=null,moSig='';
+const krShort=v=>v>=10000?(v/1000).toLocaleString('da-DK',{maximumFractionDigits:0})+'k':v>=1000?(v/1000).toLocaleString('da-DK',{maximumFractionDigits:1})+'k':String(Math.round(v));
+function renderMonthly(m,a,rec){
+  lastMo=[m,a,rec];const sec=$('#monthlyBox'),box=$('#monthly');
+  const outs=m.ev.filter(e=>e.amt<0);
+  if(!outs.length){sec.hidden=true;return;}
+  sec.hidden=false;
+  const W=Math.max(300,Math.round(box.clientWidth||900)),mobile=W<560,H=mobile?200:230;
+  const d0=gd(m.st);let y=d0.getUTCFullYear(),mo=d0.getUTCMonth();const lastOut=outs[outs.length-1].t,months=[];
+  for(let k=0;k<(mobile?12:18);k++){const t=Date.UTC(y,mo,1);if(t>lastOut&&months.length>=6)break;months.push({t,tEnd:Date.UTC(y,mo+1,1)-DAY,exp:0,dep:0,rec:null});mo++;if(mo>11){mo=0;y++;}}
+  const find=t=>months.find(x=>t>=x.t&&t<=x.tEnd);
+  for(const e of outs){const M=find(e.t);if(M)M.exp+=-e.amt;}
+  let k=0;
+  for(let i=0;i<m.n;i++){if(!m.depMark[i])continue;k++;const t=m.st+i*DAY,M=find(t);if(!M)continue;M.dep+=m.depAmt[i];
+    if(rec&&rec.length){const sg=rec.find(x=>k>x.k0&&k<=x.k1)||rec[rec.length-1];M.rec=(M.rec||0)+sg.rate;}}
+  let maxUp=1,maxDn=1;months.forEach(M=>{maxUp=Math.max(maxUp,M.dep,M.rec||0);maxDn=Math.max(maxDn,M.exp);});
+  const L=6,R=6,T=20,B=40,pw=W-L-R,ph=H-T-B,sc=ph/(maxUp+maxDn),zeroY=T+maxUp*sc,cw=pw/months.length,bw=Math.min(34,cw*.58);
+  let g=`<line x1="${L}" x2="${W-R}" y1="${zeroY}" y2="${zeroY}" style="stroke:var(--muted);stroke-width:1"/>`;
+  months.forEach((M,i)=>{
+    const cx=L+cw*i+cw/2,upv=M.rec!=null?M.rec:M.dep,mn=gd(M.t).getUTCMonth();
+    if(upv>0){g+=`<rect class="mbar up" x="${cx-bw/2}" y="${zeroY-upv*sc}" width="${bw}" height="${upv*sc}" rx="4" style="fill:var(--cash)"><title>${cap(monthOf(M.t))}: ${M.rec!=null?'anbefalet indskud':'indskud'} ${kr(upv)}</title></rect>`;
+      g+=`<text class="ax" x="${cx}" y="${zeroY-upv*sc-5}" text-anchor="middle" style="fill:var(--ink);font-weight:600">${krShort(upv)}</text>`;}
+    if(M.rec!=null&&M.dep>0&&Math.abs(M.rec-M.dep)>.5)g+=`<line x1="${cx-bw/2-4}" x2="${cx+bw/2+4}" y1="${zeroY-M.dep*sc}" y2="${zeroY-M.dep*sc}" style="stroke:var(--ink);stroke-width:2;stroke-dasharray:3 2"><title>Nuværende indskud ${kr(M.dep)}</title></line>`;
+    if(M.exp>0){g+=`<rect class="mbar dn" x="${cx-bw/2}" y="${zeroY}" width="${bw}" height="${M.exp*sc}" rx="4" style="fill:var(--warn);opacity:.78"><title>${cap(monthOf(M.t))}: udgifter ${kr(M.exp)}</title></rect>`;
+      g+=`<text class="ax" x="${cx}" y="${zeroY+M.exp*sc+12}" text-anchor="middle" style="fill:var(--warn);font-weight:600">${krShort(M.exp)}</text>`;}
+    const lab=mn===0?String(gd(M.t).getUTCFullYear()):(mobile?MSH[mn].charAt(0).toUpperCase():cap(MSH[mn]));
+    g+=`<text class="ax" x="${cx}" y="${H-6}" text-anchor="middle" style="${mn===0?'font-weight:700;fill:var(--ink)':''}">${lab}</text>`;
+  });
+  box.innerHTML=`<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img" aria-label="Indskud og udgifter måned for måned">${g}</svg>`;
+  $('#molegend').innerHTML=`<span><i style="background:var(--cash)"></i>${rec?'Anbefalet indskud':'Jeres indskud'}</span>`+(rec?`<span><i style="height:0;border-top:2px dashed var(--ink)"></i>Det, I sætter ind nu</span>`:'')+`<span><i style="background:var(--warn);opacity:.78"></i>Udgifter fra kontoen</span>`;
+  const sig=JSON.stringify(months.map(M=>[M.dep,M.rec,M.exp]));
+  if(sig!==moSig){moSig=sig;box.querySelectorAll('.mbar').forEach((r,i)=>anim(r,{transform:['scaleY(0)','scaleY(1)']},{type:'spring',bounce:.2,duration:.6,delay:Math.min(i,20)*.02}));}
+}
+
+/* chart */
+let mShown=null,mTween=null,mFirst=true,mGeo=null;
+function renderMoneyChart(){
+  const box=$('#mchart');if(!box)return;
+  const W=Math.max(300,Math.round(box.clientWidth||900)),mobile=W<560,H=mobile?250:310;
+  const cur=moneyModel(null),D=cur.D,useScen=scenD!=null&&(hasSteps()||Math.abs(scenD-D)>.5),sc=useScen?moneyModel(scenD):null;
+  const {st,n}=cur,buf=+K().buffer||0;
+  let lo=Math.min(0,buf),hi=1000;for(const v of cur.bal){if(v<lo)lo=v;if(v>hi)hi=v;}
+  if(sc)for(const v of sc.bal){if(v<lo)lo=v;if(v>hi)hi=v;}
+  const raw=(hi-lo)/5,mag=Math.pow(10,Math.floor(Math.log10(raw||1))),stp=[1,2,2.5,5,10].map(x=>x*mag).find(x=>x>=raw)||mag*10;
+  lo=Math.floor(lo/stp)*stp;hi=Math.ceil(hi*1.04/stp)*stp;
+  const L=mobile?50:62,R=12,T=14,B=28,pw=W-L-R,ph=H-T-B;
+  const x=i=>L+i/n*pw,yv=v=>T+(hi-v)/(hi-lo)*ph;
+  let g='';const floor=Math.max(0,buf);
+  if(lo<floor)g+=`<rect x="${L}" y="${yv(floor)}" width="${pw}" height="${yv(lo)-yv(floor)}" style="fill:var(--warn);opacity:.07"/>`;
+  for(let v=lo;v<=hi+1e-6;v+=stp)g+=`<line class="${Math.abs(v)<1e-6?'zero':'grid'}" x1="${L}" x2="${W-R}" y1="${yv(v)}" y2="${yv(v)}"/><text class="ax" x="${L-6}" y="${yv(v)+4}" text-anchor="end">${krAx(v)}</text>`;
+  if(buf>0)g+=`<line x1="${L}" x2="${W-R}" y1="${yv(buf)}" y2="${yv(buf)}" style="stroke:var(--warn);stroke-dasharray:4 4;opacity:.7"/><text class="ax" x="${W-R}" y="${yv(buf)-5}" text-anchor="end" style="fill:var(--warn)">Mindst ${kr(buf)}</text>`;
+  const d0=gd(st);let y=d0.getUTCFullYear(),mo=d0.getUTCMonth()+1;if(mo>11){mo=0;y++;}
+  const months=[];for(let i=0;i<40;i++){const t=Date.UTC(y,mo,1);if(t>cur.en)break;months.push(t);mo++;if(mo>11){mo=0;y++;}}
+  const every=months.length>18||mobile?2:1;
+  months.forEach((t,k)=>{const i=(t-st)/DAY,M=gd(t).getUTCMonth();g+=`<line class="grid" x1="${x(i)}" x2="${x(i)}" y1="${T}" y2="${T+ph}" style="opacity:${M===0?1:.5}"/>`;
+    if(k%every===0||M===0){const lab=M===0?String(gd(t).getUTCFullYear()):(mobile?MSH[M].charAt(0).toUpperCase():cap(MSH[M]));g+=`<text class="ax" x="${x(i)+4}" y="${T+ph+16}" style="${M===0?'font-weight:700;fill:var(--ink)':''}">${lab}</text>`;}});
+  const lk=toD(K().look);let look='';
+  if(!isNaN(lk)&&lk>=st&&lk<=cur.en){const i=idxOf(cur,lk)+.5;look=`<line x1="${x(i)}" x2="${x(i)}" y1="${T}" y2="${T+ph}" style="stroke:var(--ink);stroke-width:1.5;stroke-dasharray:3 3"/><text class="ax" x="${x(i)+5}" y="${T+10}" style="fill:var(--ink);font-weight:700">${fmtShort(lk)}</text>`;}
+  let dots='';for(const e of cur.ev){if(e.amt>=0)continue;const i=idxOf(cur,e.t);dots+=`<circle cx="${x(i)}" cy="${yv(cur.bal[i])}" r="3.5" style="fill:var(--surface);stroke:var(--cash);stroke-width:2"><title>${esc(eventLabel(e))}: ${kr(-e.amt)}</title></circle>`;}
+  box.innerHTML=`<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img" aria-label="Rejsekassens saldo over tid">
+    <defs><linearGradient id="grcash" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color:var(--cash);stop-opacity:.25"/><stop offset="1" style="stop-color:var(--cash);stop-opacity:0"/></linearGradient>
+    <clipPath id="mclip"><rect x="${L}" y="${T-6}" width="${pw}" height="${ph+12}"/></clipPath></defs>
+    ${g}<g clip-path="url(#mclip)"><path id="mfill" style="fill:url(#grcash)"/><path id="mline" style="fill:none;stroke:var(--cash);stroke-width:3;stroke-linejoin:round"/>
+    ${sc?`<path id="msc" style="fill:none;stroke:var(--hol);stroke-width:2.5;stroke-dasharray:7 6;stroke-linejoin:round"/>`:''}</g>${look}<g id="mdots" style="opacity:0">${dots}</g>
+    <line id="mguide" x1="0" x2="0" y1="${T}" y2="${T+ph}" style="stroke:var(--ink);stroke-width:1;opacity:0"/>
+    <circle id="mdot" r="5" style="fill:var(--cash);stroke:var(--surface);stroke-width:2;opacity:0"/>
+    <rect id="mhit" x="${L}" y="${T}" width="${pw}" height="${ph}" style="fill:transparent;cursor:crosshair"/></svg>`;
+  const svg=box.querySelector('svg'),line=svg.querySelector('#mline'),fill=svg.querySelector('#mfill'),dg=svg.querySelector('#mdots');
+  const pathOf=b=>{let d=`M${x(0)},${yv(b[0])}`;for(let i=1;i<n;i++){if(Math.abs(b[i]-b[i-1])>.01)d+=`H${x(i)}V${yv(b[i])}`;}return d+`H${x(n)}`;};
+  const draw=A=>{const pa=pathOf(A);line.setAttribute('d',pa);fill.setAttribute('d',pa+`V${yv(Math.max(lo,0))}H${x(0)}Z`);mShown=A;};
+  if(sc)svg.querySelector('#msc').setAttribute('d',pathOf(sc.bal));
+  if(mTween){mTween.stop();mTween=null;}
+  let from=(!mFirst&&mShown&&mShown.length===n)?mShown:null;
+  const same=(A,B)=>{for(let i=0;i<n;i++)if(Math.abs(A[i]-B[i])>.01)return false;return true;};
+  if(from&&same(from,cur.bal)){draw(cur.bal);dg.style.opacity=1;}
+  else{
+    if(!from){const z=new Float64Array(n);const b0=cur.bal[0];for(let i=0;i<n;i++)z[i]=Math.min(b0,Math.max(lo,0));from=z;}
+    const fa=from,ta=cur.bal;draw(fa);
+    mTween=tween(mFirst?1.1:.6,p=>{if(p>=1){draw(ta);dg.style.opacity=1;anim(dg,{opacity:[0,1]},{duration:.3});}else{const o=new Float64Array(n);for(let i=0;i<n;i++)o[i]=fa[i]+(ta[i]-fa[i])*p;draw(o);}});
+  }
+  mFirst=false;mGeo={st,n,L,pw,x,yv,cur,sc,T};
+  $('#mlegend').innerHTML=`<span><i style="background:var(--cash);height:3px"></i>${hasSteps()?'Med jeres trappeplan':'Med '+kr(D)+' om måneden'}</span>`+(sc?`<span><i style="background:var(--hol);height:3px"></i>Med ${kr(scenD)} om måneden</span>`:'')+`<span><i style="width:10px;height:10px;border-radius:50%;border:2px solid var(--cash)"></i>Betaling fra kontoen</span>`;
+  const hit=svg.querySelector('#mhit');hit.addEventListener('pointermove',mHover);hit.addEventListener('pointerdown',mHover);hit.addEventListener('pointerleave',()=>{svg.querySelector('#mguide').style.opacity=0;svg.querySelector('#mdot').style.opacity=0;$('#mtip').classList.remove('on');});
+  renderScen(cur,sc);
+}
+function mHover(e){
+  const g=mGeo;if(!g)return;const svg=$('#mchart svg'),r=svg.getBoundingClientRect(),scale=r.width/svg.viewBox.baseVal.width;
+  let i=Math.floor(((e.clientX-r.left)/scale-g.L)/g.pw*g.n);i=Math.max(0,Math.min(g.n-1,i));
+  const t=g.st+i*DAY,cx=g.x(i+.5),b=g.cur.bal[i];
+  const gl=svg.querySelector('#mguide');gl.setAttribute('x1',cx);gl.setAttribute('x2',cx);gl.style.opacity=.35;
+  const dot=svg.querySelector('#mdot');dot.setAttribute('cx',cx);dot.setAttribute('cy',g.yv(b));dot.style.opacity=1;
+  const today=g.cur.ev.filter(ev=>ev.t===t).map(ev=>`${esc(eventLabel(ev))}: ${ev.amt<0?'−':'+'}${kr(Math.abs(ev.amt))}`);
+  if(g.cur.depMark[i]&&g.cur.depAmt[i]>0)today.push('Fast indskud: +'+kr(g.cur.depAmt[i]));
+  const tip=$('#mtip');tip.innerHTML=`<div class="t">${fmtShort(t,true)}</div>Kontoen: <b>${kr(b)}</b>`+(g.sc?`<br>Med ${kr(scenD)}/md.: <b>${kr(g.sc.bal[i])}</b>`:'')+(today.length?'<br>'+today.join('<br>'):'');
+  const box=svg.closest('.chartbox').getBoundingClientRect();let left=cx*scale+(r.left-box.left);left=Math.max(100,Math.min(box.width-100,left));
+  tip.style.left=left+'px';tip.style.top=(g.T*scale+(r.top-box.top)+4)+'px';tip.classList.add('on');
+}
+function renderScen(cur,sc){
+  const rng=$('#scen'),D=cur.D,r={req:analyze().cReq};
+  const mx=Math.max(5000,Math.ceil(Math.max(D,r.req,scenD||0)*2/500)*500);
+  rng.max=mx;if(document.activeElement!==rng)rng.value=scenD!=null?scenD:D;
+  const val=scenD!=null?scenD:D;$('#scenOut').textContent=kr(val)+' / md.';
+  const active=!!sc;$('#scenUse').hidden=!active;$('#scenReset').hidden=!active;
+  if(active){$('#scenUse').textContent='Brug '+kr(scenD);const lk=toD(K().look);
+    $('#scenText').textContent=`Laveste saldo bliver ${kr(sc.min)} d. ${fmtShort(sc.minT,true)}`+(!isNaN(lk)&&lk>=sc.st?`, og d. ${fmtShort(lk,true)} står der ${kr(sc.bal[idxOf(sc,lk)])}`:'.');}
+  else $('#scenText').textContent='Træk i skyderen for at se, hvad et andet beløb betyder for kontoen.';
+}
+
+/* budgets */
+function itemRow(it){
+  const dep=it.kind==='deposit',t=toD(it.date),paid=hasAct(it),who=it.payer==='a'||it.payer==='b'?nm(it.payer):'kontoen';
+  const ds=isNaN(t)?'':' '+fmtShort(t,true);let meta;
+  if(dep)meta=(paid?'Sat ind':'Forventes')+ds;
+  else if(paid)meta=`Betalt${ds} af ${who}`;
+  else meta=`Estimat, betales${ds||' snart'}${it.payer&&it.payer!=='acc'?' af '+who:''}`;
+  const tr=it.tripId&&S.trips.find(x=>x.id===it.tripId);if(it.tripId&&!tr)meta+=', rejsen er slettet';if(it.fromPlan)meta+=', fra rejseplanen';
+  const title=it.label||(dep?'Ekstra indskud':it.cat)||'Udgift',catTxt=!dep&&it.label&&it.cat?it.cat+', ':'';if(catTxt)meta=meta.charAt(0).toLowerCase()+meta.slice(1);
+  let sub='';
+  if(paid&&hasEst(it)){const df=+it.act-+it.est;if(Math.abs(df)>=1)sub=`<small class="${df>0?'bad':'good'}">${df>0?'+':'−'}${kr(Math.abs(df))} ift. estimat</small>`;}
+  else if(!paid&&!dep&&(+K().margin||0)>0&&hasEst(it))sub=`<small>${kr(itAmt(it))} med margin</small>`;
+  const amount=paid?+it.act:(hasEst(it)?+it.est:0);
+  return `<button type="button" class="item${paid?' paid':''}${dep?' dep':''}" data-item="${esc(it.id)}"><span class="il"><b>${esc(title)}</b><span>${esc(catTxt+meta)}</span></span><span class="ir num">${dep?'+':''}${kr(amount)}${sub}</span></button>`;
+}
+const byDate=(a,b)=>(a.date||'').localeCompare(b.date||'')||(a.created||0)-(b.created||0);
+let knownBud=null;const prevProg={};
+function renderBudgets(m){
+  const box=$('#budgets'),trips=sortedTrips();
+  const chips=id=>`<div class="chips editonly">${['Fly','Overnatning','Transport'].map(c=>`<button type="button" class="chip" data-add="${esc(id)}" data-cat="${c}">+ ${c}</button>`).join('')}<button type="button" class="chip" data-add="${esc(id)}" data-cat="Andet">+ Anden udgift</button></div>`;
+  const list=trips.filter(tr=>toD(tr.to)>=TODAY||S.money.some(it=>it.tripId===tr.id));
+  if(!list.length)box.innerHTML='<div class="empty">Læg rejser ind under Feriedage, så kan I give dem et budget her.</div>';
+  else box.innerHTML=list.map(tr=>{
+    const its=S.money.filter(it=>it.tripId===tr.id&&it.kind!=='deposit').sort(byDate);
+    const total=its.reduce((s,it)=>s+itAmt(it),0),paid=its.reduce((s,it)=>s+(hasAct(it)?+it.act:0),0);
+    const over=its.reduce((s,it)=>s+(hasAct(it)&&hasEst(it)?+it.act-+it.est:0),0);
+    const days=tripDays(tr),bar=tr.who==='both'?'<span class="bar both"></span>':`<span class="bar" style="--c:var(--${tr.who})"></span>`;
+    const who=tr.who==='both'?'Begge':esc(nm(tr.who));
+    let stats='',note='';
+    if(its.length){
+      stats=`<span>Betalt <b>${kr(paid)}</b></span>`+(days>0?`<span>Pr. feriedag <b>${kr(total/days)}</b></span>`:'')+(tr.who==='both'?`<span>Pr. person <b>${kr(total/2)}</b></span>`:'')+(Math.abs(over)>=1?`<span class="${over>0?'bad':''}">${over>0?'Over':'Under'} estimatet <b>${kr(Math.abs(over))}</b></span>`:'');
+      const accEv=m.ev.filter(e=>e.it.tripId===tr.id&&e.amt<0);
+      if(accEv.length){let mn=Infinity,mt=null;for(const e of accEv){const b=m.bal[idxOf(m,e.t)];if(b<mn){mn=b;mt=e.t;}}
+        const buf=+K().buffer||0;note=mn<buf-.5?`<div class="bnote bad">Kontoen kommer ned på ${kr(mn)} d. ${fmtShort(mt,true)}. Der mangler ${kr(buf-mn)}</div>`:`<div class="bnote">Kontoen har ${kr(mn)} tilbage efter betalingerne.</div>`;}
+    }
+    return `<article class="bud" data-bud="${esc(tr.id)}"><header>${bar}<div><h3>${esc(tr.name||'Rejse')}</h3><div class="when">${fmtRange(toD(tr.from),toD(tr.to))}, ${who}</div></div><div class="tot num">${kr(total)}<small>${its.length?'forventet pris':'intet budget endnu'}</small></div></header>
+      ${its.length?`<div class="bprog"><i style="width:${total>0?Math.min(100,paid/total*100):0}%"></i></div><div class="bstats">${stats}</div><div class="items">${its.map(itemRow).join('')}</div>${note}`:''}${chips(tr.id)}</article>`;
+  }).join('');
+  const ids=new Set(list.map(t=>t.id));
+  box.querySelectorAll('.bud').forEach(b=>{const el=b.querySelector('.bprog i');if(!el)return;const id=b.dataset.bud,w=parseFloat(el.style.width)||0,was=prevProg[id];prevProg[id]=w;if(was===undefined||Math.abs(was-w)>.1)anim(el,{width:[(was||0)+'%',w+'%']},{type:'spring',bounce:.15,duration:.8});});
+  knownBud=ids;
+  const others=S.money.filter(it=>!it.tripId||!S.trips.some(t=>t.id===it.tripId)).sort(byDate);
+  $('#others').innerHTML=others.length?others.map(itemRow).join(''):'<div class="hint">Ingen endnu.</div>';
+}
+function renderSettle(){
+  const owe={a:0,b:0},rows=[];
+  for(const it of S.money){
+    if(it.kind==='deposit'||!(it.payer==='a'||it.payer==='b')||!hasAct(it))continue;
+    const tr=it.tripId&&S.trips.find(t=>t.id===it.tripId),who=tr?tr.who:'both',p=it.payer,o=p==='a'?'b':'a';
+    let share=0;if(who==='both')share=+it.act/2;else if(who===o)share=+it.act;
+    if(share>0){owe[o]+=share;rows.push(`<li>${esc(nm(p))} betalte ${esc(it.label||it.cat||'udgift')}${tr?' ('+esc(tr.name||'Rejse')+')':''}: ${kr(+it.act)}</li>`);}
+  }
+  const net=owe.b-owe.a,el=$('#settle');
+  if(!rows.length){el.innerHTML=`<h3>Hvem har lagt ud?</h3><p class="hint" style="margin:0">Betaler en af jer noget med sit eget kort, så vælg det under „Betales af“. Så holder planen styr på, hvem der skylder hvem.</p>`;return;}
+  const txt=Math.abs(net)<1?'I er kvit':(net>0?`${esc(nm('b'))} skylder ${esc(nm('a'))} ${kr(net)}`:`${esc(nm('a'))} skylder ${esc(nm('b'))} ${kr(-net)}`);
+  el.innerHTML=`<h3>Hvem har lagt ud?</h3><div class="big">${txt}</div><ul>${rows.join('')}</ul>`;
+}
+
+/* dialog */
+let dlg=null;
+function segHTML(name,opts,val){return opts.map(([v,l])=>`<label><input type="radio" name="${name}" value="${v}"${v===val?' checked':''}><span>${esc(l)}</span></label>`).join('');}
+function openItem(o){
+  if(readOnly)return;const it=o.id?S.money.find(x=>x.id===o.id):null;
+  dlg={id:it?it.id:null,kind:it?(it.kind||'expense'):(o.kind||'expense'),payer:it?(it.payer||'acc'):'acc'};
+  $('#dTrip').innerHTML='<option value="">Ingen rejse</option>'+sortedTrips().map(t=>`<option value="${esc(t.id)}">${esc(t.name||'Rejse')}, ${fmtRange(toD(t.from),toD(t.to))}</option>`).join('');
+  $('#dCat').innerHTML=CATS.map(c=>`<option>${c}</option>`).join('');
+  const tid=it?(it.tripId||''):(o.tripId||'');$('#dTrip').value=S.trips.some(t=>t.id===tid)?tid:'';
+  $('#dCat').value=it?(it.cat&&CATS.includes(it.cat)?it.cat:'Andet'):(o.cat||'Andet');
+  $('#dLabel').value=it?(it.label||''):'';$('#dEst').value=it&&hasEst(it)?it.est:'';$('#dAct').value=it&&hasAct(it)?it.act:'';
+  let date=toS(TODAY);if(it&&it.date)date=it.date;else if(o.tripId){const tr=S.trips.find(t=>t.id===o.tripId);if(tr&&toD(tr.from)>TODAY)date=tr.from;}
+  $('#dDate').value=date;$('#dDel').hidden=!it;
+  $('#dKind').innerHTML=segHTML('dkind',[['expense','Udgift'],['deposit','Ekstra indskud']],dlg.kind);
+  $('#dPayer').innerHTML=segHTML('dpayer',[['acc','Kontoen'],['a',nm('a')],['b',nm('b')]],dlg.payer);
+  syncDlg();const d=$('#itemDlg');d.showModal();
+  anim(d,{opacity:[0,1],transform:[innerWidth<=620?'translateY(40px)':'translateY(14px) scale(.98)','translateY(0px) scale(1)']},{type:'spring',bounce:.2,duration:.45});
+}
+function syncDlg(){
+  const dep=dlg.kind==='deposit',paid=$('#dAct').value!=='';
+  $('#dTripWrap').hidden=dep;$('#dCatWrap').hidden=dep;$('#dPayerWrap').hidden=dep;
+  if(!dlg.id)$('#dlgTitle').textContent=dep?'Nyt indskud':'Ny udgift';else $('#dlgTitle').textContent=dep?'Ret indskud':'Ret udgift';
+  $('#dEstLbl').textContent=dep?'Forventet beløb':'Estimeret beløb';$('#dActLbl').textContent=dep?'Indsat beløb':'Faktisk beløb';
+  $('#dAct').placeholder=dep?'Når det er sat ind':'Når det er betalt';
+  $('#dDateLbl').textContent=paid?(dep?'Sat ind d.':'Betalt d.'):(dep?'Hvornår kommer pengene?':'Hvornår betales det?');
+  $('#dLabel').placeholder=dep?'Fx feriepenge eller skat tilbage':'Fx flybilletter t/r';
+}
+
+/* persistence */
+function debouncedDoc(path,get){
+  let timer=null,writing=false,dirty=false;
+  const flush=async()=>{if(writing){dirty=true;return;}writing=true;try{await db.doc(path).set(clone(get()));}catch(e){writeErr(e);}writing=false;if(dirty){dirty=false;return flush();}timer=null;};
+  return {schedule(){if(!db||readOnly)return;clearTimeout(timer);timer=setTimeout(flush,700);},pending(){return !!timer;}};
+}
+const kasseDoc=debouncedDoc('plan/kasse',()=>S.kasse);
+function kasseChanged(){saveLocal();renderMoney();kasseDoc.schedule();}
+async function persistItem(it){
+  const i=S.money.findIndex(x=>x.id===it.id);if(i>=0)S.money[i]=it;else S.money.push(it);saveLocal();renderMoney();
+  if(db&&!readOnly){try{await db.collection('money').doc(it.id).set(clone(it));}catch(e){writeErr(e);}}
+}
+async function removeItem(id){
+  S.money=S.money.filter(x=>x.id!==id);saveLocal();renderMoney();
+  if(db&&!readOnly){try{await db.collection('money').doc(id).delete();}catch(e){writeErr(e);}}
+}
+
+/* tabs */
+const TABS=['feriedage','rejsekassen','rejseplan'];let activeTab=TABS.includes(location.hash.slice(1))?location.hash.slice(1):'feriedage';
+function moveInd(animate){
+  const b=document.querySelector(`#tabs [data-tab="${activeTab}"]`),ind=$('#tabind');if(!b)return;
+  const was=[ind.offsetLeft,ind.offsetWidth],l=b.offsetLeft,w=b.offsetWidth;ind.style.left=l+'px';ind.style.width=w+'px';
+  if(animate)anim(ind,{left:[was[0]+'px',l+'px'],width:[was[1]+'px',w+'px']},{type:'spring',bounce:.22,duration:.5});
+}
+function showTab(t,animate){
+  activeTab=t;$('#tab-days').hidden=t!=='feriedage';$('#tab-money').hidden=t!=='rejsekassen';$('#tab-plan').hidden=t!=='rejseplan';
+  document.querySelectorAll('#tabs [data-tab]').forEach(b=>b.setAttribute('aria-selected',String(b.dataset.tab===t)));
+  moveInd(animate);
+  if(t==='rejsekassen'){mFirst=true;renderMoney();}else if(t==='rejseplan'){prevRingReset();renderPlan();}else{firstChart=true;renderChart();}
+  updateSelbar();
+  if(animate){const pane=t==='rejsekassen'?$('#tab-money'):t==='rejseplan'?$('#tab-plan'):$('#tab-days');anim(pane,{opacity:[0,1],transform:['translateY(8px)','translateY(0px)']},{duration:.3,ease:[.22,.8,.24,1]});}
+  try{history.replaceState(null,'','#'+t);}catch(e){}
+}
+function initTabs(){
+  showTab(activeTab,false);
+  $('#tabs').addEventListener('click',e=>{const b=e.target.closest('[data-tab]');if(b&&b.dataset.tab!==activeTab)showTab(b.dataset.tab,true);});
+  $('#tabs').addEventListener('keydown',e=>{if(e.key!=='ArrowRight'&&e.key!=='ArrowLeft')return;const i=TABS.indexOf(activeTab),n=TABS[(i+(e.key==='ArrowRight'?1:2))%3];showTab(n,true);document.querySelector(`#tabs [data-tab="${n}"]`).focus();});
+  new ResizeObserver(()=>moveInd(false)).observe($('#tabs'));
+  window.addEventListener('hashchange',()=>{const t=location.hash.slice(1);if(TABS.includes(t)&&t!==activeTab)showTab(t,true);});
+}
+
+/* events */
+$('#tab-money').addEventListener('click',e=>{
+  const it=e.target.closest('[data-item]');if(it){openItem({id:it.dataset.item});return;}
+  const ad=e.target.closest('[data-add]');if(ad){openItem({tripId:ad.dataset.add,cat:ad.dataset.cat});return;}
+  const ud=e.target.closest('[data-usedep]');if(ud&&!readOnly){setDeposit(+ud.dataset.usedep);return;}
+  const pl=e.target.closest('[data-plan]');if(pl&&!readOnly){const a=analyze(),plus=+pl.dataset.plus||0;if(plus>0)addOneOff(plus);applyPlan(a.segs);return;}
+  const oo=e.target.closest('[data-oneoff]');if(oo&&!readOnly){applyOneOff(+oo.dataset.oneoff,+oo.dataset.rate);return;}
+  const dsx=e.target.closest('[data-dropsteps]');if(dsx&&!readOnly){K().steps=[];kasseChanged();toast('Trappeplanen er fjernet');return;}
+});
+$('#addDeposit').addEventListener('click',()=>openItem({kind:'deposit'}));
+$('#editDep').addEventListener('click',()=>{$('#kform').scrollIntoView({behavior:RM?'auto':'smooth',block:'center'});setTimeout(()=>$('#kStart').focus({preventScroll:true}),RM?0:450);});
+$('#addOther').addEventListener('click',()=>openItem({kind:'expense'}));
+function kfInput(e){
+  const el=e.target,f=el.dataset&&el.dataset.kf;if(!f||readOnly)return;let v=el.value;
+  if(f==='startDate'||f==='look'){if(!/^\d{4}-\d{2}-\d{2}$/.test(v))return;}
+  else{v=v===''?0:+v;if(isNaN(v))return;}
+  if(K()[f]===v)return;
+  K()[f]=v;
+  if(f==='start'&&K().startDate!==toS(TODAY)){K().startDate=toS(TODAY);}
+  kasseChanged();
+}
+$('#kform').addEventListener('input',kfInput);$('#kform').addEventListener('change',kfInput);$('#mLook').addEventListener('input',kfInput);
+$('#scen').addEventListener('input',e=>{scenD=+e.target.value;renderMoneyChart();});
+$('#scenUse').addEventListener('click',()=>{if(scenD!=null)setDeposit(scenD);});
+$('#scenReset').addEventListener('click',()=>{scenD=null;renderMoneyChart();});
+$('#dKind').addEventListener('change',e=>{dlg.kind=e.target.value;syncDlg();});
+$('#dPayer').addEventListener('change',e=>{dlg.payer=e.target.value;});
+$('#dAct').addEventListener('input',syncDlg);
+$('#dCancel').addEventListener('click',()=>$('#itemDlg').close());
+$('#itemDlg').addEventListener('click',e=>{if(e.target===e.currentTarget)e.currentTarget.close();});
+$('#dDel').addEventListener('click',()=>{if(!dlg||!dlg.id)return;const it=S.money.find(x=>x.id===dlg.id);if(!confirm('Slet '+((it&&(it.label||it.cat))||'posten')+'?'))return;const id=dlg.id;$('#itemDlg').close();removeItem(id);toast('Posten er slettet.');});
+$('#itemForm').addEventListener('submit',e=>{
+  e.preventDefault();if(readOnly||!dlg)return;
+  const est=$('#dEst').value,act=$('#dAct').value;
+  if(est===''&&act===''){toast('Skriv et estimeret eller et faktisk beløb.');return;}
+  const dep=dlg.kind==='deposit',old=dlg.id?S.money.find(x=>x.id===dlg.id):null;
+  const it={id:dlg.id||newId(),kind:dlg.kind,tripId:dep?null:($('#dTrip').value||null),cat:dep?'Indskud':$('#dCat').value,label:$('#dLabel').value.trim(),
+    est:est===''?null:+est,act:act===''?null:+act,date:$('#dDate').value||toS(TODAY),payer:dep?'acc':dlg.payer,created:old?(old.created||Date.now()):Date.now()};
+  const wasEdit=!!old;$('#itemDlg').close();persistItem(it);toast(wasEdit?'Ændringerne er gemt.':(dep?'Indskuddet er gemt.':'Udgiften er gemt.'));
+});
+new ResizeObserver(()=>{if(activeTab==='rejsekassen')requestAnimationFrame(renderMoneyChart);}).observe($('#mchart'));
+new ResizeObserver(()=>{if(activeTab==='rejsekassen'&&lastMo)requestAnimationFrame(()=>renderMonthly(...lastMo));}).observe($('#monthly'));
+
+/* ---------- rejseplan ---------- */
+S.itin=[];S.tdays=[];S.checks=[];
+const ITYPES=[['transport','Transport','🚆'],['oplevelse','Oplevelse','🎟️'],['mad','Mad','🍽️'],['overnatning','Overnatning','🛏️'],['andet','Andet','📍']];
+const ISTAT=[['idea','Idé'],['tobook','Skal bookes'],['booked','Booket']];
+const typeInfo=k=>ITYPES.find(t=>t[0]===k)||ITYPES[4];
+const CAT_OF={transport:'Transport',oplevelse:'Oplevelser',mad:'Mad og drikke',overnatning:'Overnatning',andet:'Andet'};
+const TITLE_PH={transport:'Fx fly København–Rovaniemi',oplevelse:'Fx husky-safari',mad:'Fx middag på restaurant Nili',overnatning:'Fx hotel i Levi',andet:'Fx køb SIM-kort'};
+const CHECK_TPL={
+  'Basis':['Pas','Rejseforsikring','Det blå sygesikringskort','Opladere og stik','Medicin','Bookinger gemt på telefonen','Betalingskort'],
+  'Vinter':['Skiundertøj','Hue, halstørklæde og vanter','Uldsokker','Varme støvler','Læbepomade'],
+  'Strand':['Solcreme','Badetøj','Solbriller','Sandaler','Strandhåndklæde'],
+  'Storby':['Gode gåsko','Powerbank','Lille dagtaske','Offline kort på telefonen']
+};
+let planTrip=null;try{planTrip=localStorage.getItem('ferieplan-trip');}catch(e){}
+let sortables=[],dragging=false,planPending=false,pdlg=null;const baseTimers={},prevRing={};
+function curPlanTrip(){
+  const list=sortedTrips();if(!list.length)return null;
+  let tr=list.find(t=>t.id===planTrip);
+  if(!tr){tr=list.find(t=>toD(t.to)>=TODAY)||list[list.length-1];planTrip=tr.id;}
+  return tr;
+}
+function tripDates(tr){const a=toD(tr.from),b=toD(tr.to),out=[];if(isNaN(a)||isNaN(b))return out;for(let t=a;t<=b&&out.length<60;t+=DAY)out.push(t);return out;}
+const dayKey=(tid,t)=>tid+'_'+toS(t);
+const tdayOf=(tid,t)=>S.tdays.find(d=>d.id===dayKey(tid,t))||{id:dayKey(tid,t),tripId:tid,date:toS(t),base:''};
+const itinOf=tid=>S.itin.filter(x=>x.tripId===tid);
+const sortItems=(a,b)=>(a.time||'~').localeCompare(b.time||'~')||(a.order||0)-(b.order||0);
+const safeUrl=u=>/^https?:\/\//i.test(u)?u:'https://'+String(u).replace(/^\/*/,'');
+function countdown(tr){const a=toD(tr.from),b=toD(tr.to),d=Math.round((a-TODAY)/DAY);if(d>1)return `Om ${d} dage`;if(d===1)return 'I morgen';if(d===0)return 'I dag';if(b>=TODAY)return 'I gang nu';return 'Overstået';}
+function bookStats(tid){const its=itinOf(tid),need=its.filter(x=>x.status==='tobook'||x.status==='booked').length,booked=its.filter(x=>x.status==='booked').length;return {its,need,booked};}
+
+function renderPlan(){
+  const pane=$('#tab-plan');if(!pane)return;
+  if(dragging){planPending=true;return;}
+  const ae=document.activeElement;let keep=null;
+  if(ae&&pane.contains(ae)&&(ae.dataset.base||ae.id==='chkNew'))keep={sel:ae.dataset.base?`[data-base="${ae.dataset.base}"]`:'#chkNew',s:ae.selectionStart,e:ae.selectionEnd};
+  const trips=sortedTrips(),tr=curPlanTrip();
+  $('#tpick').innerHTML=trips.map(t=>{const st=bookStats(t.id),pct=st.need?st.booked/st.need*100:0;
+    return `<button type="button" class="tcard" data-ptrip="${esc(t.id)}" aria-pressed="${!!tr&&t.id===tr.id}"><b>${esc(t.name||'Rejse')}</b><span>${fmtRange(toD(t.from),toD(t.to))}, ${countdown(t).toLowerCase()}</span><div class="tbar"><i style="width:${pct}%"></i></div></button>`;}).join('');
+  if(!tr){$('#pmain').innerHTML='<div class="empty" style="margin-top:20px">Læg en rejse ind under Feriedage, så kan I planlægge dagene her.</div>';return;}
+  $('#pmain').innerHTML=planHead(tr)+planRoute(tr)+`<div class="cols pcols"><section><h2>Dag for dag</h2><div class="pdays">${planDays(tr)}</div></section><aside class="pside">${planSide(tr)}</aside></div>`;
+  const arc=$('#ringArc');if(arc){const to=+arc.dataset.off,from=prevRing[tr.id];prevRing[tr.id]=to;if(from!==undefined&&Math.abs(from-to)>.5)anim(arc,{strokeDashoffset:[from,to]},{type:'spring',bounce:.2,duration:.7});else if(from===undefined)anim(arc,{strokeDashoffset:[+arc.getAttribute('stroke-dasharray'),to]},{duration:.9,ease:[.22,.8,.24,1]});}
+  initSort();
+  if(keep){const el=pane.querySelector(keep.sel);if(el){el.focus({preventScroll:true});try{el.setSelectionRange(keep.s,keep.e);}catch(e){}}}
+}
+function planHead(tr){
+  const dates=tripDates(tr),st=bookStats(tr.id),ideas=st.its.filter(x=>!x.day).length,planned=st.its.length-ideas;
+  const price=st.its.reduce((s,x)=>s+(+x.price||0),0),chk=S.checks.filter(c=>c.tripId===tr.id),done=chk.filter(c=>c.done).length;
+  const who=tr.who==='both'?`${esc(nm('a'))} og ${esc(nm('b'))}`:esc(nm(tr.who));
+  const pct=st.need?st.booked/st.need:0,C=2*Math.PI*34,off=C*(1-pct);
+  return `<section class="phead"><div><div class="pkicker">${countdown(tr)}</div><h2 class="ptitle">${esc(tr.name||'Rejse')}</h2>
+    <div class="pmeta">${fmtRange(toD(tr.from),toD(tr.to))}, ${dates.length} ${dates.length===1?'dag':'dage'}, ${who}</div>
+    <div class="stats pstats"><div class="stat"><b class="num">${planned}</b><span>planer</span></div><div class="stat"><b class="num">${ideas}</b><span>i idébanken</span></div><div class="stat"><b class="num">${kr(price)}</b><span>planlagte udgifter</span></div>${chk.length?`<div class="stat"><b class="num">${done}/${chk.length}</b><span>på huskelisten</span></div>`:''}</div></div>
+    <div class="pring"><svg viewBox="0 0 84 84" width="104" height="104" aria-hidden="true"><circle cx="42" cy="42" r="34" style="fill:none;stroke:var(--surface);stroke-width:9"/><circle id="ringArc" cx="42" cy="42" r="34" transform="rotate(-90 42 42)" style="fill:none;stroke:var(--ok);stroke-width:9;stroke-linecap:round;opacity:${pct>0?1:0}" stroke-dasharray="${C}" stroke-dashoffset="${off}" data-off="${off}"/></svg><div class="ringtxt"><b class="num">${st.need?st.booked+'/'+st.need:'–'}</b><span>booket</span></div></div></section>`;
+}
+function planRoute(tr){
+  const dates=tripDates(tr);if(!dates.length)return '';
+  const nights=dates.length>1?dates.slice(0,-1):[],groups=[];
+  nights.forEach(t=>{const b=(tdayOf(tr.id,t).base||'').trim(),g=groups[groups.length-1];if(g&&g.base.toLowerCase()===b.toLowerCase()){g.n++;g.to=t;}else groups.push({base:b,from:t,to:t,n:1});});
+  const legs=d=>itinOf(tr.id).filter(x=>x.type==='transport'&&x.day===toS(d)).sort(sortItems).map(x=>x.title||'Transport');
+  const leg=l=>`<div class="rleg"><span>${l.length?esc(l.join(', ')):''}</span></div>`;
+  let h=`<div class="rstop home"><span class="rdot"></span><b>Hjemme</b><span>${fmtShort(dates[0])}</span></div>`;
+  groups.forEach(g=>{h+=leg(legs(g.from))+`<button type="button" class="rstop${g.base?'':' none'}" data-goto="${toS(g.from)}"><span class="rdot"></span><b>${g.base?esc(g.base):'Ikke valgt'}</b><span>${g.n} ${g.n===1?'nat':'nætter'}</span></button>`;});
+  h+=leg(legs(dates[dates.length-1]))+`<div class="rstop home"><span class="rdot"></span><b>Hjem</b><span>${fmtShort(dates[dates.length-1])}</span></div>`;
+  const hint=groups.every(g=>!g.base)?'<p class="hint" style="margin:12px 0 0">Skriv, hvor I sover hver nat, så tegnes jeres rute her. Transport på de dage, hvor I skifter sted, vises på strækningen.</p>':'';
+  return `<section class="route"><h2 style="margin:0 0 16px;font-size:1.15rem">Ruten</h2><div class="rscroll"><div class="rline">${h}</div></div>${hint}</section>`;
+}
+function pItem(x){
+  const ti=typeInfo(x.type),stl=ISTAT.find(s=>s[0]===x.status)||ISTAT[0],sub=[x.place,x.note].filter(Boolean).join(' – ');
+  return `<div class="pitem s-${stl[0]}" data-pid="${esc(x.id)}"><span class="ptime num">${esc(x.time||'')}</span><span class="picon" aria-hidden="true">${ti[2]}</span><div class="pbody"><b>${esc(x.title||ti[1])}</b>${sub?`<span>${esc(sub)}</span>`:''}${x.link?`<a class="plink" href="${esc(safeUrl(x.link))}" target="_blank" rel="noopener">Åbn link</a>`:''}${+x.price>0?`<span class="pprice-m num">${kr(+x.price)}</span>`:''}</div><span class="pprice num">${+x.price>0?kr(+x.price):''}</span><button type="button" class="pstat ${stl[0]}" data-cycle="${esc(x.id)}" title="Tryk for at skifte status">${stl[1]}</button></div>`;
+}
+function planDays(tr){
+  const dates=tripDates(tr),all=itinOf(tr.id);
+  return dates.map((t,i)=>{
+    const ds=toS(t),td=tdayOf(tr.id,t),its=all.filter(x=>x.day===ds).sort(sortItems),n=its.filter(x=>x.type!=='overnatning').length;
+    const load=n===0?['free','Fri dag']:n<=2?['calm','Rolig dag']:n<=4?['mid','Godt fyldt']:['busy','Travl dag'];
+    const tags=[];if(i===0)tags.push('Afrejse');const last=i===dates.length-1&&dates.length>1;if(last)tags.push('Hjemrejse');const hn=holName(t);if(hn)tags.push(hn);
+    const g=gd(t);
+    return `<article class="pday" id="pday-${ds}"><header><div class="dnum"><small>Dag</small>${i+1}</div><div class="dhead"><h3>${cap(WD[g.getUTCDay()])} ${g.getUTCDate()}. ${MONTHS[g.getUTCMonth()]}${tags.length?` <span class="dtag">${esc(tags.join(', '))}</span>`:''}</h3>${last?'<span class="dbase-static">Hjem i dag</span>':`<input class="dbase" data-base="${ds}" value="${esc(td.base||'')}" placeholder="🛏️ Hvor sover I i nat?" aria-label="Overnatning dag ${i+1}"${readOnly?' disabled':''} maxlength="40">`}</div><span class="load ${load[0]}">${load[1]}</span></header>
+      <div class="plist" data-list="${ds}">${its.map(pItem).join('')}</div>
+      <div class="chips editonly">${ITYPES.filter(x=>x[0]!=='overnatning').map(([k,l])=>`<button type="button" class="chip" data-padd="${ds}" data-type="${k}">+ ${l}</button>`).join('')}</div></article>`;
+  }).join('');
+}
+function planSide(tr){
+  const all=itinOf(tr.id);
+  const tb=all.filter(x=>x.status==='tobook').sort((a,b)=>(a.bookBy||'9999').localeCompare(b.bookBy||'9999')||(a.day||'9999').localeCompare(b.day||'9999'));
+  let h=`<div class="panel"><h3>Skal bookes <span class="cnt">${tb.length||''}</span></h3>`;
+  h+=tb.length?tb.map(x=>{const bb=toD(x.bookBy),over=!isNaN(bb)&&bb<TODAY,soon=!isNaN(bb)&&!over&&bb-TODAY<=14*DAY;
+    const when=!isNaN(bb)?(over?'Skulle være booket '+fmtShort(bb):'Senest '+fmtShort(bb)):(x.day?'Til '+fmtShort(toD(x.day)):'Ingen frist');
+    return `<button type="button" class="tbk${over?' over':soon?' soon':''}" data-pid="${esc(x.id)}"><span>${typeInfo(x.type)[2]} ${esc(x.title||typeInfo(x.type)[1])}</span><small>${when}</small></button>`;}).join('')
+    :'<p class="hint" style="margin:0">Intet mangler. Sæt status til „Skal bookes“ på det, I skal have booket, så samles det her.</p>';
+  h+='</div>';
+  const ideas=all.filter(x=>!x.day).sort((a,b)=>(a.order||0)-(b.order||0));
+  h+=`<div class="panel"><h3>Idébank <span class="cnt">${ideas.length||''}</span></h3><p class="hint" style="margin:0 0 10px">Ting, I gerne vil nå, men ikke har placeret endnu. Træk dem over på en dag.</p><div class="plist ideas" data-list="ideas">${ideas.map(pItem).join('')}</div><div class="chips editonly"><button type="button" class="chip" data-padd="" data-type="oplevelse">+ Idé</button></div></div>`;
+  const chk=S.checks.filter(c=>c.tripId===tr.id).sort((a,b)=>(a.order||0)-(b.order||0)),done=chk.filter(c=>c.done).length;
+  h+=`<div class="panel"><h3>Huskeliste <span class="cnt">${chk.length?done+'/'+chk.length:''}</span></h3>${chk.length?`<div class="tbar big"><i style="width:${done/chk.length*100}%"></i></div>`:''}
+    <div class="chklist">${chk.map(c=>`<div class="chk-row${c.done?' done':''}"><label><input type="checkbox" data-chk="${esc(c.id)}"${c.done?' checked':''}${readOnly?' disabled':''}><span>${esc(c.text)}</span></label><button type="button" class="x editonly" data-chkdel="${esc(c.id)}" aria-label="Fjern ${esc(c.text)}">×</button></div>`).join('')}</div>
+    <div class="addrow editonly"><input type="text" id="chkNew" placeholder="Tilføj til listen" maxlength="80"><button type="button" class="btn" id="chkAdd">Tilføj</button></div>
+    <div class="chips editonly">${Object.keys(CHECK_TPL).map(k=>`<button type="button" class="chip" data-tpl="${k}">+ ${k}</button>`).join('')}</div></div>`;
+  return h;
+}
+
+/* drag and drop */
+function initSort(){
+  sortables.forEach(s=>{try{s.destroy();}catch(e){}});sortables=[];
+  if(!window.Sortable||readOnly)return;
+  document.querySelectorAll('#tab-plan .plist').forEach(el=>{
+    try{sortables.push(window.Sortable.create(el,{group:'itin',animation:180,delay:160,delayOnTouchOnly:true,filter:'.pstat,.plink',preventOnFilter:false,ghostClass:'sortable-ghost',chosenClass:'sortable-chosen',onStart:()=>{dragging=true;},onEnd:onSortEnd}));}catch(e){}
+  });
+}
+function onSortEnd(evt){
+  dragging=false;const changes=[];
+  new Set([evt.from,evt.to]).forEach(el=>{const day=el.dataset.list==='ideas'?null:el.dataset.list;
+    [...el.querySelectorAll('.pitem')].forEach((row,i)=>{const it=S.itin.find(x=>x.id===row.dataset.pid);if(!it)return;if(it.day!==day||it.order!==i){it.day=day;it.order=i;changes.push(it);}});});
+  if(evt.from!==evt.to){const it=S.itin.find(x=>x.id===evt.item.dataset.pid),tr=curPlanTrip();if(it&&tr)syncBudget(it,tr);
+    toast(evt.to.dataset.list==='ideas'?'Flyttet til idébanken':'Flyttet til '+fmtShort(toD(evt.to.dataset.list)));}
+  saveLocal();setTimeout(()=>{planPending=false;renderPlan();},0);
+  if(db&&!readOnly)changes.forEach(it=>db.collection('itin').doc(it.id).set(clone(it)).catch(writeErr));
+}
+
+/* persistence */
+async function upsertDoc(coll,key,obj,silent){
+  const arr=S[key],i=arr.findIndex(x=>x.id===obj.id);if(i>=0)arr[i]=obj;else arr.push(obj);
+  if(!silent){saveLocal();renderPlan();}
+  if(db&&!readOnly){try{await db.collection(coll).doc(obj.id).set(clone(obj));}catch(e){writeErr(e);}}
+}
+async function delDoc(coll,key,id){
+  S[key]=S[key].filter(x=>x.id!==id);saveLocal();renderPlan();
+  if(db&&!readOnly){try{await db.collection(coll).doc(id).delete();}catch(e){writeErr(e);}}
+}
+function syncBudget(it,tr){
+  const want=!!it.inBudget&&+it.price>0,ex=it.moneyId&&S.money.find(m=>m.id===it.moneyId);
+  if(want){
+    const mid=it.moneyId||newId();
+    const m=Object.assign({kind:'expense',payer:'acc',act:null,created:Date.now()},ex||{},{id:mid,tripId:tr.id,cat:CAT_OF[it.type]||'Andet',label:it.title||typeInfo(it.type)[1],est:+it.price,date:it.bookBy||it.day||tr.from,fromPlan:it.id});
+    it.moneyId=mid;persistItem(m);
+  }else if(it.moneyId){if(ex)removeItem(ex.id);it.moneyId=null;}
+}
+
+/* dialog */
+function openPlanItem(o){
+  if(readOnly)return;const tr=curPlanTrip();if(!tr)return;
+  const it=o.id?S.itin.find(x=>x.id===o.id):null;
+  pdlg={id:it?it.id:null,type:it?(it.type||'andet'):(o.type||'oplevelse'),status:it?(it.status||'idea'):'idea'};
+  $('#pType').innerHTML=ITYPES.map(([k,l,e])=>`<label><input type="radio" name="ptype" value="${k}"${k===pdlg.type?' checked':''}><span><i>${e}</i>${l}</span></label>`).join('');
+  $('#pStatus').innerHTML=segHTML('pstatus',ISTAT,pdlg.status);
+  $('#pDay').innerHTML='<option value="">Idébanken (ikke placeret)</option>'+tripDates(tr).map((t,i)=>`<option value="${toS(t)}">Dag ${i+1}: ${WD[gd(t).getUTCDay()]} ${fmtShort(t)}</option>`).join('');
+  $('#pDay').value=it?(it.day||''):(o.day||'');
+  $('#pTitle').value=it?(it.title||''):'';$('#pTime').value=it?(it.time||''):'';$('#pPlace').value=it?(it.place||''):'';
+  $('#pLink').value=it?(it.link||''):'';$('#pNote').value=it?(it.note||''):'';$('#pBook').value=it?(it.bookBy||''):'';
+  $('#pPrice').value=it&&it.price!=null?it.price:'';$('#pBudget').checked=it?!!it.inBudget:false;
+  $('#pDel').hidden=!it;$('#pdlgTitle').textContent=it?'Ret plan':'Ny plan';
+  syncPdlg();const d=$('#planDlg');d.showModal();
+  anim(d,{opacity:[0,1],transform:[innerWidth<=620?'translateY(40px)':'translateY(14px) scale(.98)','translateY(0px) scale(1)']},{type:'spring',bounce:.2,duration:.45});
+}
+function syncPdlg(){
+  $('#pBookWrap').hidden=pdlg.status==='booked';
+  $('#pTitle').placeholder=TITLE_PH[pdlg.type]||'';
+  const hasPrice=$('#pPrice').value!=='';$('#pBudgetHint').textContent=hasPrice?'Prisen lægges ind som en udgift på rejsens budget.':'Skriv en pris for at kunne lægge den i rejsekassen.';
+}
+
+/* events */
+$('#tab-plan').addEventListener('click',e=>{
+  const pt=e.target.closest('[data-ptrip]');if(pt){planTrip=pt.dataset.ptrip;try{localStorage.setItem('ferieplan-trip',planTrip);}catch(err){}renderPlan();return;}
+  if(e.target.closest('a'))return;
+  const cy=e.target.closest('[data-cycle]');
+  if(cy){if(readOnly)return;const it=S.itin.find(x=>x.id===cy.dataset.cycle);if(!it)return;const order=['idea','tobook','booked'];const n=Object.assign({},it,{status:order[(order.indexOf(it.status||'idea')+1)%3]});if(n.status==='booked')n.bookBy='';
+    upsertDoc('itin','itin',n);const btn=document.querySelector(`[data-cycle="${CSS.escape(n.id)}"]`);anim(btn,{transform:['scale(.85)','scale(1)']},{type:'spring',bounce:.5,duration:.45});return;}
+  const pa=e.target.closest('[data-padd]');if(pa){openPlanItem({day:pa.dataset.padd||null,type:pa.dataset.type});return;}
+  const go=e.target.closest('[data-goto]');if(go){const el=document.getElementById('pday-'+go.dataset.goto);if(el){el.scrollIntoView({behavior:RM?'auto':'smooth',block:'start'});anim(el,{boxShadow:['0 0 0 3px var(--cash)','0 0 0 0px transparent']},{duration:1.2});}return;}
+  const cd=e.target.closest('[data-chkdel]');if(cd){if(!readOnly)delDoc('checks','checks',cd.dataset.chkdel);return;}
+  const tp=e.target.closest('[data-tpl]');if(tp){addChecks(CHECK_TPL[tp.dataset.tpl]||[]);return;}
+  if(e.target.closest('#chkAdd')){const inp=$('#chkNew');const v=inp.value.trim();if(v){inp.value='';addChecks([v],true);setTimeout(()=>{const n=$('#chkNew');if(n)n.focus();},0);}return;}
+  const row=e.target.closest('.pitem,.tbk');if(row&&!e.target.closest('input')){openPlanItem({id:row.dataset.pid});}
+});
+$('#tab-plan').addEventListener('change',e=>{
+  const c=e.target.closest('[data-chk]');if(c&&!readOnly){const it=S.checks.find(x=>x.id===c.dataset.chk);if(it)upsertDoc('checks','checks',Object.assign({},it,{done:c.checked}));}
+});
+$('#tab-plan').addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.id==='chkNew'){e.preventDefault();$('#chkAdd').click();}});
+$('#tab-plan').addEventListener('input',e=>{
+  const el=e.target;if(!el.dataset||!el.dataset.base||readOnly)return;const tr=curPlanTrip();if(!tr)return;
+  const ds=el.dataset.base,id=dayKey(tr.id,toD(ds));let d=S.tdays.find(x=>x.id===id);if(!d){d={id,tripId:tr.id,date:ds,base:''};S.tdays.push(d);}
+  d.base=el.value;saveLocal();clearTimeout(baseTimers[id]);
+  baseTimers[id]=setTimeout(()=>{delete baseTimers[id];renderPlan();upsertDoc('tdays','tdays',d,true);},650);
+});
+function addChecks(texts,force){
+  const tr=curPlanTrip();if(!tr||readOnly)return;const ex=S.checks.filter(c=>c.tripId===tr.id);let o=ex.reduce((m,c)=>Math.max(m,c.order||0),0);
+  const have=new Set(ex.map(c=>c.text.toLowerCase()));const add=texts.filter(t=>force||!have.has(t.toLowerCase())).map(t=>({id:newId()+Math.random().toString(36).slice(2,4),tripId:tr.id,text:t,done:false,order:++o}));
+  if(!add.length){toast('Det står allerede på listen');return;}
+  add.forEach(c=>S.checks.push(c));saveLocal();renderPlan();
+  if(db&&!readOnly)add.forEach(c=>db.collection('checks').doc(c.id).set(clone(c)).catch(writeErr));
+}
+$('#pType').addEventListener('change',e=>{pdlg.type=e.target.value;syncPdlg();});
+$('#pStatus').addEventListener('change',e=>{pdlg.status=e.target.value;syncPdlg();});
+$('#pPrice').addEventListener('input',syncPdlg);
+$('#pCancel').addEventListener('click',()=>$('#planDlg').close());
+$('#planDlg').addEventListener('click',e=>{if(e.target===e.currentTarget)e.currentTarget.close();});
+$('#pDel').addEventListener('click',()=>{
+  if(!pdlg||!pdlg.id)return;const it=S.itin.find(x=>x.id===pdlg.id);if(!it)return;
+  if(!confirm('Slet '+(it.title||'planen')+'?'+(it.moneyId?' Prisen fjernes også fra rejsekassen.':'')))return;
+  $('#planDlg').close();if(it.moneyId){const m=S.money.find(x=>x.id===it.moneyId);if(m)removeItem(m.id);}delDoc('itin','itin',it.id);toast('Planen er slettet');
+});
+$('#planForm').addEventListener('submit',e=>{
+  e.preventDefault();if(readOnly||!pdlg)return;const tr=curPlanTrip();if(!tr)return;
+  const title=$('#pTitle').value.trim();if(!title){toast('Giv planen et navn');$('#pTitle').focus();return;}
+  const old=pdlg.id?S.itin.find(x=>x.id===pdlg.id):null,day=$('#pDay').value||null;
+  let order=old?old.order||0:0;
+  if(!old||old.day!==day){order=itinOf(tr.id).filter(x=>(x.day||null)===day).reduce((m,x)=>Math.max(m,(x.order||0)+1),0);}
+  const pr=$('#pPrice').value;
+  const it={id:pdlg.id||newId(),tripId:tr.id,type:pdlg.type,title,day,time:$('#pTime').value||'',place:$('#pPlace').value.trim(),link:$('#pLink').value.trim(),note:$('#pNote').value.trim(),
+    status:pdlg.status,bookBy:pdlg.status==='booked'?'':($('#pBook').value||''),price:pr===''?null:+pr,inBudget:$('#pBudget').checked&&pr!=='',moneyId:old?(old.moneyId||null):null,order,created:old?(old.created||Date.now()):Date.now()};
+  syncBudget(it,tr);$('#planDlg').close();upsertDoc('itin','itin',it);
+  toast(old?'Ændringerne er gemt':(day?'Planen er lagt på '+fmtShort(toD(day)):'Lagt i idébanken'));
+});
+
+function prevRingReset(){Object.keys(prevRing).forEach(k=>delete prevRing[k]);}
+
+/* ---------- render all ---------- */
+function renderAll(){
+  document.documentElement.classList.toggle('ro',readOnly);$('#app').classList.toggle('ro',readOnly);
+  renderYears();renderPeople();renderChart();renderTrips();renderCalendar();renderSettings();
+  renderSeg($('#fwho'),'fwho',formWho,v=>{formWho=v;updatePreview();});
+  renderSeg($('#nwho'),'nwho',findWho,v=>{findWho=v;renderFinder();});
+  updatePreview();renderFinder();renderMoney();renderPlan();
+}
+
+/* ---------- persistence ---------- */
+let setTimer=null,setWriting=false,setDirty=false;
+function settingsChanged(){
+  holCache={};saveLocal();renderAll();
+  if(!db||readOnly)return;clearTimeout(setTimer);setTimer=setTimeout(flushSettings,700);
+}
+async function flushSettings(){
+  if(setWriting){setDirty=true;return;}
+  setWriting=true;try{await db.doc('plan/settings').set(clone(S.settings));}catch(e){writeErr(e);}
+  setWriting=false;if(setDirty){setDirty=false;return flushSettings();}setTimer=null;
+}
+async function persistTrip(tr){
+  const i=S.trips.findIndex(x=>x.id===tr.id);if(i>=0)S.trips[i]=tr;else S.trips.push(tr);
+  saveLocal();renderAll();
+  if(db&&!readOnly){try{await db.collection('trips').doc(tr.id).set(clone(tr));}catch(e){writeErr(e);}}
+}
+async function removeTrip(id){
+  S.trips=S.trips.filter(x=>x.id!==id);saveLocal();renderAll();
+  if(db&&!readOnly){try{await db.collection('trips').doc(id).delete();}catch(e){writeErr(e);}}
+}
+function writeErr(e){
+  const c=e&&e.code;
+  if(c==='invalid_argument'||c==='not_granted'){setReadOnly(true);toast('Du har kun læseadgang til planen. Bed ejeren om at give dig redigeringsadgang.');}
+  else if(c==='quota_exceeded'){toast('Planen er fuld. Slet nogle gamle rejser og prøv igen.');}
+  else toast('Ændringen blev ikke gemt. Tjek forbindelsen og prøv igen.');
+}
+function setReadOnly(v){readOnly=v;const n=$('#notice');n.textContent=v?'Du kan se planen, men ikke ændre den. Bed ejeren om redigeringsadgang.':'';n.classList.toggle('on',v);renderAll();}
+function setSync(mode){
+  const s=$('#sync');s.className='sync '+mode;
+  s.querySelector('span').textContent=mode==='shared'?'Delt og gemt':mode==='local'?'Gemt i denne browser':'Forbinder…';
+}
+let toastT;function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('on');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('on'),3800);}
+const newId=()=>'t'+Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+
+/* ---------- events ---------- */
+$('#years').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;S.settings.year=+b.dataset.y;firstChart=true;settingsChanged();});
+$('#people').addEventListener('input',e=>{const k=e.target.dataset.k;if(!k)return;P(k).name=e.target.value;settingsChanged();});
+$('#setgrid').addEventListener('input',e=>{const el=e.target,k=el.dataset.k,f=el.dataset.f;if(!k)return;
+  let v=el.value;if(f==='first'){if(!/^\d{4}-\d{2}$/.test(v))return;}else{v=v===''?0:+v;if(isNaN(v))return;}
+  P(k)[f]=v;settingsChanged();});
+$('#extraoff').addEventListener('change',e=>{S.settings.extraOff=e.target.checked;settingsChanged();});
+
+const months=$('#months');
+months.addEventListener('click',e=>{
+  const c=e.target.closest('.d');if(!c||readOnly)return;const t=+c.dataset.t;
+  anim(c,{transform:['scale(.8)','scale(1)']},{type:'spring',bounce:.5,duration:.45});
+  if(selecting){let a=sel.from,b=t;if(b<a)[a,b]=[b,a];sel={from:a,to:b};selecting=false;hoverT=null;setDates(a,b);highlightSel();setCalHint();return;}
+  const e2=dayMap(S.settings.year).get(t);
+  if(e2&&(e2.a.length||e2.b.length)){const tr=e2.a[0]||e2.b[0];editTrip(tr.id);return;}
+  if(editingId){resetForm();}
+  sel={from:t,to:null};selecting=true;hoverT=t;setDates(t,t);highlightSel();setCalHint();
+});
+months.addEventListener('mouseover',e=>{if(!selecting)return;const c=e.target.closest('.d');if(!c)return;hoverT=+c.dataset.t;highlightSel();});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&selecting){selecting=false;sel={from:null,to:null};hoverT=null;highlightSel();setCalHint();}});
+
+$('#trips').addEventListener('click',e=>{const pl=e.target.closest('[data-plantrip]');if(pl){planTrip=pl.dataset.plantrip;try{localStorage.setItem('ferieplan-trip',planTrip);}catch(err){}showTab('rejseplan',true);window.scrollTo({top:0,behavior:RM?'auto':'smooth'});return;}const li=e.target.closest('.trip');if(li)editTrip(li.dataset.id);});
+$('#trips').addEventListener('keydown',e=>{if(e.key==='Enter'){const li=e.target.closest('.trip');if(li)editTrip(li.dataset.id);}});
+
+['#ffrom','#fto','#fdays','#fname'].forEach(s=>$(s).addEventListener('input',()=>{
+  if(s==='#ffrom'||s==='#fto'){const a=toD($('#ffrom').value),b=toD($('#fto').value);if(!isNaN(a)){if(!isNaN(b)&&b<a&&s==='#ffrom')$('#fto').value=$('#ffrom').value;sel={from:a,to:isNaN(toD($('#fto').value))?a:toD($('#fto').value)};selecting=false;highlightSel();}}
+  updatePreview();
+}));
+$('#tripform').addEventListener('submit',e=>{
+  e.preventDefault();if(readOnly)return;const f=readForm();
+  if(!f.from){toast('Vælg en startdato.');return;}
+  if(toD(f.to)<toD(f.from)){toast('Slutdatoen ligger før startdatoen.');return;}
+  const old=editingId?S.trips.find(x=>x.id===editingId):null;
+  const tr={id:editingId||newId(),name:f.name||'Rejse',from:f.from,to:f.to,who:f.who,days:f.days,created:old?old.created||Date.now():Date.now()};
+  const wasEdit=!!editingId;persistTrip(tr);resetForm();toast(wasEdit?'Ændringerne er gemt.':'Rejsen er gemt.');
+});
+$('#fcancel').addEventListener('click',resetForm);
+$('#fdel').addEventListener('click',()=>{if(!editingId)return;const tr=S.trips.find(x=>x.id===editingId);if(!confirm('Slet '+(tr&&tr.name||'rejsen')+'?'))return;const id=editingId;resetForm();removeTrip(id);toast('Rejsen er slettet.');});
+$('#nneed').addEventListener('input',renderFinder);
+$('#selgo').addEventListener('click',()=>{$('#formpanel').scrollIntoView({behavior:RM?'auto':'smooth',block:innerWidth<=900?'start':'center'});setTimeout(()=>$('#fname').focus({preventScroll:true}),RM?0:450);});
+$('#selclear').addEventListener('click',()=>{resetForm();});
+if('IntersectionObserver' in window){new IntersectionObserver(es=>{es.forEach(en=>{formVisible=en.isIntersecting;updateSelbar();});},{threshold:.35}).observe($('#tripform'));}
+$('#useanswer').addEventListener('click',()=>{
+  if(lastAnswer==null)return;resetForm();const need=+$('#nneed').value;const end=addWork(lastAnswer,need);
+  formWho=findWho;renderSeg($('#fwho'),'fwho',formWho,v=>{formWho=v;updatePreview();});
+  if(Math.ceil(need)!==need)$('#fdays').value=need;
+  setDates(lastAnswer,end);sel={from:lastAnswer,to:end};highlightSel();
+  if(innerWidth<=900)$('#formpanel').scrollIntoView({behavior:'smooth'});else{$('#formpanel').scrollIntoView({behavior:'smooth',block:'nearest'});$('#fname').focus({preventScroll:true});}
+});
+let rz;new ResizeObserver(()=>{cancelAnimationFrame(rz);rz=requestAnimationFrame(()=>{renderChart();});}).observe($('#chart'));
+
+/* ---------- boot ---------- */
+loadLocal();renderAll();resetForm();initTabs();
+(async function(){
+  if(!window.claude||typeof window.claude.use!=='function'){setSync('local');return;}
+  try{db=await window.claude.use('db');}catch(e){db=null;}
+  if(!db){setSync('local');return;}
+  try{const user=await window.claude.use('user');if(user&&typeof user.can==='function'){const c=await user.can('data.write');if(c===false)setReadOnly(true);}}catch(e){}
+  db.doc('plan/settings').onSnapshot(snap=>{
+    setSync('shared');
+    if(snap.metadata&&snap.metadata.hasPendingWrites)return;
+    if(setTimer)return;
+    const next=normSettings(snap.exists?snap.data():null);
+    if(JSON.stringify(next)===JSON.stringify(S.settings))return;
+    if(next.year!==S.settings.year)firstChart=true;
+    S.settings=next;holCache={};saveLocal();renderAll();
+  },err=>{setSync('local');});
+  db.collection('trips').onSnapshot(snap=>{
+    setSync('shared');
+    S.trips=snap.docs.map(d=>Object.assign({},d.data(),{id:d.id}));saveLocal();renderAll();
+    if(editingId&&!S.trips.some(x=>x.id===editingId))resetForm();
+  },err=>{setSync('local');});
+  db.doc('plan/kasse').onSnapshot(snap=>{
+    if(snap.metadata&&snap.metadata.hasPendingWrites)return;
+    if(kasseDoc.pending())return;
+    const next=normKasse(snap.exists?snap.data():null);
+    if(!snap.exists)next.startDate=S.kasse.startDate;
+    if(JSON.stringify(next)===JSON.stringify(S.kasse))return;
+    S.kasse=next;saveLocal();renderMoney();
+  },err=>{});
+  db.collection('itin').onSnapshot(snap=>{S.itin=snap.docs.map(d=>Object.assign({},d.data(),{id:d.id}));saveLocal();renderPlan();},err=>{});
+  db.collection('tdays').onSnapshot(snap=>{
+    const local=new Map(S.tdays.map(d=>[d.id,d]));
+    S.tdays=snap.docs.map(d=>baseTimers[d.id]&&local.get(d.id)?local.get(d.id):Object.assign({},d.data(),{id:d.id}));
+    Object.keys(baseTimers).forEach(id=>{if(!S.tdays.some(d=>d.id===id)&&local.get(id))S.tdays.push(local.get(id));});
+    saveLocal();renderPlan();
+  },err=>{});
+  db.collection('checks').onSnapshot(snap=>{S.checks=snap.docs.map(d=>Object.assign({},d.data(),{id:d.id}));saveLocal();renderPlan();},err=>{});
+  db.collection('money').onSnapshot(snap=>{
+    S.money=snap.docs.map(d=>Object.assign({},d.data(),{id:d.id}));saveLocal();renderMoney();
+  },err=>{});
+})();
+})();
+</script>
+</body>
+</html>
