@@ -1,7 +1,7 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import { listerHref, listerSegment, listerSegments, type ListerSegment } from '../lib/routes';
 import { IndkobView } from '../shopping/IndkobView';
-import { Card } from '../ui/card';
+import { TodoView } from './TodoView';
 import { SegmentedControl, SegmentedPanel } from '../ui/segmented-control';
 
 type Props = { path: string[]; householdId: string | null };
@@ -9,15 +9,7 @@ type Props = { path: string[]; householdId: string | null };
 /** One entry per Lister segment, in `listerSegments` order. A new list adds its segment in `routes.ts` and a row here. */
 const segments: Record<ListerSegment, { label: string; panel: (props: Props) => ReactNode }> = {
   indkob: { label: 'Indkøb', panel: ({ householdId }) => <IndkobView householdId={householdId} showTitle={false} /> },
-  todo: {
-    label: 'To-do',
-    panel: () => (
-      <Card className="flex flex-col gap-2">
-        <h2 className="sp-title-section">To-do</h2>
-        <p className="sp-body text-sp-muted">Kommer snart.</p>
-      </Card>
-    ),
-  },
+  todo: { label: 'To-do', panel: ({ householdId }) => <TodoView householdId={householdId} /> },
 };
 
 const options = listerSegments.map((value) => ({ value, label: segments[value].label }));

@@ -22,6 +22,8 @@ const text = [
   ['danger', 'danger-tint'], ['danger', 'surface'],
   ['on-primary', 'jonas'], ['on-primary', 'camilla'],
   ['jonas-ink', 'jonas-tint'], ['camilla-ink', 'camilla-tint'],
+  // Idea 5: overdue dates (warning, never red). The Fælles (CJ) avatar uses the honey tone pair, checked below.
+  ['warn', 'surface'], ['warn', 'bg'],
 ];
 for (const [fg, bg] of text)
   test(`text ${fg} on ${bg} is at least 4.5:1`, () => {

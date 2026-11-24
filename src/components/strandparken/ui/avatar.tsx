@@ -32,6 +32,19 @@ export function Avatar({ person, size = 44, photo, decorative = false, className
   );
 }
 
+/**
+ * Who a to-do belongs to (idea 5): Camilla's or Jonas's avatar, or "CJ" on honey for Fælles. Rows use size 30.
+ * `owner` uses the database keys: `a` Camilla, `b` Jonas, `both` Fælles.
+ */
+export function OwnerAvatar({ owner, size = 30, className }: { owner: 'a' | 'b' | 'both'; size?: keyof typeof sizes; className?: string }) {
+  if (owner === 'a' || owner === 'b') return <Avatar person={owner === 'a' ? 'camilla' : 'jonas'} size={size} className={className} />;
+  return (
+    <span role="img" aria-label="Fælles" data-slot="avatar" className={cn('inline-flex shrink-0 items-center justify-center rounded-full bg-sp-tone-honey text-sp-tone-honey-ink', sizes[size].box, sizes[size].text, className)}>
+      CJ
+    </span>
+  );
+}
+
 /** The header avatar: a real button (44 px target) that says what it opens. */
 export function AvatarButton({ person, label, className, ...props }: Omit<ComponentProps<'button'>, 'children' | 'aria-label'> & { person: Person; label: string }) {
   return (

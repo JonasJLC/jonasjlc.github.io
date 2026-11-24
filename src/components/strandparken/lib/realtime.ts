@@ -2,8 +2,8 @@ import type { RealtimePostgresChangesPayload } from '@supabase/supabase-js';
 import type { Database } from '../../../lib/supabase/database.types';
 import { getClient } from './auth';
 
-/** Tables published to Realtime (see the strandparken_food_tables migration). */
-export type LiveTable = 'sp_shopping_items' | 'sp_meal_plan_entries';
+/** Tables published to Realtime (see the strandparken_food_tables and strandparken_todos migrations). */
+export type LiveTable = 'sp_shopping_items' | 'sp_meal_plan_entries' | 'sp_todos';
 export type LiveRow<T extends LiveTable> = Database['public']['Tables'][T]['Row'];
 export type LiveChange<T extends LiveTable> = RealtimePostgresChangesPayload<LiveRow<T>>;
 

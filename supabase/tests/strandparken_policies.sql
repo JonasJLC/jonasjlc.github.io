@@ -89,6 +89,33 @@ select pg_temp.try('member cannot upload to another household folder', '42501',
 select pg_temp.try('member cannot upload outside a household folder', '42501',
   $$insert into storage.objects (bucket_id, name, owner_id) values ('sp-documents', 'loose.pdf', '00000000-0000-0000-0000-0000000000b1')$$);
 insert into r select 'member reads own storage objects', '1', count(*)::text from storage.objects where bucket_id = 'sp-recipes';
+select pg_temp.try('member adds a to-do', 'ok',
+  $$insert into public.sp_todos (id, household_id, title) values ('00000000-0000-0000-0000-0000000000f1', '00000000-0000-0000-0000-0000000000a1', 'Ring til VVS')$$);
+insert into r select 'a new to-do is Fælles by default', 'both', owner from public.sp_todos where id = '00000000-0000-0000-0000-0000000000f1';
+select pg_temp.try('to-do owner must be a, b or both', '23514',
+  $$insert into public.sp_todos (household_id, title, owner) values ('00000000-0000-0000-0000-0000000000a1', 'X', 'x')$$);
+select pg_temp.try('to-do title cannot be blank', '23514',
+  $$insert into public.sp_todos (household_id, title) values ('00000000-0000-0000-0000-0000000000a1', '   ')$$);
+select pg_temp.try('member completes a to-do with a forged completed_by', 'ok',
+  $$update public.sp_todos set completed_at = '2000-01-01', completed_by = '00000000-0000-0000-0000-0000000000b2' where id = '00000000-0000-0000-0000-0000000000f1'$$);
+insert into r select 'completed_by is the caller, completed_at is now', 'true',
+  (completed_by = '00000000-0000-0000-0000-0000000000b1' and completed_at > now() - interval '1 minute')::text
+  from public.sp_todos where id = '00000000-0000-0000-0000-0000000000f1';
+select pg_temp.try('a done to-do keeps who completed it', 'ok',
+  $$update public.sp_todos set completed_at = now(), completed_by = '00000000-0000-0000-0000-0000000000b2', title = 'Ring til VVS i dag' where id = '00000000-0000-0000-0000-0000000000f1'$$);
+insert into r select 'completed_by stayed the caller', '00000000-0000-0000-0000-0000000000b1', completed_by::text
+  from public.sp_todos where id = '00000000-0000-0000-0000-0000000000f1';
+select pg_temp.try('to-do inserted as done is stamped by the database', 'ok',
+  $$insert into public.sp_todos (id, household_id, title, completed_at, completed_by) values ('00000000-0000-0000-0000-0000000000f2', '00000000-0000-0000-0000-0000000000a1', 'Gammel', '2000-01-01', '00000000-0000-0000-0000-0000000000b2')$$);
+insert into r select 'restored done to-do carries the caller', '00000000-0000-0000-0000-0000000000b1', completed_by::text
+  from public.sp_todos where id = '00000000-0000-0000-0000-0000000000f2';
+select pg_temp.try('member reopens a to-do', 'ok',
+  $$update public.sp_todos set completed_at = null where id = '00000000-0000-0000-0000-0000000000f2'$$);
+insert into r select 'reopened to-do has no completed_by', 'true', (completed_by is null)::text
+  from public.sp_todos where id = '00000000-0000-0000-0000-0000000000f2';
+select pg_temp.try('cannot add a to-do to another household', '42501',
+  $$insert into public.sp_todos (household_id, title) values ('00000000-0000-0000-0000-0000000000a2', 'Snyd')$$);
+insert into r select 'member reads own to-dos', '2', count(*)::text from public.sp_todos;
 
 -- Member of household 2 (U2) ---------------------------------------------------------------------------------
 reset role;
@@ -124,6 +151,11 @@ set local role authenticated;
 insert into r select 'other household sees none of the recipes', '0', count(*)::text from public.sp_recipes;
 insert into r select 'other household sees none of the plan', '0', count(*)::text from public.sp_meal_plan_entries;
 insert into r select 'other household sees none of the shopping list', '0', count(*)::text from public.sp_shopping_items;
+insert into r select 'other household sees none of the to-dos', '0', count(*)::text from public.sp_todos;
+with d as (update public.sp_todos set title = 'Hacked' where id = '00000000-0000-0000-0000-0000000000f1' returning 1)
+  insert into r select 'cannot update another household to-do', '0', count(*)::text from d;
+with d as (delete from public.sp_todos where id = '00000000-0000-0000-0000-0000000000f1' returning 1)
+  insert into r select 'cannot delete another household to-do', '0', count(*)::text from d;
 insert into r select 'other household sees none of the storage objects', '0', count(*)::text from storage.objects where bucket_id = 'sp-recipes';
 insert into r select 'other household sees only its own categories', '8', count(*)::text from public.sp_recipe_categories;
 select pg_temp.try('cannot reference another household category', '23503',
@@ -149,6 +181,7 @@ insert into r select 'non-member sees no ideas', '0', count(*)::text from public
 insert into r select 'non-member sees no ingredients', '0', count(*)::text from public.sp_recipe_ingredients;
 insert into r select 'non-member sees no plan', '0', count(*)::text from public.sp_meal_plan_entries;
 insert into r select 'non-member sees no shopping list', '0', count(*)::text from public.sp_shopping_items;
+insert into r select 'non-member sees no to-dos', '0', count(*)::text from public.sp_todos;
 insert into r select 'non-member sees no storage objects', '0', count(*)::text from storage.objects where bucket_id in ('sp-recipes', 'sp-documents');
 insert into r select 'non-member sees no households', '0', count(*)::text from public.households;
 select pg_temp.try('non-member cannot add a recipe', '42501',
@@ -159,6 +192,7 @@ reset role;
 set local role anon;
 select pg_temp.try('anon cannot read recipes', '42501', $$select * from public.sp_recipes$$);
 select pg_temp.try('anon cannot read the shopping list', '42501', $$select * from public.sp_shopping_items$$);
+select pg_temp.try('anon cannot read the to-dos', '42501', $$select * from public.sp_todos$$);
 
 reset role;
 -- One result row: failures must be 0 and `failing` empty. (Remove the filter to see every check.)

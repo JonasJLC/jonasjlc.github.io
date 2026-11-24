@@ -167,6 +167,21 @@ export type Database = {
         };
         Relationships: Rel[];
       };
+      sp_todos: {
+        Row: {
+          completed_at: string | null; completed_by: string | null; created_at: string; created_by: string | null;
+          due_date: string | null; household_id: string; id: string; note: string | null; owner: string; title: string; updated_at: string;
+        };
+        Insert: {
+          completed_at?: string | null; completed_by?: string | null; created_at?: string; created_by?: string | null;
+          due_date?: string | null; household_id: string; id?: string; note?: string | null; owner?: string; title: string; updated_at?: string;
+        };
+        Update: {
+          completed_at?: string | null; completed_by?: string | null; created_at?: string; created_by?: string | null;
+          due_date?: string | null; household_id?: string; id?: string; note?: string | null; owner?: string; title?: string; updated_at?: string;
+        };
+        Relationships: Rel[];
+      };
     };
     Views: { [_ in never]: never };
     Functions: { [_ in never]: never };
