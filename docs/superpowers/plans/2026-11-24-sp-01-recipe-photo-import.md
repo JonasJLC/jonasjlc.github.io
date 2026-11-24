@@ -73,7 +73,7 @@ The existing household policies and the `sp_touch` trigger cover the new columns
 ## Tasks
 
 ### Task 1: Migration
-- [ ] Write the migration and the policy-test case; apply both; regenerate types; `pnpm exec astro check` passes. _(Migration applied to production as `20261124094130` and the file renamed to match; types updated; astro check passes. The SQL policy test was not run against production.)_
+- [ ] Write the migration and the policy-test case; apply both; regenerate types; `pnpm exec astro check` passes. _(Migration applied to production as `20261124094130` and the file renamed to match; types updated; astro check passes. The SQL policy test was run against production: 56 checks, 0 failures, rolled back.)_
 
 ### Task 2: `pickImage` and `imageUrl` from the import
 - [x] Failing Deno tests in `page.test.ts`: JSON-LD `image` as a string, as an array of strings, as an `ImageObject` with `url`/`width`/`height`, as an array of `ImageObject`s (the largest `width × height` wins; without sizes, the first one), inside `@graph`; `og:image` when there is no JSON-LD image; `twitter:image` last; relative and protocol-relative addresses resolved against the page URL; `http:`, `data:` and over-long addresses dropped (→ null); an HTML-entity-encoded `content` attribute decoded.
