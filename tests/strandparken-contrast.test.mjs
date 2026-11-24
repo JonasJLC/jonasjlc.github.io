@@ -50,6 +50,11 @@ for (const k of tones) {
     const r = ratio(c(`tone-${k}`), c('surface'));
     assert.ok(r < 1.6, `${r.toFixed(2)}:1`);
   });
+  // Idea 14: the shopping list's amount pill is 12.5 px text in the tone ink on the tone, so it needs the text ratio.
+  test(`tone ${k}: ink text on tone is at least 4.5:1 (shopping amount pill)`, () => {
+    const r = ratio(c(`tone-${k}-ink`), c(`tone-${k}`));
+    assert.ok(r >= 4.5, `${r.toFixed(2)}:1`);
+  });
   // The cover tile's "Henter billede…" caption (Idé 1) sits on the tone.
   test(`text muted on tone ${k} is at least 4.5:1`, () => {
     const r = ratio(c('muted'), c(`tone-${k}`));

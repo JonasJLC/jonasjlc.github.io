@@ -184,23 +184,59 @@ export type Group = { categoryId: string | null; name: string; open: Line[]; don
 
 export const pantryGroupId = 'pantry';
 
+export type GroupOptions = {
+  /** Idea 14: ticked lines leave their category for a separate "Købt" list (pantry lines stay in their own group). */
+  doneSeparately: true;
+  /** Keys of lines ticked on this phone a moment ago: they stay in place, shown ticked, until they settle. */
+  settling?: ReadonlySet<string>;
+};
+
+/**
+ * Idea 14's settling step. A just-ticked line (its key in `settling`) stays in `open`, shown ticked, so the person sees
+ * the tick land before it moves. Unticking it makes it a plain open line again. Pantry lines never move to `bought`:
+ * they are reminders, kept in "Tjek at I har".
+ */
+export function settle(lines: readonly Line[], settling: ReadonlySet<string> = new Set()) {
+  const open: Line[] = [];
+  const waiting: Line[] = [];
+  const bought: Line[] = [];
+  for (const line of lines) {
+    if (!line.checked || line.pantry) open.push(line);
+    else if (settling.has(line.key)) {
+      open.push(line);
+      waiting.push(line);
+    } else bought.push(line);
+  }
+  return { open, settling: waiting, bought };
+}
+
+const byName = (a: Line, b: Line) => a.name.localeCompare(b.name, 'da');
+
 /**
  * Lines grouped in store-walk order (the categories' `position`); lines without a category go last as "Andet". Ticked
  * lines collapse to the bottom of their group. Pantry lines form a trailing group "Tjek at I har" (idea 13).
+ * With `{ doneSeparately: true }` (idea 14) ticked lines leave their groups for `bought` instead, once they have settled.
  */
-export function groupLines(lines: readonly Line[], categories: readonly GroceryCategory[]): Group[] {
+export function groupLines(lines: readonly Line[], categories: readonly GroceryCategory[]): Group[];
+export function groupLines(
+  lines: readonly Line[], categories: readonly GroceryCategory[], options: GroupOptions,
+): { groups: Group[]; bought: Line[] };
+export function groupLines(lines: readonly Line[], categories: readonly GroceryCategory[], options?: GroupOptions) {
   const ordered = [...categories].sort((a, b) => a.position - b.position || a.name.localeCompare(b.name, 'da'));
   const known = new Set(ordered.map((c) => c.id));
   const groups: Group[] = ordered.map((c) => ({ categoryId: c.id, name: c.name, open: [], done: [] }));
   const loose: Group = { categoryId: null, name: 'Andet', open: [], done: [] };
   const pantry: Group = { categoryId: pantryGroupId, name: 'Tjek at I har', open: [], done: [] };
-  for (const line of [...lines].sort((a, b) => a.name.localeCompare(b.name, 'da'))) {
+  const split = options ? settle(lines, options.settling) : null;
+  const settling = new Set(split?.settling.map((l) => l.key));
+  for (const line of [...(split ? split.open : lines)].sort(byName)) {
     const target = line.pantry
       ? pantry
       : line.categoryId && known.has(line.categoryId) ? groups.find((g) => g.categoryId === line.categoryId)! : loose;
-    (line.checked ? target.done : target.open).push(line);
+    (line.checked && !settling.has(line.key) ? target.done : target.open).push(line);
   }
-  return [...groups, loose, pantry].filter((g) => g.open.length + g.done.length > 0);
+  const result = [...groups, loose, pantry].filter((g) => g.open.length + g.done.length > 0);
+  return split ? { groups: result, bought: [...split.bought].sort(byName) } : result;
 }
 
 /** "x af y købt". Pantry lines are reminders, not purchases, so they count in neither number. */
