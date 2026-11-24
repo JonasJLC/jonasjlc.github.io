@@ -250,7 +250,8 @@ Every function verifies the caller's JWT and household membership, validates its
 
 | Function | Trigger | Purpose |
 |---|---|---|
-| `recipe-import` | User | URL → fetch page → parse schema.org `Recipe` JSON-LD if present → normalise (D32). Also accepts pasted text and screenshot images. Returns a structured draft; saves nothing. |
+| `recipe-import` | User | URL → fetch page → parse schema.org `Recipe` JSON-LD if present → normalise (D32). Also accepts pasted text and screenshot images. Returns a structured draft and, for a link, the address of the dish photo (JSON-LD `image`, then `og:image`, then `twitter:image`); saves nothing. |
+| `recipe-image` | User | Idé 1: fetches a recipe photo, from an image address or from a recipe page (no model call), through the same hardened fetch as `recipe-import` (image types only, 5 MB) and returns the bytes as base64. The browser resizes and uploads them. |
 | `meal-suggest` | User | One dinner for a given empty day, chosen from candidates that the function has already filtered in code (§5.3.5). |
 | `nutrition` | On recipe save | Resolves ingredients to Frida, AI estimate for misses; stores macros and micros per serving with a source flag; produces recommendations. |
 | `offers-sync` | Daily schedule | Pulls current offers for the active chains near the household into `sp_offers`; matches them to list lines on request. |
@@ -276,7 +277,7 @@ Every function verifies the caller's JWT and household membership, validates its
 | Area | Requirement |
 |---|---|
 | Performance | First load of the app shell ≤ 200 kB JavaScript gzipped. List and grid images are served at display size (thumbnails ≤ 40 kB). |
-| Images | Compressed in the browser before upload: longest edge 1600 px, WebP, ≤ 300 kB. A thumbnail is generated at the same time. |
+| Images | Compressed in the browser before upload: longest edge 1600 px, JPEG, ≤ 300 kB. A 400 px thumbnail is generated at the same time and used for small pictures. A photo fetched by a link import is 1200 px on the long side (Idé 1; the browser decodes it, never an edge function). |
 | Accessibility | WCAG AA contrast; touch targets ≥ 44 px; all actions reachable by keyboard; reduced motion respected. |
 | Resilience | Every external integration can fail without breaking the core: madplan and shopping work with offers, calendar, Oura and AI all down. |
 | Freshness | Every card that shows synced data shows when it was last updated and never presents stale data as today's. |
@@ -354,6 +355,8 @@ Acceptance criteria:
 4. **Skriv selv** — an empty editor.
 
 Import always ends on an **editable draft** for review before saving. Fields the importer was unsure about are marked. Importing a link that already exists in the collection warns and offers to open the existing recipe.
+
+A link import also fetches the dish's photo into Storage after the recipe is saved (1200 px plus a thumbnail, never hotlinked): the recipe is usable at once and shows `Henter billede…` until the photo arrives. A page without a usable image saves the recipe without one and shows no error. Recipes that have a link but no photo are tried once when Opskrifter is opened (`image_fetch_attempted_at`). On the recipe page the photo can be replaced (library or camera) or removed, with `Fortryd`.
 
 **Recipe fields:** title, photo (copied into Storage; replaceable), short descriptor, category, tags, base servings, total time, ingredients (amount, unit, name, canonical name, grocery category, optional note, `scales` flag), steps (ordered), source URL (reference only), original text, nutrition per serving (computed, §5.4.2), created by, created at, archived at.
 

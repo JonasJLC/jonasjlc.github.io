@@ -73,11 +73,11 @@ The existing household policies and the `sp_touch` trigger cover the new columns
 ## Tasks
 
 ### Task 1: Migration
-- [ ] Write the migration and the policy-test case; apply both; regenerate types; `pnpm exec astro check` passes.
+- [ ] Write the migration and the policy-test case; apply both; regenerate types; `pnpm exec astro check` passes. _(Migration applied to production as `20261124094130` and the file renamed to match; types updated; astro check passes. The SQL policy test was not run against production.)_
 
 ### Task 2: `pickImage` and `imageUrl` from the import
-- [ ] Failing Deno tests in `page.test.ts`: JSON-LD `image` as a string, as an array of strings, as an `ImageObject` with `url`/`width`/`height`, as an array of `ImageObject`s (the largest `width × height` wins; without sizes, the first one), inside `@graph`; `og:image` when there is no JSON-LD image; `twitter:image` last; relative and protocol-relative addresses resolved against the page URL; `http:`, `data:` and over-long addresses dropped (→ null); an HTML-entity-encoded `content` attribute decoded.
-- [ ] Implement:
+- [x] Failing Deno tests in `page.test.ts`: JSON-LD `image` as a string, as an array of strings, as an `ImageObject` with `url`/`width`/`height`, as an array of `ImageObject`s (the largest `width × height` wins; without sizes, the first one), inside `@graph`; `og:image` when there is no JSON-LD image; `twitter:image` last; relative and protocol-relative addresses resolved against the page URL; `http:`, `data:` and over-long addresses dropped (→ null); an HTML-entity-encoded `content` attribute decoded.
+- [x] Implement:
 
 ```ts
 /** The dish photo a page names: schema.org Recipe image, then og:image, then twitter:image. Null when none is usable. */
@@ -85,50 +85,50 @@ export function pickImage(html: string, pageUrl: string): string | null
 ```
 
   Meta tags are matched in either attribute order (`property=… content=…` and `content=… property=…`). Only `https:` results are returned; an `http:` image is upgraded to `https:` and kept only if the host is the page's own host.
-- [ ] `importRecipe` for `kind: 'url'`: `imageUrl: pickImage(page.html, page.url)`, wrapped so an exception yields `null`. For text and images it is `null`. Extend `logic.test.ts`.
-- [ ] `deno test --node-modules-dir=none --no-lock --allow-env supabase/functions` passes.
+- [x] `importRecipe` for `kind: 'url'`: `imageUrl: pickImage(page.html, page.url)`, wrapped so an exception yields `null`. For text and images it is `null`. Extend `logic.test.ts`.
+- [x] `deno test --node-modules-dir=none --no-lock --allow-env supabase/functions` passes.
 
 ### Task 3: A generic hardened fetch
-- [ ] Failing tests in `fetch.test.ts`: `fetchPublic` refuses private addresses after a redirect, enforces `maxBytes` from both `content-length` and the streamed body, refuses a content type that is not allowed (`not_allowed_type`), and returns `{ bytes, url, contentType }`.
-- [ ] Move the redirect loop out of `fetchPage` into `fetchPublic(rawUrl, { accept, allowType: RegExp, maxBytes }, deps)`. `fetchPage` calls it with `/html|xml/` and `MAX_BYTES`, then decodes. The existing `fetchPage` tests pass unchanged.
+- [x] Failing tests in `fetch.test.ts`: `fetchPublic` refuses private addresses after a redirect, enforces `maxBytes` from both `content-length` and the streamed body, refuses a content type that is not allowed (`not_allowed_type`), and returns `{ bytes, url, contentType }`.
+- [x] Move the redirect loop out of `fetchPage` into `fetchPublic(rawUrl, { accept, allowType: RegExp, maxBytes }, deps)`. `fetchPage` calls it with `/html|xml/` and `MAX_BYTES`, then decodes. The existing `fetchPage` tests pass unchanged.
 
 ### Task 4: Edge function `recipe-image`
-- [ ] Failing tests in `recipe-image/logic.test.ts` (fake `fetch` and `resolve`, as in `fetch.test.ts`):
+- [x] Failing tests in `recipe-image/logic.test.ts` (fake `fetch` and `resolve`, as in `fetch.test.ts`):
   - `{ kind: 'image', url }` returns `{ mediaType: 'image/jpeg', data: <base64> }` for jpeg, png and webp.
   - SVG, HTML or a missing content type fails with `not_an_image`.
   - More than 5 MB fails with `too_large`.
   - `{ kind: 'page', url }` fetches the page, runs `pickImage`, then fetches the image. A page without an image fails with `no_image` (422).
-- [ ] Input schema: `z.discriminatedUnion('kind', [{ kind: 'image', url }, { kind: 'page', url }])` with `url` an `https:` string of at most 2000 characters.
-- [ ] `index.ts` mirrors `recipe-import/index.ts`. Add `[functions.recipe-image]` to `config.toml` with a comment: "Fetches a recipe photo for the browser to resize (Idé 1). Outbound network; no AI, no secrets beyond the platform's."
-- [ ] Logs contain only the error class (the guard already does this); never the address.
+- [x] Input schema: `z.discriminatedUnion('kind', [{ kind: 'image', url }, { kind: 'page', url }])` with `url` an `https:` string of at most 2000 characters.
+- [x] `index.ts` mirrors `recipe-import/index.ts`. Add `[functions.recipe-image]` to `config.toml` with a comment: "Fetches a recipe photo for the browser to resize (Idé 1). Outbound network; no AI, no secrets beyond the platform's."
+- [x] Logs contain only the error class (the guard already does this); never the address.
 
 ### Task 5: Draft carries the photo; resize and upload
-- [ ] `ImportedRecipe.imageUrl` and `RecipeDraft.imageUrl` are carried through `draftFromImport` (`lib/recipes/import.ts`). Extend `tests/strandparken-import.test.ts`.
-- [ ] `repo.ts`: `shrinkImage(blob: Blob, maxEdge = 1600, quality = 0.82)`. `uploadPhotoPair(householdId, recipeId, blob, maxEdge)` uploads `<uuid>.jpg` and `<uuid>-thumb.jpg` (400 px long side) and returns `{ imagePath, thumbPath }`. `setPhoto(recipeId, paths | null)` updates the row and removes the old pair. `removePhoto` takes both paths.
-- [ ] `saveRecipe`: a chosen file uses `uploadPhotoPair(…, 1600)`; a new recipe with `draft.imageUrl` and no chosen file stores `image_source_url` and leaves `image_path` null. JPEG stays the format: Safari's `canvas.toBlob('image/webp')` does not encode WebP everywhere.
+- [x] `ImportedRecipe.imageUrl` and `RecipeDraft.imageUrl` are carried through `draftFromImport` (`lib/recipes/import.ts`). Extend `tests/strandparken-import.test.ts`.
+- [x] `repo.ts`: `shrinkImage(blob: Blob, maxEdge = 1600, quality = 0.82)`. `uploadPhotoPair(householdId, recipeId, blob, maxEdge)` uploads `<uuid>.jpg` and `<uuid>-thumb.jpg` (400 px long side) and returns `{ imagePath, thumbPath }`. `setPhoto(recipeId, paths | null)` updates the row and removes the old pair. `removePhoto` takes both paths.
+- [x] `saveRecipe`: a chosen file uses `uploadPhotoPair(…, 1600)`; a new recipe with `draft.imageUrl` and no chosen file stores `image_source_url` and leaves `image_path` null. JPEG stays the format: Safari's `canvas.toBlob('image/webp')` does not encode WebP everywhere.
 
 ### Task 6: Photo jobs and the one-off backfill
-- [ ] Failing tests in `tests/strandparken-recipe-photos.test.ts`:
+- [x] Failing tests in `tests/strandparken-recipe-photos.test.ts`:
   - `fitWithin(4000, 3000, 1200)` → `{ w: 1200, h: 900 }`; never upscales.
   - `backfillCandidates(recipes)` picks recipes that are not archived and have `source_url` (or `image_source_url`), no `image_path`, and no `image_fetch_attempted_at`; social links (`detectSource(...).source !== 'web'`) are skipped.
-- [ ] `photo-jobs.ts`: `start(recipeId, { kind: 'image' | 'page', url })` calls `recipe-image`, decodes the base64 to a `Blob`, then `uploadPhotoPair(…, 1200)`, `setPhoto`, and sets `image_fetch_attempted_at = now()`. It sets `image_fetch_attempted_at` on failure as well, so each recipe is tried once. At most one job per recipe and two at a time. `subscribe(fn)` notifies views when a job starts or ends.
-- [ ] After a successful save of an import with `imageUrl`, `RecipeEditor` calls `start(id, { kind: 'image', url })` and navigates at once; the recipe is usable before the photo exists.
-- [ ] Backfill: when `RecipesView` mounts with recipes loaded, it runs once per session (a module flag) over `backfillCandidates`, sequentially through the job store with `{ kind: 'page', url: source_url }`. The same path picks up imports whose job was interrupted because the app was closed (`image_source_url` set, not attempted).
+- [x] `photo-jobs.ts`: `start(recipeId, { kind: 'image' | 'page', url })` calls `recipe-image`, decodes the base64 to a `Blob`, then `uploadPhotoPair(…, 1200)`, `setPhoto`, and sets `image_fetch_attempted_at = now()`. It sets `image_fetch_attempted_at` on failure as well, so each recipe is tried once. At most one job per recipe and two at a time. `subscribe(fn)` notifies views when a job starts or ends.
+- [x] After a successful save of an import with `imageUrl`, `RecipeEditor` calls `start(id, { kind: 'image', url })` and navigates at once; the recipe is usable before the photo exists.
+- [x] Backfill: when `RecipesView` mounts with recipes loaded, it runs once per session (a module flag) over `backfillCandidates`, sequentially through the job store with `{ kind: 'page', url: source_url }`. The same path picks up imports whose job was interrupted because the app was closed (`image_source_url` set, not attempted).
 
 ### Task 7: Thumbnails everywhere and "Henter billede…"
-- [ ] `use-recipes.ts` signs `image_path` and `thumb_path` in one `createSignedUrls` call and reloads when a photo job finishes (`photo-jobs.subscribe`).
-- [ ] `Dish.thumbPath` in `lib/madplan/model.ts`; extend `tests/strandparken-madplan.test.ts`.
-- [ ] Small images use `thumb_path ?? image_path`: the Opskrifter grid (`RecipesView` card), Madplan rows (`MadplanView` `DayRow`), the pickers in `DaySheet`, and `home/Tonight.tsx`. The recipe hero (`RecipeDetail`) uses `image_path`.
-- [ ] While `statusOf(recipe.id) === 'running'`, `DishImage` shows the placeholder with a small "Henter billede…" caption (`sp-caption`, `aria-live="polite"` on the recipe page only, so a grid does not read it out many times).
+- [x] `use-recipes.ts` signs `image_path` and `thumb_path` in one `createSignedUrls` call and reloads when a photo job finishes (`photo-jobs.subscribe`).
+- [x] `Dish.thumbPath` in `lib/madplan/model.ts`; extend `tests/strandparken-madplan.test.ts`.
+- [x] Small images use `thumb_path ?? image_path`: the Opskrifter grid (`RecipesView` card), Madplan rows (`MadplanView` `DayRow`), the pickers in `DaySheet`, and `home/Tonight.tsx`. The recipe hero (`RecipeDetail`) uses `image_path`.
+- [x] While `statusOf(recipe.id) === 'running'`, `DishImage` shows the placeholder with a small "Henter billede…" caption (`sp-caption`, `aria-live="polite"` on the recipe page only, so a grid does not read it out many times).
 
 ### Task 8: Replace or remove the photo on the recipe page
-- [ ] `RecipeDetail` gets a quiet button "Skift billede" over the hero and "Fjern billede" when a photo exists. The file input is `accept="image/*"`: iOS then offers the photo library and the camera. "Fjern billede" goes through `setPhoto(id, null)` with a `Fortryd` toast that restores the previous paths (the old files are removed only when the toast closes without undo).
-- [ ] The editor's existing photo controls use the same `uploadPhotoPair`.
+- [x] `RecipeDetail` gets a quiet button "Skift billede" over the hero and "Fjern billede" when a photo exists. The file input is `accept="image/*"`: iOS then offers the photo library and the camera. "Fjern billede" goes through `setPhoto(id, null)` with a `Fortryd` toast that restores the previous paths (the old files are removed only when the toast closes without undo).
+- [x] The editor's existing photo controls use the same `uploadPhotoPair`.
 
 ### Task 9: Specs, backlog, verify, commit
-- [ ] Main spec §4.6 "Images" and §5.3.1 note the 1200 px imported photo and the thumbnail; §4.4 lists `recipe-image`; UI spec §5.4 notes the "Henter billede…" state.
-- [ ] Backlog: remove nothing; add "Photo jobs run only while the app is open; an interrupted job is retried by the backfill on the next visit to Opskrifter."
-- [ ] Verify (below), deploy `supabase functions deploy recipe-import recipe-image`, commit `feat(strandparken): fetch the dish photo when importing a recipe from a link`.
+- [x] Main spec §4.6 "Images" and §5.3.1 note the 1200 px imported photo and the thumbnail; §4.4 lists `recipe-image`; UI spec §5.4 notes the "Henter billede…" state.
+- [x] Backlog: remove nothing; add "Photo jobs run only while the app is open; an interrupted job is retried by the backfill on the next visit to Opskrifter."
+- [ ] Verify (below), deploy `supabase functions deploy recipe-import recipe-image`, commit `feat(strandparken): fetch the dish photo when importing a recipe from a link`. _(Tests, check and build pass. Deploy of the two functions and the phone checks are pending.)_
 
 ## Verification
 

@@ -141,7 +141,7 @@ White, `--sp-r-card`, 18 px padding, no border, no shadow. Rows inside are separ
 
 ### 5.4 Dish image
 
-One component for every dish picture. Props: source, shape (`round` or `cover`), size. `cover` fills its box and crops from the centre. `round` is a circle (52 px in day rows, 56 px in the week strip, 64 px in pickers). Without a photo: `--sp-track` fill with the dish's first letter in Fraunces, `--sp-primary`. An empty slot (nothing planned) is a 1.5 px dashed `--sp-dash` circle with a plus.
+One component for every dish picture. Props: source, shape (`round` or `cover`), size. `cover` fills its box and crops from the centre. `round` is a circle (52 px in day rows, 56 px in the week strip, 64 px in pickers). Without a photo: `--sp-track` fill with the dish's first letter in Fraunces, `--sp-primary`. An empty slot (nothing planned) is a 1.5 px dashed `--sp-dash` circle with a plus. While a recipe's photo is being fetched (`pending`), a `cover` tile shows the placeholder with `Henter billede…` in `caption` muted (a live region only on the recipe page); round tiles are too small for text and show the letter. Small pictures use the thumbnail, the recipe hero the full photo.
 
 ### 5.5 Tonight card
 

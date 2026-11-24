@@ -109,6 +109,7 @@ A household app with five views, kept in the URL hash so a refresh or shared lin
 | `destination-tips` | Ferieplan | Reads the Danish foreign ministry's travel advice (um.dk) for a destination and summarises entry, health and local rules. Saves nothing. |
 | `sp-status` | Strandparken | Returns who the caller is and how much of the AI budget is left. Makes no model call; used as the deploy smoke test. |
 | `recipe-import` | Strandparken | Turns pasted text, a screenshot or a link into a recipe. For links it reads schema.org recipe data first and falls back to the page text. |
+| `recipe-image` | Strandparken | Fetches a recipe photo for the browser to resize and upload (no model call). |
 | `meal-suggest` | Strandparken | Picks a dinner for an empty day from candidate recipes sent by the app. |
 
 Every function has `verify_jwt = false` because it checks the caller's token and household membership itself. The Strandparken functions do this in `_shared/guard.ts` and call the model only through `_shared/anthropic.ts`, which enforces these limits (ADR-07):
