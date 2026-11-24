@@ -152,6 +152,7 @@ A single button. Photo on top, 196 px tall, full width, `cover`. Below it on whi
 - **Week strip (Hjem):** four equal white tiles (`--sp-r-row`) for the remaining days: day and date in `caption` 600 muted, round dish image 56 px, dish name in 12.5 px on at most two lines.
 - **Day row (Madplan):** a fixed 38 px date column outside the card (weekday 13.5 px 700, date 12.5 px muted; today's weekday in primary), then a white row, min height 64 px, `--sp-r-row`: round image 52 px, name in `body-strong`, meta in `caption`. Today has a 2 px primary ring and an `I dag` pill.
 - **Empty day:** same height, 1.5 px dashed `--sp-dash`, centred plus and `Tilføj ret` in primary 600.
+- **Lifted row (drag):** a copy of the row follows the finger, scaled to 1.03 with `--sp-shadow-float` (`sp-row-lifted`); the source row stays in place at 40 % opacity. The row or week arrow under the finger gets a 2 px primary ring on `--sp-primary-tint` (`sp-row-drop-target`). A long press must not open the iOS callout (`sp-no-callout`).
 
 All seven rows, the title and the primary button must fit above the bar on a 390 × 844 screen.
 
@@ -231,7 +232,7 @@ Every view and card needs all four. None are in the mockup.
 
 ## 8. Motion
 
-Motion only answers an action. Sheets slide up in 220 ms and the scrim fades; a tick fills in 120 ms; the recipe page slides in from the right in 220 ms. No entrance animations on load, no hover effects on cards. With `prefers-reduced-motion`, everything is instant.
+Motion only answers an action. Sheets slide up in 220 ms and the scrim fades; a tick fills in 120 ms; the recipe page slides in from the right in 220 ms. No entrance animations on load, no hover effects on cards. A Madplan row lifts on long press (scale 1.03 and the float shadow) and lands without a drop animation. With `prefers-reduced-motion`, everything is instant, and the lifted row keeps its shadow but is not scaled.
 
 ---
 

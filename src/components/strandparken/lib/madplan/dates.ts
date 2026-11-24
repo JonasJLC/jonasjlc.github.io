@@ -38,6 +38,8 @@ const longNames = ['mandag', 'tirsdag', 'onsdag', 'torsdag', 'fredag', 'lørdag'
 const monthNames = ['januar', 'februar', 'marts', 'april', 'maj', 'juni', 'juli', 'august', 'september', 'oktober', 'november', 'december'];
 
 export const weekdayShort = (iso: IsoDate) => weekdayNames[weekdayIndex(iso)];
-export const dayOfMonth = (iso: IsoDate) => Number(iso.slice(8, 10));
+/** "fredag" (lower case, as in "Flyttet til fredag"). */
+export const weekdayLong = (iso: IsoDate) => longNames[weekdayIndex(iso)];
+export const dayOfMonth =(iso: IsoDate) => Number(iso.slice(8, 10));
 /** "mandag 9. november". */
 export const longDate = (iso: IsoDate) => `${longNames[weekdayIndex(iso)]} ${dayOfMonth(iso)}. ${monthNames[Number(iso.slice(5, 7)) - 1]}`;

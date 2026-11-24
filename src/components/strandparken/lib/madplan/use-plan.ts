@@ -41,5 +41,10 @@ export function usePlan(householdId: string | null, from: string, to: string) {
     };
   }, [householdId, reload]);
 
-  return { state, reload, retry: () => { setState({ status: 'loading' }); void reload(); } };
+  /** Show a change before the server confirms it (drag and drop). The next reload replaces it with the truth. */
+  const patch = useCallback((change: (entries: PlanEntry[]) => PlanEntry[]) => {
+    setState((s) => (s.status === 'ready' ? { status: 'ready', entries: change(s.entries) } : s));
+  }, []);
+
+  return { state, reload, patch, retry: () => { setState({ status: 'loading' }); void reload(); } };
 }

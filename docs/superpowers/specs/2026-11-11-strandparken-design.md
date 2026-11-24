@@ -408,14 +408,20 @@ Acceptance criteria:
 3. `Skriv selv` (free text, no recipe), with one-tap chips for the common non-recipes: `Rester`, `Ude at spise`, `Takeaway`
 4. `Foreslå ret` (AI suggestion for this day, §5.3.5)
 
-**Per day:** persons stepper (default 2), move or swap with another day, remove, open recipe.
+**Per day:** persons stepper (default 2), `Flyt til…`, remove, open recipe.
+
+**Moving a dinner** (idea 3, 24 Nov 2026):
+- **Drag and drop.** A long press (about 350 ms) on a planned day lifts the row; a tap still opens the sheet and an ordinary swipe still scrolls. The day under the finger is highlighted. Dropping on an empty day moves the dinner; dropping on a planned day swaps the two; dropping on its own day or outside a day changes nothing. The page scrolls when the finger nears the top or bottom edge.
+- **Across weeks.** Holding the lifted row over ‹ or › for 0.6 s switches week (and again for each further week); the drop then lands in that week, and the view stays on it.
+- **`Flyt til…`** in the day's sheet is the same move without dragging: a week picker (`Uge 48` with ‹ ›) and its seven days, each `Tom` or `Byt med <titel>`. With a keyboard, Space lifts a row, arrow up and down pick a day and Space drops it; Enter opens the sheet.
+- Both ways save at once and show `Flyttet til fredag` or `Byttet med <titel>` with `Fortryd`. The row keeps its id, so persons and the linked shopping rows follow the dinner. The haptic tap on lift is best effort: Android vibrates; iOS uses the switch-input technique where it works.
 
 **Week actions:** `Lav indkøbsliste` (§5.3.4). The calendar write is automatic once connected (§5.3.6).
 
 Acceptance criteria:
 - [ ] The whole week is readable on one phone screen without opening anything.
 - [ ] A day can hold either a recipe, an idea or free text.
-- [ ] A dish can be moved to another day, and two days can be swapped.
+- [ ] A dish can be moved to another day, and two days can be swapped, by drag and drop or `Flyt til…`, also into another week.
 - [ ] Persons per day changes the amounts sent to the shopping list.
 - [ ] Past and future weeks can be viewed.
 - [ ] The week shown as "this week" is the same on both phones at any time of day.

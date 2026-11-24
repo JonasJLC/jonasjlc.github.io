@@ -1,4 +1,5 @@
 import { getClient } from '../auth';
+import type { DropOutcome } from './drag';
 import { defaultServings, type PlanEntry } from './model';
 
 /** Plan entries from `from` to `to`, both included. */
@@ -68,4 +69,19 @@ export async function swapEntries(a: Pick<PlanEntry, 'id' | 'date'>, b: Pick<Pla
     await set(a.id, a.date).catch(() => {});
     throw e;
   }
+}
+
+/**
+ * The save and the undo for a move decided by `dropOutcome`, shared by drag and drop and the sheet's "Flyt til…". Works
+ * across weeks. The rows keep their ids, so servings and linked shopping rows follow the dinner.
+ */
+export function persistOutcome(entry: Pick<PlanEntry, 'id' | 'date'>, outcome: Exclude<DropOutcome, { kind: 'none' }>) {
+  if (outcome.kind === 'move') {
+    return { run: () => moveEntry(entry.id, outcome.to), undo: () => moveEntry(entry.id, entry.date) };
+  }
+  const other = outcome.with;
+  return {
+    run: () => swapEntries(entry, other),
+    undo: () => swapEntries({ id: entry.id, date: other.date }, { id: other.id, date: entry.date }),
+  };
 }

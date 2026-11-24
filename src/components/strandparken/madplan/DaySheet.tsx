@@ -5,9 +5,10 @@ import type { Idea } from '../lib/ideas/model';
 import { dislikeHits, ideaDislikeHits, whoLabel } from '../lib/profile/model';
 import type { Person } from '../lib/people';
 import { smallPhotoUrl, type Recipe } from '../lib/recipes/model';
-import { longDate, dayOfMonth, weekdayShort } from '../lib/madplan/dates';
+import { longDate } from '../lib/madplan/dates';
+import { dropOutcome, type DropOutcome } from '../lib/madplan/drag';
 import { cleanFreeText, dishOf, entryOn, quickDishes, type PlanEntry } from '../lib/madplan/model';
-import { addEntry, moveEntry, removeEntry, setServings, swapEntries, type Dish } from '../lib/madplan/repo';
+import { addEntry, removeEntry, setServings, type Dish } from '../lib/madplan/repo';
 import { personsLabel } from '../lib/stepper';
 import { Button } from '../ui/button';
 import { Chip } from '../ui/chip';
@@ -17,6 +18,7 @@ import { Icon } from '../ui/icon';
 import { Sheet, SheetContent, SheetHeader } from '../ui/sheet';
 import { Stepper } from '../ui/stepper';
 import { SuggestBlock } from './SuggestBlock';
+import { WeekPicker } from './WeekPicker';
 import type { Profile } from '../lib/profile/model';
 import { notify } from '../ui/toast';
 
@@ -33,6 +35,8 @@ type Props = {
   photos: Record<string, string>;
   onClose: () => void;
   onChanged: (message: string, undo?: () => Promise<void>) => Promise<void>;
+  /** Move or swap the meal; the same path as drag and drop (MadplanView). */
+  onMove: (entry: PlanEntry, outcome: Exclude<DropOutcome, { kind: 'none' }>) => Promise<boolean>;
 };
 
 /** One sheet for both jobs: fill an empty day, or manage a planned one (design §5.3.3). */
@@ -146,7 +150,7 @@ function Fill({ householdId, date, entries, recipes, ideas, dislikes, profiles, 
   );
 }
 
-function Manage({ householdId, date, days, entry, entries, recipes, ideas, photos, onClose, onChanged }: Shared & { entry: PlanEntry; entries: PlanEntry[] }) {
+function Manage({ householdId, date, days, entry, entries, recipes, ideas, photos, onClose, onChanged, onMove }: Shared & { entry: PlanEntry; entries: PlanEntry[] }) {
   const dish = dishOf(entry, recipes, ideas);
   const [servings, setLocal] = useState(entry.servings ?? 2);
   const [moving, setMoving] = useState(false);
@@ -193,31 +197,23 @@ function Manage({ householdId, date, days, entry, entries, recipes, ideas, photo
         )}
 
         {moving ? (
-          <div className="flex flex-col gap-2">
-            <p className="sp-body-strong">Flyt til</p>
-            <ul aria-label="Vælg dag" className="flex flex-col gap-sp-gap-row">
-              {days.filter((d) => d !== date).map((d) => {
-                const other = entryOn(entries, d);
-                return (
-                  <li key={d}>
-                    <button
-                      type="button"
-                      disabled={busy}
-                      onClick={() => void (other
-                        ? run(() => swapEntries(entry, other), `${dish.title} og ${dishOf(other, recipes, ideas).title} har byttet plads.`, () => swapEntries({ id: entry.id, date: d }, { id: other.id, date }))
-                        : run(() => moveEntry(entry.id, d), `${dish.title} er flyttet til ${longDate(d)}.`, () => moveEntry(entry.id, date)))}
-                      className="flex min-h-sp-target w-full items-center justify-between gap-3 rounded-sp-row bg-sp-surface px-4 text-left active:bg-sp-track disabled:opacity-45"
-                    >
-                      <span className="sp-body-strong">{weekdayShort(d)} {dayOfMonth(d)}.</span>
-                      <span className="sp-caption min-w-0 truncate text-sp-muted">{other ? `Byt med ${dishOf(other, recipes, ideas).title}` : 'Tom'}</span>
-                    </button>
-                  </li>
-                );
-              })}
-            </ul>
-          </div>
+          <WeekPicker
+            from={date}
+            shownMonday={days[0]}
+            shownEntries={entries}
+            recipes={recipes}
+            ideas={ideas}
+            busy={busy}
+            onPick={(to, weekEntries) => {
+              const outcome = dropOutcome(date, to, weekEntries);
+              if (outcome.kind === 'none') return;
+              // The view updates at once and shows its own toast with Fortryd, the same as after a drag.
+              onClose();
+              void onMove(entry, outcome);
+            }}
+          />
         ) : (
-          <Button variant="outline" onClick={() => setMoving(true)}><Icon icon={ArrowRightLeft} />Flyt eller byt</Button>
+          <Button variant="outline" onClick={() => setMoving(true)}><Icon icon={ArrowRightLeft} />Flyt til…</Button>
         )}
 
         <Button variant="quiet" disabled={busy} className="text-sp-danger" onClick={() => void run(() => removeEntry(entry.id), `${dish.title} er fjernet fra ${longDate(date)}.`, restore)}>

@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { addDays, dayOfMonth, isIsoDate, isoWeek, longDate, mondayOf, todayIso, weekDays, weekdayShort } from '../src/components/strandparken/lib/madplan/dates.ts';
+import { addDays, dayOfMonth, isIsoDate, isoWeek, longDate, mondayOf, todayIso, weekDays, weekdayLong, weekdayShort } from '../src/components/strandparken/lib/madplan/dates.ts';
+import { applyOutcome, dayOfDroppable, dropOutcome, edgeWeek, moveMessage } from '../src/components/strandparken/lib/madplan/drag.ts';
 import { cleanFreeText, dishOf, entryOn, type PlanEntry } from '../src/components/strandparken/lib/madplan/model.ts';
 import type { Recipe } from '../src/components/strandparken/lib/recipes/model.ts';
 
@@ -67,4 +68,55 @@ test('entryOn finds the day', () => {
 test('free text is trimmed and collapsed', () => {
   assert.equal(cleanFreeText('  Mad   hos  mor '), 'Mad hos mor');
   assert.equal(cleanFreeText('   '), '');
+});
+
+test('weekdayLong is the lower-case weekday name', () => {
+  assert.equal(weekdayLong('2026-11-27'), 'fredag');
+  assert.equal(weekdayLong('2026-11-23'), 'mandag');
+  assert.equal(weekdayLong('2026-11-29'), 'søndag');
+});
+
+test('dropOutcome: own day or outside a day does nothing', () => {
+  const week = [entry({ id: 'a', date: '2026-11-24' })];
+  assert.deepEqual(dropOutcome('2026-11-24', '2026-11-24', week), { kind: 'none' });
+  assert.deepEqual(dropOutcome('2026-11-24', null, week), { kind: 'none' });
+});
+
+test('dropOutcome: an empty day is a move, a planned day is a swap', () => {
+  const week = [entry({ id: 'a', date: '2026-11-24' }), entry({ id: 'b', date: '2026-11-27' })];
+  assert.deepEqual(dropOutcome('2026-11-24', '2026-11-26', week), { kind: 'move', to: '2026-11-26' });
+  assert.deepEqual(dropOutcome('2026-11-24', '2026-11-27', week), { kind: 'swap', with: week[1] });
+});
+
+test('dropOutcome: another week works the same, given that week', () => {
+  const next = [entry({ id: 'c', date: '2026-12-02' })];
+  assert.deepEqual(dropOutcome('2026-11-24', '2026-12-01', next), { kind: 'move', to: '2026-12-01' });
+  assert.deepEqual(dropOutcome('2026-11-24', '2026-12-02', next), { kind: 'swap', with: next[0] });
+});
+
+test('moveMessage', () => {
+  assert.equal(moveMessage('move', '2026-11-27'), 'Flyttet til fredag');
+  assert.equal(moveMessage('swap', '2026-11-27', 'Tacos'), 'Byttet med Tacos');
+});
+
+test('droppable ids', () => {
+  assert.equal(dayOfDroppable('day:2026-11-27'), '2026-11-27');
+  assert.equal(dayOfDroppable('week:next'), null);
+  assert.equal(dayOfDroppable(null), null);
+  assert.equal(edgeWeek('week:next', '2026-11-23'), '2026-11-30');
+  assert.equal(edgeWeek('week:prev', '2026-11-23'), '2026-11-16');
+  assert.equal(edgeWeek('day:2026-11-27', '2026-11-23'), null);
+});
+
+test('applyOutcome updates the list optimistically', () => {
+  const a = entry({ id: 'a', date: '2026-11-24' });
+  const b = entry({ id: 'b', date: '2026-11-27' });
+  const moved = applyOutcome([a, b], a, { kind: 'move', to: '2026-11-26' });
+  assert.deepEqual(moved.map((e) => [e.id, e.date]), [['a', '2026-11-26'], ['b', '2026-11-27']]);
+  const swapped = applyOutcome([a, b], a, { kind: 'swap', with: b });
+  assert.deepEqual(swapped.map((e) => [e.id, e.date]), [['b', '2026-11-24'], ['a', '2026-11-27']]);
+  // Moving into the shown week from another week adds the entry; the list stays in date order.
+  const into = applyOutcome([b], entry({ id: 'x', date: '2026-11-17' }), { kind: 'move', to: '2026-11-25' });
+  assert.deepEqual(into.map((e) => [e.id, e.date]), [['x', '2026-11-25'], ['b', '2026-11-27']]);
+  assert.deepEqual(applyOutcome([a, b], a, { kind: 'none' }), [a, b]);
 });
