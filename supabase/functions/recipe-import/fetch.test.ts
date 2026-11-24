@@ -1,7 +1,7 @@
 // Run: deno test --node-modules-dir=none --no-lock --allow-env supabase/functions
 import assert from 'node:assert/strict';
 import { HttpError } from '../_shared/http.ts';
-import { checkUrl, fetchPage, isPrivateAddress, MAX_BYTES } from './fetch.ts';
+import { checkUrl, fetchPage, fetchPublic, isPrivateAddress, MAX_BYTES } from './fetch.ts';
 
 const code = async (p: Promise<unknown>) => {
   try { await p; return 'ok'; } catch (e) { return e instanceof HttpError ? `${e.status} ${e.code}` : 'other'; }
@@ -81,4 +81,44 @@ Deno.test('other content types, errors, oversized bodies and network failures ar
   assert.equal(await run(() => html('x'.repeat(MAX_BYTES + 1))), '422 too_large');
   assert.equal(await code(fetchPage('https://example.com/', { resolve: pub, fetch: () => Promise.reject(new Error('down')) })), '502 fetch_failed');
   assert.equal(await code(fetchPage('https://example.com/', { resolve: () => Promise.resolve([]), fetch: () => Promise.resolve(html('x')) })), '502 fetch_failed');
+});
+
+// fetchPublic: the same hardened rules for any content type, with the type and size limit chosen by the caller.
+const IMAGE = { accept: 'image/*', allowType: /^image\/(jpeg|png|webp)/i, maxBytes: 100 };
+const png = (bytes: Uint8Array<ArrayBuffer>, init: ResponseInit = {}) => new Response(bytes, { status: 200, headers: { 'content-type': 'image/png' }, ...init });
+
+Deno.test('fetchPublic returns the bytes, the final address and the content type', async () => {
+  const bytes = new Uint8Array([1, 2, 3, 4]);
+  let seen: RequestInit | undefined;
+  const out = await fetchPublic('https://example.com/a.png', IMAGE, { resolve: pub, fetch: (_u, init) => { seen = init; return Promise.resolve(png(bytes)); } });
+  assert.deepEqual([...out.bytes], [1, 2, 3, 4]);
+  assert.equal(out.url, 'https://example.com/a.png');
+  assert.equal(out.contentType, 'image/png');
+  assert.equal((seen?.headers as Record<string, string>).Accept, 'image/*');
+  assert.equal(seen?.credentials, 'omit');
+  assert.equal(seen?.redirect, 'manual');
+});
+
+Deno.test('fetchPublic refuses private addresses after a redirect, and every hop is resolved again', async () => {
+  const hop = (to: string) => new Response(null, { status: 302, headers: { location: to } });
+  assert.equal(await code(fetchPublic('https://example.com/a', IMAGE, { resolve: pub, fetch: () => Promise.resolve(hop('https://169.254.169.254/x.png')) })), '422 blocked');
+  let lookups = 0;
+  const deps = { resolve: () => Promise.resolve(++lookups === 1 ? ['93.184.216.34'] : ['10.0.0.9']), fetch: () => Promise.resolve(hop('https://cdn.example/x.png')) };
+  assert.equal(await code(fetchPublic('https://example.com/a', IMAGE, deps)), '422 blocked');
+});
+
+Deno.test('fetchPublic enforces maxBytes from content-length and from the streamed body', async () => {
+  const run = (res: () => Response) => code(fetchPublic('https://example.com/a.png', IMAGE, { resolve: pub, fetch: () => Promise.resolve(res()) }));
+  assert.equal(await run(() => png(new Uint8Array(101))), '422 too_large');
+  assert.equal(await run(() => png(new Uint8Array(1), { headers: { 'content-type': 'image/png', 'content-length': '101' } })), '422 too_large');
+  assert.equal(await run(() => png(new Uint8Array(100))), 'ok');
+});
+
+Deno.test('fetchPublic refuses a content type that is not allowed', async () => {
+  const run = (type: string | null) =>
+    code(fetchPublic('https://example.com/a', IMAGE, { resolve: pub, fetch: () => Promise.resolve(new Response('x', { headers: type ? { 'content-type': type } : {} })) }));
+  assert.equal(await run('image/svg+xml'), '422 not_allowed_type');
+  assert.equal(await run('text/html'), '422 not_allowed_type');
+  assert.equal(await run(null), '422 not_allowed_type');
+  assert.equal(await run('image/webp'), 'ok');
 });
