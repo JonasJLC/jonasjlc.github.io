@@ -25,10 +25,22 @@ export function Toaster() {
   );
 }
 
-/** Confirm a change in place. Pass `onUndo` for destructive actions to get a `Fortryd` button. A new toast replaces the one showing. */
-export function notify(message: string, options: { onUndo?: () => void } = {}) {
+/**
+ * Confirm a change in place. Pass `onUndo` for destructive actions to get a `Fortryd` button. A new toast replaces the one
+ * showing. `onClosed` runs once when the toast goes away for any reason, after `onUndo` if that was pressed (so a caller
+ * that cleans up on close checks whether it was undone).
+ */
+export function notify(message: string, options: { onUndo?: () => void; onClosed?: () => void } = {}) {
   toast.dismiss();
+  let closed = false;
+  const close = () => {
+    if (closed) return;
+    closed = true;
+    options.onClosed?.();
+  };
   return toast(message, {
     action: options.onUndo ? { label: 'Fortryd', onClick: () => options.onUndo?.() } : undefined,
+    onDismiss: close,
+    onAutoClose: close,
   });
 }

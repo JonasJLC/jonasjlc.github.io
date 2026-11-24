@@ -2,6 +2,7 @@ import { ArrowDown, ArrowUp, ChevronLeft, Plus, X } from 'lucide-react';
 import { useEffect, useId, useMemo, useState, type ComponentProps } from 'react';
 import { cleanTags, draftFromRecipe, emptyDraft, newIngredient, normaliseTag, validateDraft, type CategoryRow, type Recipe, type RecipeDraft } from '../lib/recipes/model';
 import { saveRecipe } from '../lib/recipes/repo';
+import { start as startPhotoJob } from '../lib/recipes/photo-jobs';
 import { promoteIdea } from '../lib/ideas/repo';
 import type { Idea } from '../lib/ideas/model';
 import { clearPendingDraft, unsureLabel, type ImportedRecipe } from '../lib/recipes/import';
@@ -56,6 +57,8 @@ export function RecipeEditor({ householdId, recipe, categories, photos, onSaved,
   const back = recipe ? `#opskrifter/${recipe.id}` : '#opskrifter';
   const startPhoto = recipe ? recipe.image_path : fromIdea?.image_path ?? null;
   const photo = removePhoto ? undefined : preview ?? (startPhoto ? photos[startPhoto] : undefined);
+  // A link import found the dish's photo: it is fetched after saving, so the editor only says so.
+  const fetchedPhoto = !recipe && !!draft.imageUrl && !file && !startPhoto;
   const problemAt = (field: string, index?: number) => (shown ? problems.find((p) => p.field === field && p.index === index)?.message : undefined);
 
   const addTag = () => {
@@ -76,6 +79,8 @@ export function RecipeEditor({ householdId, recipe, categories, photos, onSaved,
         inheritedPhoto: recipe ? null : fromIdea?.image_path ?? null,
         photo: file ? { file } : removePhoto ? { remove: true } : null,
       });
+      // The recipe is usable at once; the photo follows in the background and every view shows "Henter billede…" meanwhile.
+      if (!recipe && draft.imageUrl && !file && !fromIdea?.image_path) void startPhotoJob(householdId, id, { kind: 'image', url: draft.imageUrl });
       if (imported) clearPendingDraft();
       if (fromIdea) await promoteIdea(fromIdea.id, id);
       await onSaved();
@@ -120,10 +125,11 @@ export function RecipeEditor({ householdId, recipe, categories, photos, onSaved,
           <div className="size-20 shrink-0 overflow-hidden rounded-sp-inset"><DishImage shape="cover" src={photo} name={draft.title || '?'} /></div>
           <div className="flex flex-col items-start gap-1">
             <label className="sp-button-sm sp-border-strong inline-flex min-h-sp-target cursor-pointer items-center rounded-sp-pill border-sp-primary px-3.5 text-sp-primary focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-sp-primary active:bg-sp-track">
-              {photo ? 'Skift billede' : 'Vælg billede'}
+              {photo || fetchedPhoto ? 'Skift billede' : 'Vælg billede'}
               <input type="file" accept="image/*" className="sr-only" onChange={(e) => { setFile(e.target.files?.[0] ?? null); setRemovePhoto(false); e.target.value = ''; }} />
             </label>
-            {photo && <Button variant="quiet" onClick={() => { setFile(null); setRemovePhoto(true); }}>Fjern billede</Button>}
+            {(photo || fetchedPhoto) && <Button variant="quiet" onClick={() => { setFile(null); setRemovePhoto(true); set({ imageUrl: undefined }); }}>Fjern billede</Button>}
+            {fetchedPhoto && <p className="sp-caption text-sp-muted">Billedet fra siden hentes, når du gemmer.</p>}
           </div>
         </div>
       </Card>

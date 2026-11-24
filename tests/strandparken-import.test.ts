@@ -79,3 +79,9 @@ test('the function\'s link errors have Danish messages', () => {
     assert.notEqual(importErrorMessage(code), importErrorMessage(undefined), code);
   }
 });
+
+test('the photo address of a link import goes onto the draft, and is absent otherwise', () => {
+  assert.equal(toDraft(imported({ imageUrl: 'https://cdn.example.dk/a.jpg' }), 'c1', groceries).imageUrl, 'https://cdn.example.dk/a.jpg');
+  assert.equal(toDraft(imported({ imageUrl: null }), 'c1', groceries).imageUrl, undefined);
+  assert.equal(toDraft(imported(), 'c1', groceries).imageUrl, undefined);
+});

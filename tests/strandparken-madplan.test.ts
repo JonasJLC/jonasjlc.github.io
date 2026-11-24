@@ -50,7 +50,10 @@ const entry = (over: Partial<PlanEntry>): PlanEntry => ({
 const recipe = { id: 'r1', title: 'Lasagne' } as Recipe;
 
 test('a plan entry shows its recipe, its free text, or a fallback', () => {
-  assert.deepEqual(dishOf(entry({ recipe_id: 'r1' }), [recipe]), { title: 'Lasagne', recipe, imagePath: null });
+  assert.deepEqual(dishOf(entry({ recipe_id: 'r1' }), [recipe]), { title: 'Lasagne', recipe, imagePath: null, thumbPath: null });
+  const withPhoto = { ...recipe, image_path: 'h/r/a.jpg', thumb_path: 'h/r/a-thumb.jpg' };
+  assert.equal(dishOf(entry({ recipe_id: 'r1' }), [withPhoto]).thumbPath, 'h/r/a-thumb.jpg');
+  assert.equal(dishOf(entry({ recipe_id: 'r1' }), [withPhoto]).imagePath, 'h/r/a.jpg');
   assert.equal(dishOf(entry({ recipe_id: 'gone' }), [recipe]).recipe, null);
   assert.equal(dishOf(entry({ free_text: 'Rester' }), []).title, 'Rester');
 });

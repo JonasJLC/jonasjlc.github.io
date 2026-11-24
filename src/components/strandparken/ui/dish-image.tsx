@@ -12,6 +12,10 @@ type DishImageProps = {
   /** The dish name: its first letter is the fallback. The name itself is always shown next to the picture, so the image is decorative. */
   name: string;
   className?: string;
+  /** The photo is on its way (Idé 1): without a photo yet, a `cover` tile says "Henter billede…". Round tiles are too small for words. */
+  pending?: boolean;
+  /** Announce the pending caption to screen readers. Only on a recipe page: a grid would read it out many times. */
+  live?: boolean;
 } & ({ shape: 'round'; size: RoundSize } | { shape: 'cover'; size?: never });
 
 /**
@@ -19,7 +23,7 @@ type DishImageProps = {
  * `round` is a circle. Without a photo, or when it fails to load, a `--sp-track` tile with the dish's first letter
  * appears instead, never a broken or empty image.
  */
-export function DishImage({ src, name, shape, size, className }: DishImageProps) {
+export function DishImage({ src, name, shape, size, className, pending = false, live = false }: DishImageProps) {
   const [failed, setFailed] = useState<string | null>(null);
   const showPhoto = !!src && failed !== src;
   const letter = name.trim().charAt(0).toLocaleUpperCase('da');
@@ -37,6 +41,12 @@ export function DishImage({ src, name, shape, size, className }: DishImageProps)
       ) : (
         <span aria-hidden="true" className={cn('text-sp-primary', shape === 'round' ? 'sp-title-section' : 'sp-stat-lg')}>
           {letter}
+        </span>
+      )}
+      {shape === 'cover' && (pending || live) && (
+        // A live region has to exist before its text changes, so on a recipe page it is always there and only its text comes and goes.
+        <span aria-live={live ? 'polite' : undefined} className="sp-caption absolute inset-x-0 bottom-2 text-center text-sp-muted">
+          {pending && !showPhoto ? 'Henter billede…' : ''}
         </span>
       )}
     </span>

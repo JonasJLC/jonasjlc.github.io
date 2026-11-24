@@ -7,6 +7,7 @@ import { useRecipes } from '../lib/recipes/use-recipes';
 import { personsLabel } from '../lib/stepper';
 import { Button } from '../ui/button';
 import { Card } from '../ui/card';
+import { smallPhotoUrl } from '../lib/recipes/model';
 import { DishImage } from '../ui/dish-image';
 import { Icon } from '../ui/icon';
 
@@ -34,7 +35,7 @@ export function Tonight({ householdId }: { householdId: string | null }) {
   const entries = ready ? state.entries : [];
   const tonight = ready ? entryOn(entries, today) : null;
   const dish = tonight ? dishOf(tonight, recipes, ideas) : null;
-  const photo = dish?.imagePath ? photos[dish.imagePath] : undefined;
+  const photo = dish ? smallPhotoUrl(photos, dish.thumbPath, dish.imagePath) : undefined;
   const rest = [1, 2, 3, 4, 5, 6].map((n) => addDays(today, n)).filter((d) => d <= sunday);
 
   return (
@@ -74,7 +75,7 @@ export function Tonight({ householdId }: { householdId: string | null }) {
             {rest.slice(0, 4).map((date) => {
               const e = ready ? entryOn(entries, date) : null;
               const d = e ? dishOf(e, recipes, ideas) : null;
-              const img = d?.imagePath ? photos[d.imagePath] : undefined;
+              const img = d ? smallPhotoUrl(photos, d.thumbPath, d.imagePath) : undefined;
               return (
                 <li key={date}>
                   <a href="#madplan" aria-label={`${weekdayShort(date)} ${dayOfMonth(date)}: ${d ? d.title : 'ingen ret planlagt'}`} className="flex h-full flex-col items-center gap-2 rounded-sp-row bg-sp-surface px-1 py-3 text-center active:bg-sp-track">

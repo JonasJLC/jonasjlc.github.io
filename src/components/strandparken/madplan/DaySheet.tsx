@@ -4,7 +4,7 @@ import { filterRecipes, fold } from '../lib/recipes/filter';
 import type { Idea } from '../lib/ideas/model';
 import { dislikeHits, ideaDislikeHits, whoLabel } from '../lib/profile/model';
 import type { Person } from '../lib/people';
-import type { Recipe } from '../lib/recipes/model';
+import { smallPhotoUrl, type Recipe } from '../lib/recipes/model';
 import { longDate, dayOfMonth, weekdayShort } from '../lib/madplan/dates';
 import { cleanFreeText, dishOf, entryOn, quickDishes, type PlanEntry } from '../lib/madplan/model';
 import { addEntry, moveEntry, removeEntry, setServings, swapEntries, type Dish } from '../lib/madplan/repo';
@@ -91,7 +91,7 @@ function Fill({ householdId, date, entries, recipes, ideas, dislikes, profiles, 
                   onClick={() => void add({ recipeId: r.id }, r.title)}
                   className="flex min-h-sp-row w-full items-center gap-3 rounded-sp-row bg-sp-surface px-3 py-2 text-left active:bg-sp-track disabled:opacity-45"
                 >
-                  <DishImage shape="round" size={52} src={r.image_path ? photos[r.image_path] : undefined} name={r.title} />
+                  <DishImage shape="round" size={52} src={smallPhotoUrl(photos, r.thumb_path, r.image_path)} name={r.title} />
                   <span className="min-w-0 flex-1">
                     <span className="sp-body-strong line-clamp-2 block">{r.title}</span>
                     {(() => {
@@ -184,7 +184,7 @@ function Manage({ householdId, date, days, entry, entries, recipes, ideas, photo
       <SheetHeader title={dish.title} eyebrow={longDate(date)} />
       <div className="flex flex-col gap-sp-gap">
         <div className="flex items-center gap-3">
-          <DishImage shape="round" size={64} src={dish.recipe?.image_path ? photos[dish.recipe.image_path] : undefined} name={dish.title} />
+          <DishImage shape="round" size={64} src={smallPhotoUrl(photos, dish.recipe?.thumb_path, dish.recipe?.image_path)} name={dish.title} />
           <div className="min-w-0 flex-1"><Stepper value={servings} onChange={(n) => void changeServings(n)} /></div>
         </div>
 
