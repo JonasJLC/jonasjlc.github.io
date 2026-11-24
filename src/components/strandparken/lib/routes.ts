@@ -1,3 +1,5 @@
+import { isIsoDate, type IsoDate } from './madplan/dates.ts';
+
 /** The five views, in bottom-bar order. The current view lives in the URL hash so a refresh or a shared link opens the same screen. */
 export const views = ['hjem', 'madplan', 'lister', 'sundhed', 'opskrifter'] as const;
 export type View = (typeof views)[number];
@@ -69,3 +71,9 @@ export const listerSegment = (path: readonly string[]): ListerSegment =>
   (listerSegments as readonly string[]).includes(path[0] ?? '') ? (path[0] as ListerSegment) : 'indkob';
 
 export const listerHref = (segment: ListerSegment) => `#lister/${segment}`;
+
+/** `#madplan/<date>/dag` opens that day's sheet in Madplan (idea 6), for example from Hjem's "Planlæg i aften". */
+export const madplanDayHref = (date: IsoDate) => `#madplan/${date}/dag`;
+
+/** The date whose sheet the Madplan sub-path asks to open (`['2026-11-19', 'dag']` gives `2026-11-19`), or null. */
+export const madplanDay = (path: readonly string[]): IsoDate | null => (path[1] === 'dag' && isIsoDate(path[0] ?? '') ? path[0] : null);

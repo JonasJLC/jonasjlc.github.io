@@ -9,7 +9,7 @@ import { Tonight } from '../home/Tonight';
 import { ListerView } from '../lister/ListerView';
 import { MadplanView } from '../madplan/MadplanView';
 import { RecipesView } from '../recipes/RecipesView';
-import { AvatarButton } from '../ui/avatar';
+import { Avatar, AvatarButton } from '../ui/avatar';
 import { Card } from '../ui/card';
 import { Icon } from '../ui/icon';
 import { Sheet, SheetClose, SheetContent, SheetHeader, SheetTrigger } from '../ui/sheet';
@@ -25,10 +25,16 @@ function Title({ children }: { children: ReactNode }) {
 
 const Empty = ({ children }: { children: ReactNode }) => <p className="sp-body text-sp-muted">{children}</p>;
 
+const otherPerson = (person: Person): Person => (person === 'jonas' ? 'camilla' : 'jonas');
+
+/**
+ * Hjem is the household dashboard (roadmap Q7): header, Kalender, I aften, Jeres dag, Mangler at handle, about one phone
+ * screen tall. Each later idea drops its section into the slot marked for it.
+ */
 function HomeView({ person, householdId }: { person: Person; householdId: string | null }) {
   const now = new Date();
   return (
-    <div className="flex flex-col gap-sp-gap-home">
+    <div className="flex flex-col gap-sp-gap">
       <header className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <p className="sp-small text-sp-muted">{dateLine(now)}</p>
@@ -36,33 +42,40 @@ function HomeView({ person, householdId }: { person: Person; householdId: string
             {greetingFor(now)}, {people[person].name}
           </Title>
         </div>
-        <Sheet>
-          <SheetTrigger asChild>
-            <AvatarButton person={person} label="Indstillinger" />
-          </SheetTrigger>
-          <SheetContent>
-            <SheetHeader title="Indstillinger" />
-            <div className="flex flex-col gap-sp-gap">
-              <ProfileSection householdId={householdId} person={person} />
-              <section aria-labelledby="forslag-title" className="flex flex-col gap-2">
-                <h3 id="forslag-title" className="sp-title-group">Forslag</h3>
-                <SheetClose asChild>
-                  <a href="#hjem/forslag" className="block">
-                    <Card className="flex min-h-sp-row items-center justify-between gap-3 active:bg-sp-track">
-                      <span className="flex min-w-0 flex-col">
-                        <span className="sp-body-strong">Ønsker til appen</span>
-                        <span className="sp-small text-sp-muted">Fortæl hvad der mangler</span>
-                      </span>
-                      <Icon icon={ChevronRight} className="shrink-0 text-sp-muted" />
-                    </Card>
-                  </a>
-                </SheetClose>
-              </section>
-            </div>
-          </SheetContent>
-        </Sheet>
+        {/* Both members, overlapping by a third. The other person's avatar is decorative; the signed-in person's is the settings button in front. */}
+        <div className="flex shrink-0 items-center">
+          <Avatar person={otherPerson(person)} decorative className="ring-2 ring-sp-bg" />
+          <Sheet>
+            <SheetTrigger asChild>
+              <AvatarButton person={person} label="Indstillinger" className="relative -ml-3.5 ring-2 ring-sp-bg" />
+            </SheetTrigger>
+            <SheetContent>
+              <SheetHeader title="Indstillinger" />
+              <div className="flex flex-col gap-sp-gap">
+                <ProfileSection householdId={householdId} person={person} />
+                <section aria-labelledby="forslag-title" className="flex flex-col gap-2">
+                  <h3 id="forslag-title" className="sp-title-group">Forslag</h3>
+                  <SheetClose asChild>
+                    <a href="#hjem/forslag" className="block">
+                      <Card className="flex min-h-sp-row items-center justify-between gap-3 active:bg-sp-track">
+                        <span className="flex min-w-0 flex-col">
+                          <span className="sp-body-strong">Ønsker til appen</span>
+                          <span className="sp-small text-sp-muted">Fortæl hvad der mangler</span>
+                        </span>
+                        <Icon icon={ChevronRight} className="shrink-0 text-sp-muted" />
+                      </Card>
+                    </a>
+                  </SheetClose>
+                </section>
+              </div>
+            </SheetContent>
+          </Sheet>
+        </div>
       </header>
+      {/* Idé 7: Kalender */}
       <Tonight householdId={householdId} />
+      {/* Idé 12: Jeres dag */}
+      {/* Idé 8: Mangler at handle */}
     </div>
   );
 }

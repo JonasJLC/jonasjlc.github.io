@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { hrefFor, labels, legacyAlias, listerHref, listerSegment, parseHash, subPath, views } from '../src/components/strandparken/lib/routes.ts';
+import { hrefFor, labels, legacyAlias, listerHref, listerSegment, madplanDay, madplanDayHref, parseHash, subPath, views } from '../src/components/strandparken/lib/routes.ts';
 
 test('the five views, in bottom-bar order', () => {
   assert.deepEqual([...views], ['hjem', 'madplan', 'lister', 'sundhed', 'opskrifter']);
@@ -77,4 +77,15 @@ test('a Lister segment round-trips through its href', () => {
     assert.equal(parseHash(listerHref(s)), 'lister');
     assert.equal(listerSegment(subPath(listerHref(s))), s);
   }
+});
+
+test('#madplan/<date>/dag names the day whose sheet opens (idea 6)', () => {
+  assert.equal(parseHash('#madplan/2026-11-19/dag'), 'madplan');
+  assert.deepEqual(subPath('#madplan/2026-11-19/dag'), ['2026-11-19', 'dag']);
+  assert.equal(madplanDayHref('2026-11-19'), '#madplan/2026-11-19/dag');
+  assert.equal(madplanDay(subPath(madplanDayHref('2026-11-19'))), '2026-11-19');
+  assert.equal(madplanDay(['2026-11-19']), null);
+  assert.equal(madplanDay([]), null);
+  assert.equal(madplanDay(['2026-02-30', 'dag']), null);
+  assert.equal(madplanDay(['i-morgen', 'dag']), null);
 });

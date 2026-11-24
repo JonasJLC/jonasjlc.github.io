@@ -145,7 +145,7 @@ Acceptance criteria:
 | D20 | Subscriptions | Manual list: name, price, billing cycle, renewal date. |
 | D21 | Learning | From the profile (dislikes, preferences) and implicitly from what is saved and cooked often (D35). No ratings. |
 | D22 | Recipe page extras | Edit imported recipe, keep original source link, step-by-step guide. |
-| D23 | Home screen | Today's dinner + this week; today's tasks + habits; links to Husholdning and Økonomi. |
+| D23 | Home screen | Today's dinner + this week; today's tasks + habits; links to Husholdning and Økonomi. *Amended by the 2026-11 ideas (roadmap Q7): Hjem is a dashboard (header, Kalender, I aften, Jeres dag, Mangler at handle), no week strip, no tasks or habits; see §5.6.* |
 | D24 | Navigation | Bottom bar: **Hjem · Madplan · Lister · Sundhed · Opskrifter** (idea 4, 24 Nov 2026; was Indkøb). Lister has a segmented control, Indkøb \| To-do; routes `#lister/indkob` and `#lister/todo`, and the old `#indkob` opens `#lister/indkob`. |
 | D25 | Categories | One fixed (editable) category per recipe, plus free tags. |
 | D26 | Visual identity | Its own identity, derived from the reference images, not the `/ferie` tokens. |
@@ -587,19 +587,20 @@ Acceptance criteria:
 
 ### 5.6 Hjem (tab)
 
-Top to bottom:
-1. Greeting and date.
-2. **I aften:** today's dinner (photo, title, time, `Se opskrift`), or an empty state with `Tilføj ret`.
-3. **Ugen:** a compact strip of the remaining days.
-4. **I dag:** today's habits, split by person, with check-off. `Rediger` opens habit management. To-dos are not shown on Hjem (idea 5, roadmap Q3).
-5. Links to **Husholdning** and **Økonomi**, each with its own badge (renewals within 30 days).
+Hjem is the household dashboard (roadmap Q7, amends D23). Top to bottom:
+1. **Header:** the date ("Torsdag 19. november"), a greeting by time of day (Godmorgen 04–10, Goddag 11–17, Godaften 18–03, Copenhagen time) with the signed-in person's first name, and both members' avatars at the right. The signed-in person's avatar opens Indstillinger; the other is decorative (idea 6).
+2. **Kalender** (idea 7).
+3. **I aften:** a compact card with today's dinner (thumbnail, name, time, persons). The whole card is a link: a recipe opens the recipe, an idea or free text opens today's Madplan sheet (`#madplan/<date>/dag`). Nothing planned: "Hvad skal I have i aften?" with `Planlæg i aften` (today's Madplan sheet) and `Vælg fra opskrifter` (idea 6).
+4. **Jeres dag** (idea 12).
+5. **Mangler at handle** (idea 8).
 
-Oura and training data are not on Hjem (D13).
+There is no week strip ("Ugen" is gone; the week lives in Madplan). Tasks and habits are no longer on Hjem (roadmap Q3, Q4). The Husholdning and Økonomi links are not placed until those pages exist. The whole dashboard should fit about one phone screen. Oura data appears only as the Jeres dag summary (D13 reversed for that summary, roadmap Q7).
 
 Acceptance criteria:
 - [ ] Tonight's dinner is visible without scrolling.
-- [ ] Today's habits can be checked off directly from Hjem.
-- [ ] A day with nothing planned and nothing due still looks finished, not empty.
+- [ ] Header and I aften together take well under half of a 390 × 844 screen.
+- [ ] Tapping I aften opens the recipe (or, without one, today's Madplan sheet).
+- [ ] A day with nothing planned still looks finished, not empty.
 
 ### 5.7 Habits
 

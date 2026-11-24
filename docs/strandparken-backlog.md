@@ -38,4 +38,4 @@ Things found or deferred while building, outside the delivery plan in the design
 - **Shopping category change is online-only** and affects only the rows of that line; it does not teach the guess anything.
 - **Phone clocks (ADR-09).** The offline conflict rule assumes the two phones' clocks are within a few seconds.
 - **Suggestions (2.2).** The candidate list is built in the app and sent to the function, which checks the answer against it; the function does not read the database itself. Cooked history is the plan entries of the past 90 days (D35). Suggestions are not remembered between visits to the sheet, and the model sees at most 60 candidates (newest first).
-- **Hjem v1 (1.5)** has no tasks, habits or Husholdning and Økonomi links; they come with 4.3.
+- **Husholdning and Økonomi links** are not placed on Hjem until those pages exist (roadmap Q7).

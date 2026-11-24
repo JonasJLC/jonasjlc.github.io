@@ -7,7 +7,7 @@ import type { Placeholder, PlaceholderIcon, Tone } from '../lib/recipes/placehol
 import { cn } from '../lib/utils';
 import { Icon } from './icon';
 
-/** Round sizes: 52 in day rows, 56 in the week strip, 64 in pickers (UI spec §5.4). */
+/** Round sizes: 52 in day rows, 64 in pickers, 56 spare since the week strip left Hjem (UI spec §5.4). */
 const roundSizes = { 52: 'size-13', 56: 'size-14', 64: 'size-16' } as const;
 type RoundSize = keyof typeof roundSizes;
 

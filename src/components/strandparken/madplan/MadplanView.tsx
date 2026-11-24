@@ -11,6 +11,7 @@ import { applyOutcome, dayDroppable, dayOfDroppable, dropOutcome, edgeWeek, move
 import { type Dish, dishOf, entryOn, type PlanEntry } from '../lib/madplan/model';
 import { loadEntries, persistOutcome } from '../lib/madplan/repo';
 import { usePlan } from '../lib/madplan/use-plan';
+import { madplanDay, subPath } from '../lib/routes';
 import { useProfiles } from '../lib/profile/use-profiles';
 import { useIdeas } from '../lib/ideas/use-ideas';
 import { useRecipes } from '../lib/recipes/use-recipes';
@@ -69,7 +70,8 @@ const overLabel = (id: string | number | undefined) => {
 };
 
 /**
- * Madplan: `#madplan` is this week, `#madplan/2026-11-16` the week containing that date. A planned meal can be
+ * Madplan: `#madplan` is this week, `#madplan/2026-11-16` the week containing that date, and `#madplan/2026-11-19/dag`
+ * that week with the day's sheet open (idea 6). A planned meal can be
  * long-pressed and dragged to another day, or across weeks through the arrows (design §5.3.3).
  */
 export function MadplanView({ path, householdId }: { path: string[]; householdId: string | null }) {
@@ -107,6 +109,17 @@ export function MadplanView({ path, householdId }: { path: string[]; householdId
   );
 
   useEffect(() => () => window.clearTimeout(hover.current.timer), []);
+
+  // `#madplan/<date>/dag` (from Hjem) opens that day's sheet once the week has loaded. Once per address: a reload or a
+  // retry must not reopen a sheet the user closed.
+  const dayRoute = madplanDay(path);
+  const planReady = state.status === 'ready';
+  const openedFor = useRef<string | null>(null);
+  useEffect(() => {
+    if (!dayRoute || !planReady || openedFor.current === dayRoute) return;
+    openedFor.current = dayRoute;
+    setOpen(dayRoute);
+  }, [dayRoute, planReady]);
 
   if (!householdId) {
     return (
@@ -300,7 +313,11 @@ export function MadplanView({ path, householdId }: { path: string[]; householdId
           profiles={profiles}
           categories={categories}
           photos={photos}
-          onClose={() => setOpen(null)}
+          onClose={() => {
+            setOpen(null);
+            // Leave the day address behind so Back (or a refresh) does not reopen the sheet. replaceState fires no hashchange.
+            if (madplanDay(subPath(location.hash))) history.replaceState(null, '', hrefFor(monday));
+          }}
           onChanged={changed}
           onMove={move}
         />

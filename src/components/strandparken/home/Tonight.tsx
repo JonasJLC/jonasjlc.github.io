@@ -1,25 +1,25 @@
-import { Clock, Users } from 'lucide-react';
-import { addDays, dayOfMonth, mondayOf, todayIso, weekdayShort } from '../lib/madplan/dates';
-import { dishOf, entryOn } from '../lib/madplan/model';
+import { CalendarPlus, ChevronRight } from 'lucide-react';
+import { todayIso } from '../lib/madplan/dates';
 import { usePlan } from '../lib/madplan/use-plan';
 import { useIdeas } from '../lib/ideas/use-ideas';
 import { useRecipes } from '../lib/recipes/use-recipes';
-import { personsLabel } from '../lib/stepper';
+import { tonightCard } from '../lib/home/tonight';
 import { Button } from '../ui/button';
 import { Card } from '../ui/card';
-import { smallPhotoUrl } from '../lib/recipes/model';
 import { DishImage } from '../ui/dish-image';
 import { Icon } from '../ui/icon';
 
-/** Hjem v1 (design §5.6): tonight's dinner and the rest of the week. Tasks and habits arrive with Phase 4. */
+/**
+ * Hjem's "I aften" (idea 6): one compact card for today's dinner. The whole card is the link: a recipe opens the recipe,
+ * an idea or free text opens today's Madplan sheet. Nothing planned shows a dashed card that leads to planning it.
+ */
 export function Tonight({ householdId }: { householdId: string | null }) {
   const today = todayIso();
-  const sunday = addDays(mondayOf(today), 6);
-  const { state, retry } = usePlan(householdId, today, sunday);
+  const { state, retry } = usePlan(householdId, today, today);
   const recipesState = useRecipes();
   const { ideas, photos: ideaPhotos } = useIdeas();
 
-  if (!householdId) return <p className="sp-body text-sp-muted">Aftensmad og ugen kræver, at appen er koblet til databasen.</p>;
+  if (!householdId) return <p className="sp-body text-sp-muted">Aftensmaden kræver, at appen er koblet til databasen.</p>;
   if (state.status === 'error') {
     return (
       <Card className="flex flex-col gap-sp-gap">
@@ -28,68 +28,51 @@ export function Tonight({ householdId }: { householdId: string | null }) {
       </Card>
     );
   }
+  if (state.status === 'loading') {
+    return (
+      <Card className="flex min-h-23 items-center p-3.5 shadow-sp-hero">
+        <p className="sp-body text-sp-muted" aria-live="polite">Henter aftensmad …</p>
+      </Card>
+    );
+  }
 
-  const ready = state.status === 'ready';
-  const recipes = recipesState.state.status === 'ready' ? recipesState.state.recipes : [];
-  const categories = recipesState.state.status === 'ready' ? recipesState.state.categories : [];
-  const photos = { ...(recipesState.state.status === 'ready' ? recipesState.state.photos : {}), ...ideaPhotos };
-  const entries = ready ? state.entries : [];
-  const tonight = ready ? entryOn(entries, today) : null;
-  const dish = tonight ? dishOf(tonight, recipes, ideas, categories) : null;
-  const photo = dish ? smallPhotoUrl(photos, dish.thumbPath, dish.imagePath) : undefined;
-  const rest = [1, 2, 3, 4, 5, 6].map((n) => addDays(today, n)).filter((d) => d <= sunday);
+  const r = recipesState.state.status === 'ready' ? recipesState.state : null;
+  const recipes = r?.recipes ?? [];
+  const categories = r?.categories ?? [];
+  const photos = { ...r?.photos, ...ideaPhotos };
+  const card = tonightCard(state.entries, recipes, ideas, photos, today, categories);
+
+  if (card.kind === 'empty') {
+    return (
+      <section aria-labelledby="tonight-title" className="sp-border-strong flex flex-col items-start gap-2 rounded-sp-card border-dashed border-sp-dash p-sp-pad-card">
+        <Icon icon={CalendarPlus} className="text-sp-primary" />
+        <h2 id="tonight-title" className="sp-title-section">Hvad skal I have i aften?</h2>
+        <p className="sp-body text-sp-muted">Der er ikke planlagt noget til {card.weekdayLong} endnu.</p>
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-1 pt-1">
+          <Button asChild inCard><a href={card.href}>Planlæg i aften</a></Button>
+          <Button asChild variant="quiet"><a href="#opskrifter">Vælg fra opskrifter</a></Button>
+        </div>
+      </section>
+    );
+  }
 
   return (
-    <>
-      <section aria-labelledby="tonight-title" className="flex flex-col gap-2">
-        <h2 id="tonight-title" className="sp-title-section">I aften</h2>
-        <Card className="flex flex-col gap-3">
-          {!ready ? (
-            <p className="sp-body text-sp-muted" aria-live="polite">Henter aftensmad …</p>
-          ) : dish && tonight ? (
-            <>
-              <div className="flex items-center gap-3">
-                <DishImage shape="round" size={64} src={photo} name={dish.title} placeholder={dish.placeholder} />
-                <div className="min-w-0 flex-1">
-                  <p className="sp-title-card line-clamp-2">{dish.title}</p>
-                  <p className="sp-caption flex flex-wrap items-center gap-x-3 text-sp-muted">
-                    {dish.recipe?.total_minutes ? <span className="inline-flex items-center gap-1"><Icon icon={Clock} size={14} />{dish.recipe.total_minutes} min</span> : null}
-                    <span className="inline-flex items-center gap-1"><Icon icon={Users} size={14} />{personsLabel(tonight.servings ?? 2)}</span>
-                  </p>
-                </div>
-              </div>
-              {dish.recipe && <Button asChild inCard><a href={`#opskrifter/${dish.recipe.id}`}>Se opskrift</a></Button>}
-            </>
-          ) : (
-            <>
-              <p className="sp-body text-sp-muted">Der er ikke planlagt aftensmad i dag.</p>
-              <Button asChild inCard><a href="#madplan">Tilføj ret</a></Button>
-            </>
-          )}
-        </Card>
-      </section>
-
-      {rest.length > 0 && (
-        <section aria-labelledby="week-title" className="flex flex-col gap-2">
-          <h2 id="week-title" className="sp-title-section">Resten af ugen</h2>
-          <ul className="grid grid-cols-4 gap-sp-gap-grid">
-            {rest.slice(0, 4).map((date) => {
-              const e = ready ? entryOn(entries, date) : null;
-              const d = e ? dishOf(e, recipes, ideas, categories) : null;
-              const img = d ? smallPhotoUrl(photos, d.thumbPath, d.imagePath) : undefined;
-              return (
-                <li key={date}>
-                  <a href="#madplan" aria-label={`${weekdayShort(date)} ${dayOfMonth(date)}: ${d ? d.title : 'ingen ret planlagt'}`} className="flex h-full flex-col items-center gap-2 rounded-sp-row bg-sp-surface px-1 py-3 text-center active:bg-sp-track">
-                    <span className="sp-caption text-sp-muted font-semibold">{weekdayShort(date)} {dayOfMonth(date)}</span>
-                    {d ? <DishImage shape="round" size={56} src={img} name={d.title} placeholder={d.placeholder} /> : <span aria-hidden="true" className="size-14 rounded-full border-2 border-dashed border-sp-dash" />}
-                    <span className="sp-caption line-clamp-2 min-h-8 leading-tight">{d ? d.title : '–'}</span>
-                  </a>
-                </li>
-              );
-            })}
-          </ul>
-        </section>
-      )}
-    </>
+    <section aria-label="I aften">
+      <a
+        href={card.href}
+        aria-label={card.label}
+        className="flex min-h-23 items-center gap-3 rounded-sp-card bg-sp-surface p-3.5 shadow-sp-hero active:bg-sp-track"
+      >
+        <span className="size-16 shrink-0 overflow-hidden rounded-sp-inset">
+          <DishImage shape="cover" src={card.photo} name={card.title} placeholder={card.placeholder} />
+        </span>
+        <span className="flex min-w-0 flex-1 flex-col">
+          <span className="sp-caption text-sp-muted">I aften</span>
+          <span className="sp-body-strong line-clamp-2">{card.title}</span>
+          <span className="sp-small text-sp-muted">{card.meta}</span>
+        </span>
+        <Icon icon={ChevronRight} className="shrink-0 text-sp-muted" />
+      </a>
+    </section>
   );
 }
