@@ -146,7 +146,7 @@ Acceptance criteria:
 | D21 | Learning | From the profile (dislikes, preferences) and implicitly from what is saved and cooked often (D35). No ratings. |
 | D22 | Recipe page extras | Edit imported recipe, keep original source link, step-by-step guide. |
 | D23 | Home screen | Today's dinner + this week; today's tasks + habits; links to Husholdning and Økonomi. |
-| D24 | Navigation | Bottom bar: **Hjem · Madplan · Indkøb · Sundhed · Opskrifter**. |
+| D24 | Navigation | Bottom bar: **Hjem · Madplan · Lister · Sundhed · Opskrifter** (idea 4, 24 Nov 2026; was Indkøb). Lister has a segmented control, Indkøb \| To-do; routes `#lister/indkob` and `#lister/todo`, and the old `#indkob` opens `#lister/indkob`. |
 | D25 | Categories | One fixed (editable) category per recipe, plus free tags. |
 | D26 | Visual identity | Its own identity, derived from the reference images, not the `/ferie` tokens. |
 
@@ -299,7 +299,7 @@ Each module lists requirements, UI and acceptance criteria. Acceptance criteria 
 
 ### 5.1 App shell
 
-**Navigation:** bottom bar with five tabs in this order: Hjem, Madplan, Indkøb, Sundhed, Opskrifter. Husholdning and Økonomi are full pages opened from Hjem, with a back arrow. The same layout is used on desktop, centred (D28).
+**Navigation:** bottom bar with five tabs in this order: Hjem, Madplan, Lister, Sundhed, Opskrifter (idea 4). Lister opens with a segmented control, Indkøb | To-do; the segment is kept in the hash (`#lister/indkob`, `#lister/todo`) and switching it replaces the history entry, so Back leaves Lister. Old `#indkob` and `#indkøb` links open `#lister/indkob`. Anything that opens the shopping list links to `#lister/indkob`. Husholdning and Økonomi are full pages opened from Hjem, with a back arrow. The same layout is used on desktop, centred (D28).
 **Header:** avatar of the signed-in person; opens settings (profile, goals, integrations and sharing, categories, export, Forslag, sign out).
 **Feedback:** every action that changes data confirms itself in place (the row changes) or with a short toast that offers `Fortryd` for destructive actions.
 **States:** every list and card has a designed empty state, loading state and error state.
@@ -420,7 +420,9 @@ Acceptance criteria:
 - [ ] Past and future weeks can be viewed.
 - [ ] The week shown as "this week" is the same on both phones at any time of day.
 
-#### 5.3.4 Indkøb (tab)
+#### 5.3.4 Indkøb (segment of Lister)
+
+Indkøb is the first segment of the Lister tab (idea 4), at `#lister/indkob`. The page title is "Lister"; the list below the segmented control is unchanged.
 
 **One shared, continuous list** for the household, grouped by grocery category in store-walk order (D31).
 

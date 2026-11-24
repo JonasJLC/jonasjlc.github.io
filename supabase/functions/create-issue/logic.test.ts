@@ -60,7 +60,7 @@ Deno.test('a strandparken row says Strandparken, uses its area labels and names 
     details: { area: 'lister', acceptance: [] },
   });
   assert.ok(body.startsWith('Forslag til Strandparken fra Camilla, indsamlet via Forslag i appen.\n'));
-  assert.ok(body.includes('## Område\nIndkøb'));
+  assert.ok(body.includes('## Område\nLister'));
   assert.ok(!body.includes('Ferieplan'));
   assert.ok(!body.includes('Hansen'));
   assert.ok(!body.includes('## Hvorfor'));

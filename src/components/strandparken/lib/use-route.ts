@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { hrefFor, parseHash, subPath, type View } from './routes';
+import { hrefFor, legacyAlias, parseHash, subPath, type View } from './routes';
 
 export type Route = { view: View; path: string[] };
 
@@ -15,6 +15,8 @@ export function useRoute(): Route {
 
   useEffect(() => {
     const canonicalise = () => {
+      const alias = legacyAlias(location.hash); // `#indkob` → `#lister/indkob`, keeping the segment the old link meant
+      if (alias) history.replaceState(null, '', alias);
       const view = parseHash(location.hash);
       const head = location.hash.replace(/^#/, '').split(/[/?]/)[0];
       if (head !== view) history.replaceState(null, '', hrefFor(view));

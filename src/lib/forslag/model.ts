@@ -51,8 +51,8 @@ export const STATUS_LABEL: Record<RequestStatus, string> = {
   declined: 'Ikke nu',
 };
 
-/** The label of the shopping tab. Idea 4 renames the tab to "Lister" and changes only this constant. */
-export const LISTER_LABEL = 'Indkøb';
+/** The label of the Lister tab (idea 4: Indkøb and To-do). Keep in step with create-issue's area labels. */
+export const LISTER_LABEL = 'Lister';
 
 const AREAS: Record<App, readonly (readonly [string, string])[]> = {
   ferie: [

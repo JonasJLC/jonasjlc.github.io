@@ -18,8 +18,11 @@ const Title = () => (
   </h1>
 );
 
-/** Indkøb: one shared list in store-walk order, ticks visible on both phones, manual items, clear with undo (design §5.3.4). */
-export function IndkobView({ householdId }: { householdId: string | null }) {
+/**
+ * Indkøb: one shared list in store-walk order, ticks visible on both phones, manual items, clear with undo (design §5.3.4).
+ * Inside Lister the page title belongs to `ListerView`, which passes `showTitle={false}`.
+ */
+export function IndkobView({ householdId, showTitle = true }: { householdId: string | null; showTitle?: boolean }) {
   const { state, reload, setStatus, addItem, offline, pending, retry } = useShopping(householdId);
   const recipesState = useRecipes();
   const [text, setText] = useState('');
@@ -38,7 +41,7 @@ export function IndkobView({ householdId }: { householdId: string | null }) {
   if (!householdId) {
     return (
       <div className="flex flex-col gap-sp-gap">
-        <Title />
+        {showTitle && <Title />}
         <p className="sp-body text-sp-muted">Indkøbslisten kræver, at appen er koblet til databasen.</p>
       </div>
     );
@@ -79,7 +82,7 @@ export function IndkobView({ householdId }: { householdId: string | null }) {
   return (
     <div className="flex flex-col gap-sp-gap">
       <header>
-        <Title />
+        {showTitle && <Title />}
         {(offline || pending > 0) && (
           <p role="status" className="sp-small mt-1 inline-block rounded-sp-pill bg-sp-track px-3 py-1 text-sp-muted">
             {offline ? 'Offline – viser senest hentede' : 'Sender ændringer …'}

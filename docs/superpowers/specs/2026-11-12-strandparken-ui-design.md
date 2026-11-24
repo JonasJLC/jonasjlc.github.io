@@ -122,7 +122,7 @@ Build these once in `src/components/strandparken/ui/`. Reuse shadcn/ui primitive
 
 ### 5.1 Bottom bar
 
-Flat, from mockup B, in A's colours. Height 76 px plus the bottom safe area. Background `--sp-bg`, top border 1 px `--sp-line`, no shadow, no rounded corners. Five equal columns in this order: Hjem, Madplan, Indkøb, Sundhed, Opskrifter. Each item is one button filling its cell: icon 22 px above a `nav` label, 4 px apart. Inactive: `--sp-muted`. Active: `--sp-primary` plus a 2 px `--sp-primary` indicator along the top edge of the cell. No item differs in size, shape or fill.
+Flat, from mockup B, in A's colours. Height 76 px plus the bottom safe area. Background `--sp-bg`, top border 1 px `--sp-line`, no shadow, no rounded corners. Five equal columns in this order: Hjem, Madplan, Lister, Sundhed, Opskrifter (idea 4). Each item is one button filling its cell: icon 22 px above a `nav` label, 4 px apart. Inactive: `--sp-muted`. Active: `--sp-primary` plus a 2 px `--sp-primary` indicator along the top edge of the cell. No item differs in size, shape or fill.
 
 ### 5.2 Buttons
 
@@ -193,7 +193,7 @@ A dark pill (`--sp-ink` ground, white text) above the bar, 4 seconds, with a `Fo
 
 ### 5.14 Icons
 
-`lucide-react`, 22 px, stroke 1.8, `currentColor`. Bottom bar: Home, CalendarDays, ShoppingBasket, Heart, BookOpen. Elsewhere: Plus, Minus, Check, ChevronLeft, ChevronRight, X, Percent, Clock. No emoji anywhere in the UI.
+`lucide-react`, 22 px, stroke 1.8, `currentColor`. Bottom bar: Home, CalendarDays, ListChecks, Heart, BookOpen. Elsewhere: Plus, Minus, Check, ChevronLeft, ChevronRight, X, Percent, Clock. No emoji anywhere in the UI.
 
 ### 5.15 Avatars and badges
 
@@ -207,7 +207,8 @@ Each list is top to bottom. Behaviour is in the main spec section named in brack
 
 - **Hjem** (§5.6): date line and greeting with the avatar button at the right → tonight card → `Resten af ugen` with the week strip → `I dag` card (badge for overdue; task rows; `Vaner` sub-heading with `Rediger`; habit rows) → two link cards side by side, `Husholdning` and `Økonomi`, each with a one-line status.
 - **Madplan** (§5.3.3): title at the left, week switcher pill at the right (‹ `Uge 46` ›) → seven day rows → primary `Lav indkøbsliste`.
-- **Indkøb** (§5.3.4): title with the count line below ("3 af 12 varer er købt"), a white `Tilbud` pill at the right → add field → category groups in store-walk order → quiet `Ryd afkrydsede`.
+- **Lister** (§5.1, §5.3.4): title `Lister` → segmented control `Indkøb` | `To-do` (§5.9) → the selected segment. `To-do` shows a card "Kommer snart." until idea 5.
+- **Lister › Indkøb** (§5.3.4): the count line ("3 af 12 varer er købt"), a white `Tilbud` pill at the right → add field → category groups in store-walk order → quiet `Ryd afkrydsede`.
 - **Sundhed** (§5.4): title → Camilla's card (avatar, name, source and time, `Delt med Jonas` badge; two large stats split by a rule; explanation box on `--sp-primary-tint`) → Jonas's card (three small stats; one sentence of advice) → `Mål` card with one row per person → `Næring i aften` card.
 - **Opskrifter** (§5.3.1, §5.3.2): title with a primary add button → segmented control → category chips (only under `Alle`) → two-column grid of recipe cards; under `Aftensmadsidéer`, dinner recipes followed by idea cards.
 - **Opskrift** (§5.3.1): see §5.11.

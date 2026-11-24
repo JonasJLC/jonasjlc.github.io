@@ -1,4 +1,4 @@
-import { BookOpen, CalendarDays, Heart, Home, ShoppingBasket, type LucideIcon } from 'lucide-react';
+import { BookOpen, CalendarDays, Heart, Home, ListChecks, type LucideIcon } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { hrefFor, labels, views, type View } from '../lib/routes';
 import { Icon } from '../ui/icon';
@@ -6,7 +6,7 @@ import { Icon } from '../ui/icon';
 const icons: Record<View, LucideIcon> = {
   hjem: Home,
   madplan: CalendarDays,
-  indkob: ShoppingBasket,
+  lister: ListChecks,
   sundhed: Heart,
   opskrifter: BookOpen,
 };

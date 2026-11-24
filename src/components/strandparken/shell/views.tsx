@@ -6,7 +6,7 @@ import { labels, type View } from '../lib/routes';
 import { ForslagView } from '../forslag/ForslagView';
 import { ProfileSection } from '../settings/ProfileSection';
 import { Tonight } from '../home/Tonight';
-import { IndkobView } from '../shopping/IndkobView';
+import { ListerView } from '../lister/ListerView';
 import { MadplanView } from '../madplan/MadplanView';
 import { RecipesView } from '../recipes/RecipesView';
 import { AvatarButton } from '../ui/avatar';
@@ -67,7 +67,7 @@ function HomeView({ person, householdId }: { person: Person; householdId: string
   );
 }
 
-const placeholders: Record<Exclude<View, 'hjem' | 'opskrifter' | 'madplan' | 'indkob'>, string> = {
+const placeholders: Record<Exclude<View, 'hjem' | 'opskrifter' | 'madplan' | 'lister'>, string> = {
   sundhed: 'Sundhed er ikke sat op endnu.',
 };
 
@@ -76,7 +76,7 @@ export function ViewFor({ view, path, person, householdId }: { view: View; path:
   if (view === 'hjem' && path[0] === 'forslag') return <ForslagView householdId={householdId} />;
   if (view === 'hjem') return <HomeView person={person} householdId={householdId} />;
   if (view === 'madplan') return <MadplanView path={path} householdId={householdId} />;
-  if (view === 'indkob') return <IndkobView householdId={householdId} />;
+  if (view === 'lister') return <ListerView path={path} householdId={householdId} />;
   if (view === 'opskrifter') return <RecipesView path={path} householdId={householdId} />;
   return (
     <div className="flex flex-col gap-sp-gap">

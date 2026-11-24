@@ -24,7 +24,7 @@ const AREA_LABEL: Record<App, Record<string, string>> = {
   strandparken: {
     hjem: 'Hjem',
     madplan: 'Madplan',
-    lister: 'Indkøb', // idea 4 renames the tab to "Lister"; keep in step with LISTER_LABEL in src/lib/forslag/model.ts
+    lister: 'Lister', // keep in step with LISTER_LABEL in src/lib/forslag/model.ts
     sundhed: 'Sundhed',
     opskrifter: 'Opskrifter',
     indstillinger: 'Indstillinger',

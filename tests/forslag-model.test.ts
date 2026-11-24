@@ -17,7 +17,7 @@ test('ferie areas and labels are the ones used today', () => {
 
 test('strandparken areas and labels', () => {
   assert.deepEqual(areaOptions('strandparken').map((a) => a[0]), ['hjem', 'madplan', 'lister', 'sundhed', 'opskrifter', 'indstillinger', 'andet']);
-  assert.deepEqual(areaOptions('strandparken').map((a) => a[1]), ['Hjem', 'Madplan', 'Indkøb', 'Sundhed', 'Opskrifter', 'Indstillinger', 'Andet']);
+  assert.deepEqual(areaOptions('strandparken').map((a) => a[1]), ['Hjem', 'Madplan', 'Lister', 'Sundhed', 'Opskrifter', 'Indstillinger', 'Andet']);
 });
 
 test('an unknown area reads as Andet instead of crashing', () => {
