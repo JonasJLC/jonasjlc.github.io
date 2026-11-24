@@ -24,7 +24,7 @@ const Title = () => (
  * Inside Lister the page title belongs to `ListerView`, which passes `showTitle={false}`.
  */
 export function IndkobView({ householdId, showTitle = true }: { householdId: string | null; showTitle?: boolean }) {
-  const { state, reload, setStatus, addItem, offline, pending, retry } = useShopping(householdId);
+  const { state, reload, setStatus, addItem, setUnit, offline, pending, retry } = useShopping(householdId);
   const recipesState = useRecipes();
   const [text, setText] = useState('');
   const [open, setOpen] = useState<Line | null>(null);
@@ -35,12 +35,15 @@ export function IndkobView({ householdId, showTitle = true }: { householdId: str
   const rows = state.status === 'ready' ? state.rows : [];
   const categories = state.status === 'ready' ? state.categories : [];
   const dates = state.status === 'ready' ? state.dates : null;
+  const prefs = state.status === 'ready' ? state.prefs : undefined;
   const lines = useMemo(
-    () => mergeRows(rows, (id) => recipes.find((r) => r.id === id)?.title ?? null, { entryDate: (id) => dates?.[id] ?? null }),
-    [rows, recipes, dates],
+    () => mergeRows(rows, (id) => recipes.find((r) => r.id === id)?.title ?? null, { prefs, entryDate: (id) => dates?.[id] ?? null }),
+    [rows, recipes, dates, prefs],
   );
   const groups = useMemo(() => groupLines(lines, categories), [lines, categories]);
   const { total, done } = counts(lines);
+  // The sheet follows the live line, so a new unit or a tick from the other phone shows at once.
+  const openLine = open ? lines.find((l) => l.key === open.key) ?? open : null;
 
   if (!householdId) {
     return (
@@ -168,7 +171,16 @@ export function IndkobView({ householdId, showTitle = true }: { householdId: str
         <Button variant="quiet" className="self-center" onClick={() => void clearDone()}>Ryd afkrydsede</Button>
       )}
 
-      <ItemSheet line={open} categories={categories} onClose={() => setOpen(null)} onChanged={reload} onRemove={(l) => void remove(l)} />
+      <ItemSheet
+        line={openLine}
+        categories={categories}
+        prefs={prefs ?? {}}
+        offline={offline}
+        onClose={() => setOpen(null)}
+        onChanged={reload}
+        onUnit={setUnit}
+        onRemove={(l) => void remove(l)}
+      />
     </div>
   );
 }

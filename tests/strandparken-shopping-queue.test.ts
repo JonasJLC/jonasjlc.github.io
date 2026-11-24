@@ -31,3 +31,16 @@ test('no storage at all is fine', () => {
   assert.deepEqual(loadQueue('h'), []);
   assert.equal(loadCache('h'), null);
 });
+
+test('a cache written before dates and unit preferences gets empty defaults', () => {
+  const store = new Map<string, string>([['strandparken:shopping:cache:h', JSON.stringify({ rows: [row('a')], categories: [] })]]);
+  const g = globalThis as { localStorage?: unknown };
+  const before = g.localStorage;
+  g.localStorage = { getItem: (k: string) => store.get(k) ?? null, setItem: (k: string, v: string) => void store.set(k, v) };
+  try {
+    const c = loadCache('h');
+    assert.deepEqual([c?.rows.length, c?.dates, c?.prefs], [1, {}, {}]);
+  } finally {
+    g.localStorage = before;
+  }
+});

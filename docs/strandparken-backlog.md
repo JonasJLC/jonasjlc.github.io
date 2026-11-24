@@ -31,6 +31,9 @@ Things found or deferred while building, outside the delivery plan in the design
 - **Idea photos.** A photo removed from a promoted idea's recipe also removes the file the idea still points at; the idea is hidden after promotion, so nothing shows a broken image.
 - **Cold start offline (ADR-09, R9).** Without a service worker the app page cannot open with no signal; the list works offline only once the page is open. Add a service worker for the shell if it shows up in use.
 - **Stale canonical name.** Renaming an ingredient in the recipe editor keeps its old `canonical_name`; the shopping list computes its own from the name, so nothing breaks today, but nutrition (3.1) will rely on it.
+- **Ingredient table (Idé 13).** `lib/shopping/ingredients-dk.ts` covers about 170 common ingredients with typical package sizes. When a line shows a recipe amount (an unknown ingredient) or a wrong package, add or fix the entry there; a household can also correct one line with the unit picker.
+- **The "har hjemme" review still lists pantry items (Idé 13).** Salt and pepper are asked about in the review even though the list puts them under "Tjek at I har". A follow-up can pre-untick pantry items in `ReviewSheet.tsx`.
+- **Unit preferences are not live (Idé 13).** `sp_unit_preferences` has no realtime; the other phone picks up a changed unit on its next refetch (a shopping change, coming back to the app, or a reload).
 - **Cleared shopping rows accumulate (ADR-08).** Add a clean-up that deletes `cleared` rows older than a few months.
 - **Shopping category change is online-only** and affects only the rows of that line; it does not teach the guess anything.
 - **Phone clocks (ADR-09).** The offline conflict rule assumes the two phones' clocks are within a few seconds.

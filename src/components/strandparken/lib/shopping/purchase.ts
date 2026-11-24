@@ -24,6 +24,9 @@ const byAlias = () => {
   return index;
 };
 
+/** The table entry for a line's `ingredientKey`; `null` for unknown ingredients ("?…"). */
+export const ingredientByKey = (key: string): Ingredient | null => ingredients.find((i) => i.key === key) ?? null;
+
 /** Size, quality and preparation words in front of the ingredient: "store tomater", "finthakket løg". */
 const leadingWords = new Set([
   'store', 'stor', 'stort', 'små', 'lille', 'mellemstore', 'mellemstor', 'friske', 'frisk', 'friskt', 'modne', 'moden',

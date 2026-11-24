@@ -439,7 +439,17 @@ Indkøb is the first segment of the Lister tab (idea 4), at `#lister/indkob`. Th
 
 **"Har hjemme" review:** before recipe ingredients join the list, a review sheet shows them all checked; the user unticks what they already have. Nothing is remembered as a pantry (D8). The choice is remembered only for that plan entry, so generating the list again does not ask twice.
 
-**Storage and merging (D36):** each ingredient is stored as its own row with its source (plan entry, recipe or manual). The list shows rows with the same canonical name and compatible unit as one line with a summed amount, and names the dishes it comes from. Amounts in incompatible units (g and stk) stay as separate lines. Ticking a merged line ticks all its rows.
+**Storage and merging (D36, idea 13):** each ingredient is stored as its own row with its source (plan entry, recipe or manual), holding the recipe's amount. On display, rows of the same ingredient become one line: name variants ("store tomater" and "tomater") and units are converted to the ingredient's base measure (g, ml or stk) through a table of about 100 common Danish ingredients (`lib/shopping/ingredients-dk.ts`), summed, and only then rounded once to an amount that can be bought:
+
+| Rule | Applies to | Shown as | Example |
+|---|---|---|---|
+| Count | Bought by the piece (lime, avocado, løg, æg, peberfrugt …) | Whole pieces, rounded up | 1½ lime → 2 stk; 300 g løg → 3 stk |
+| Package | Sold in packages (tun, flåede tomater, tortillas, creme fraiche, pasta …) | Whole packages in the package unit, rounded up; any amount gives at least 1 | 1,5 spsk tun → 1 dåse; 2½ dl creme fraiche → 2 bægre |
+| Weight | Sold loose (kartofler, gulerødder, rødbeder) | Grams rounded up to 100 g, kg from 1000 g | 650 g kartofler → 700 g |
+| Pantry | Basics (salt, peber, olie, eddike, dried spices, bouillon; sukker, mel and smør below 50 g) | No amount, in the collapsed group **"Tjek at I har"** at the bottom, not counted in "x af y købt" | 1 tsk spidskommen |
+| Unknown | Not in the table | Whole stk when every amount is a count; otherwise the recipe amount rounded up in its own unit | 125 g halloumi → 130 g |
+
+An amount that cannot be converted shows as "ca. 1 <package>" or "ca. 1 stk". "Rødløg" stays separate from "løg". The item sheet lists every meal the line is for, with its weekday and the original recipe amount ("Quesadillas · Tor · 1½ lime"), and a unit picker (the package unit, stk, weight or volume, or "Opskriftens mængde"; "Standard" clears it). A chosen unit is remembered per ingredient for the household (`sp_unit_preferences`) and needs a connection. The recipe page keeps exact amounts. "Tjek at I har" is a reminder, not a pantry (D8). Ticking a merged line ticks all its rows.
 
 **Generating from the plan is repeatable:** running `Lav indkøbsliste` again adds ingredients for new days (through the review), removes unticked ingredients of days that were removed, and updates amounts where persons changed. Ticked items are never touched.
 
@@ -660,6 +670,7 @@ All tables carry `household_id` with row-level security. "Household" policy: mem
 | `sp_dinner_ideas` | title, image_path, note, tags[], promoted_recipe_id | Household |
 | `sp_meal_plan_entries` | date (unique per household), exactly one of recipe_id / idea_id / free_text, servings, calendar_event_id, calendar_synced_at | Household |
 | `sp_shopping_items` | name, canonical_name, amount, unit, grocery_category_id, status (`active` / `have` / `checked` / `cleared`), checked_by, checked_at, source (`manual` / `recipe` / `plan`), plan_entry_id, recipe_id, client_updated_at | Household, realtime |
+| `sp_unit_preferences` | ingredient_key (unique per household; an `ingredients-dk` key or `?<canonical name>`), unit (package unit, `stk`, `g`, `kg`, `ml`, `l` or `recipe`) | Household |
 | `sp_profiles` | person, dislikes[], preferences, dinner_share | Owner writes; household reads |
 | `sp_body` / `sp_weight_log` | person, height, birth_year, sex, activity_level / date, weight_kg | Owner only |
 | `sp_goals` | person, type, amount_kg, target_date, active, computed targets | Owner only; portions exposed through a function |

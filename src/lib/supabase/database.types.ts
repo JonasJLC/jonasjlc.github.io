@@ -182,6 +182,12 @@ export type Database = {
         };
         Relationships: Rel[];
       };
+      sp_unit_preferences: {
+        Row: { created_at: string; created_by: string | null; household_id: string; id: string; ingredient_key: string; unit: string; updated_at: string };
+        Insert: { created_at?: string; created_by?: string | null; household_id: string; id?: string; ingredient_key: string; unit: string; updated_at?: string };
+        Update: { created_at?: string; created_by?: string | null; household_id?: string; id?: string; ingredient_key?: string; unit?: string; updated_at?: string };
+        Relationships: Rel[];
+      };
     };
     Views: { [_ in never]: never };
     Functions: { [_ in never]: never };

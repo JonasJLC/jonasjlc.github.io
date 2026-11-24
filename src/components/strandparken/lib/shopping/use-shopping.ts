@@ -3,12 +3,13 @@ import { getClient } from '../auth';
 import { subscribeHousehold } from '../realtime';
 import type { GroceryCategory, ShoppingRow, Status } from './model';
 import { applyOps, compact, loadCache, loadQueue, newOpId, saveCache, saveQueue, type NewOp, type Op } from './queue';
+import { clearUnitPreference, loadUnitPreferences, saveUnitPreference } from './preferences';
 import { isNetworkError, loadEntryDates, loadGroceryCategories, loadRows, sendOp } from './repo';
 
 export type ShoppingState =
   | { status: 'loading' }
   | { status: 'error' }
-  | { status: 'ready'; rows: ShoppingRow[]; categories: GroceryCategory[]; dates: Record<string, string> };
+  | { status: 'ready'; rows: ShoppingRow[]; categories: GroceryCategory[]; dates: Record<string, string>; prefs: Record<string, string> };
 
 /**
  * The household's shopping rows and categories (ADR-09). Opens at once from the last copy on the phone, refetches, and
@@ -28,15 +29,21 @@ export function useShopping(householdId: string | null) {
     if (householdId) saveQueue(householdId, next);
   }, [householdId]);
 
+  /** The last known unit preferences: kept when a refetch of them fails, so the list does not jump back to defaults. */
+  const prefsRef = useRef<Record<string, string>>({});
+
   const reload = useCallback(async () => {
     if (!householdId) return;
     try {
-      const [rows, categories] = await Promise.all([loadRows(), loadGroceryCategories()]);
+      const [rows, categories, prefs] = await Promise.all([
+        loadRows(), loadGroceryCategories(), loadUnitPreferences().catch(() => prefsRef.current),
+      ]);
+      prefsRef.current = prefs;
       // Dates only label the item sheet: a failure there must not hide the list.
       const dates = await loadEntryDates(rows).catch((): Record<string, string> => ({}));
-      setServer({ status: 'ready', rows, categories, dates });
+      setServer({ status: 'ready', rows, categories, dates, prefs });
       setOffline(false);
-      saveCache(householdId, { rows, categories, dates });
+      saveCache(householdId, { rows, categories, dates, prefs });
     } catch {
       setOffline(true);
       setServer((s) => (s.status === 'ready' ? s : { status: 'error' }));
@@ -70,7 +77,10 @@ export function useShopping(householdId: string | null) {
   useEffect(() => {
     if (!householdId) return;
     const cached = loadCache(householdId);
-    if (cached) setServer({ status: 'ready', ...cached });
+    if (cached) {
+      prefsRef.current = cached.prefs;
+      setServer({ status: 'ready', ...cached });
+    }
     setQ(loadQueue(householdId));
     void flush().then(reload);
   }, [householdId, reload, flush, setQ]);
@@ -127,13 +137,32 @@ export function useShopping(householdId: string | null) {
     [enqueue, householdId],
   );
 
+  /**
+   * Remembers (or with `null` forgets) a unit for an ingredient. Needs a connection, like changing a category: it throws
+   * when the save fails, and the line only changes once the database has it.
+   */
+  const setUnit = useCallback(async (ingredientKey: string, unit: string | null) => {
+    if (!householdId) return;
+    if (unit === null) await clearUnitPreference(householdId, ingredientKey);
+    else await saveUnitPreference(householdId, ingredientKey, unit);
+    const { [ingredientKey]: _old, ...rest } = prefsRef.current;
+    const prefs = unit === null ? rest : { ...rest, [ingredientKey]: unit };
+    prefsRef.current = prefs;
+    setServer((s) => {
+      if (s.status !== 'ready') return s;
+      const next = { ...s, prefs };
+      saveCache(householdId, { rows: next.rows, categories: next.categories, dates: next.dates, prefs });
+      return next;
+    });
+  }, [householdId]);
+
   const state = useMemo<ShoppingState>(
     () => (server.status === 'ready' ? { ...server, rows: applyOps(server.rows, queue) } : server),
     [server, queue],
   );
 
   return {
-    state, reload, setStatus, addItem, offline, pending: queue.length,
+    state, reload, setStatus, addItem, setUnit, offline, pending: queue.length,
     retry: () => { setServer({ status: 'loading' }); void reload(); },
   };
 }

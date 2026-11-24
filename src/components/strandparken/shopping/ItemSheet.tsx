@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { weekdayShort } from '../lib/madplan/dates';
 import { formatQuantity } from '../lib/recipes/scale';
 import type { GroceryCategory, Line, Source } from '../lib/shopping/model';
-import { purchaseText } from '../lib/shopping/purchase';
+import { ingredientByKey, optionLabel, purchaseText, unitOptions } from '../lib/shopping/purchase';
 import { setCategory } from '../lib/shopping/repo';
 import { Button } from '../ui/button';
 import { Chip } from '../ui/chip';
@@ -11,7 +11,18 @@ import { Icon } from '../ui/icon';
 import { Sheet, SheetContent, SheetHeader } from '../ui/sheet';
 import { notify } from '../ui/toast';
 
-type Props = { line: Line | null; categories: GroceryCategory[]; onClose: () => void; onChanged: () => Promise<void>; onRemove: (line: Line) => void };
+type Props = {
+  line: Line | null;
+  categories: GroceryCategory[];
+  /** Remembered units per ingredient key. */
+  prefs: Readonly<Record<string, string>>;
+  offline: boolean;
+  onClose: () => void;
+  onChanged: () => Promise<void>;
+  /** Saves (or with `null` clears) the remembered unit; throws when it could not be saved. */
+  onUnit: (ingredientKey: string, unit: string | null) => Promise<void>;
+  onRemove: (line: Line) => void;
+};
 
 /** "Quesadillas · Tor · 1½ lime": the dish, its weekday and the amount exactly as the recipe has it. */
 function sourceText(s: Source): string {
@@ -22,8 +33,24 @@ function sourceText(s: Source): string {
 }
 
 /** Tap a list row: see what it is for, change its category (the guess can be wrong) or take it off the list. */
-export function ItemSheet({ line, categories, onClose, onChanged, onRemove }: Props) {
+export function ItemSheet({ line, categories, prefs, offline, onClose, onChanged, onUnit, onRemove }: Props) {
   const [busy, setBusy] = useState(false);
+  const chooseUnit = async (line: Line, unit: string | null) => {
+    if (offline) {
+      notify('Enheden kan kun ændres, når der er forbindelse.');
+      return;
+    }
+    setBusy(true);
+    try {
+      await onUnit(line.ingredientKey, unit);
+    } catch {
+      notify('Det lykkedes ikke. Prøv igen.');
+    } finally {
+      setBusy(false);
+    }
+  };
+  const options = line && !line.pantry ? unitOptions(ingredientByKey(line.ingredientKey)) : [];
+  const current = line ? prefs[line.ingredientKey] : undefined;
   const pick = async (line: Line, id: string) => {
     setBusy(true);
     try {
@@ -51,6 +78,17 @@ export function ItemSheet({ line, categories, onClose, onChanged, onRemove }: Pr
                   ))}
                 </ul>
               </section>
+              {options.length > 0 && (
+                <section aria-labelledby="item-unit" className="flex flex-col gap-2">
+                  <h3 id="item-unit" className="sp-title-group">Enhed</h3>
+                  <div className="flex flex-wrap gap-2">
+                    <Chip selected={!current || !options.includes(current)} disabled={busy} onClick={() => void chooseUnit(line, null)}>Standard</Chip>
+                    {options.map((u) => (
+                      <Chip key={u} selected={u === current} disabled={busy} onClick={() => void chooseUnit(line, u)}>{optionLabel(u)}</Chip>
+                    ))}
+                  </div>
+                </section>
+              )}
               <section aria-labelledby="item-category" className="flex flex-col gap-2">
                 <h3 id="item-category" className="sp-title-group">Kategori</h3>
                 <div className="flex flex-wrap gap-2">

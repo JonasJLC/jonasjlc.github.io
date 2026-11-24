@@ -77,6 +77,17 @@ select pg_temp.try('shopping item with an unknown status', '23514',
   $$insert into public.sp_shopping_items (household_id, name, status) values ('00000000-0000-0000-0000-0000000000a1', 'Mælk', 'weird')$$);
 select pg_temp.try('shopping item', 'ok',
   $$insert into public.sp_shopping_items (household_id, name, recipe_id) values ('00000000-0000-0000-0000-0000000000a1', 'Mælk', '00000000-0000-0000-0000-0000000000c1')$$);
+select pg_temp.try('member saves a unit preference', 'ok',
+  $$insert into public.sp_unit_preferences (household_id, ingredient_key, unit) values ('00000000-0000-0000-0000-0000000000a1', 'tomat', 'stk')$$);
+select pg_temp.try('one unit preference per ingredient', '23505',
+  $$insert into public.sp_unit_preferences (household_id, ingredient_key, unit) values ('00000000-0000-0000-0000-0000000000a1', 'tomat', 'g')$$);
+select pg_temp.try('unit preference with an unknown unit', '23514',
+  $$insert into public.sp_unit_preferences (household_id, ingredient_key, unit) values ('00000000-0000-0000-0000-0000000000a1', 'lime', 'spsk')$$);
+select pg_temp.try('member changes a unit preference', 'ok',
+  $$update public.sp_unit_preferences set unit = 'bakke' where ingredient_key = 'tomat'$$);
+insert into r select 'member reads own unit preferences', 'bakke', unit from public.sp_unit_preferences;
+select pg_temp.try('cannot save a unit preference for another household', '42501',
+  $$insert into public.sp_unit_preferences (household_id, ingredient_key, unit) values ('00000000-0000-0000-0000-0000000000a2', 'lime', 'stk')$$);
 select pg_temp.try('members cannot edit household_members', '42501',
   $$update public.household_members set person = 'a'$$);
 select pg_temp.try('members cannot make themselves owner', '42501',
@@ -156,6 +167,11 @@ with d as (update public.sp_todos set title = 'Hacked' where id = '00000000-0000
   insert into r select 'cannot update another household to-do', '0', count(*)::text from d;
 with d as (delete from public.sp_todos where id = '00000000-0000-0000-0000-0000000000f1' returning 1)
   insert into r select 'cannot delete another household to-do', '0', count(*)::text from d;
+insert into r select 'other household sees none of the unit preferences', '0', count(*)::text from public.sp_unit_preferences;
+with d as (update public.sp_unit_preferences set unit = 'g' returning 1)
+  insert into r select 'cannot change another household unit preference', '0', count(*)::text from d;
+with d as (delete from public.sp_unit_preferences returning 1)
+  insert into r select 'cannot delete another household unit preference', '0', count(*)::text from d;
 insert into r select 'other household sees none of the storage objects', '0', count(*)::text from storage.objects where bucket_id = 'sp-recipes';
 insert into r select 'other household sees only its own categories', '8', count(*)::text from public.sp_recipe_categories;
 select pg_temp.try('cannot reference another household category', '23503',
@@ -182,6 +198,7 @@ insert into r select 'non-member sees no ingredients', '0', count(*)::text from 
 insert into r select 'non-member sees no plan', '0', count(*)::text from public.sp_meal_plan_entries;
 insert into r select 'non-member sees no shopping list', '0', count(*)::text from public.sp_shopping_items;
 insert into r select 'non-member sees no to-dos', '0', count(*)::text from public.sp_todos;
+insert into r select 'non-member sees no unit preferences', '0', count(*)::text from public.sp_unit_preferences;
 insert into r select 'non-member sees no storage objects', '0', count(*)::text from storage.objects where bucket_id in ('sp-recipes', 'sp-documents');
 insert into r select 'non-member sees no households', '0', count(*)::text from public.households;
 select pg_temp.try('non-member cannot add a recipe', '42501',
@@ -193,6 +210,7 @@ set local role anon;
 select pg_temp.try('anon cannot read recipes', '42501', $$select * from public.sp_recipes$$);
 select pg_temp.try('anon cannot read the shopping list', '42501', $$select * from public.sp_shopping_items$$);
 select pg_temp.try('anon cannot read the to-dos', '42501', $$select * from public.sp_todos$$);
+select pg_temp.try('anon cannot read unit preferences', '42501', $$select * from public.sp_unit_preferences$$);
 
 reset role;
 -- One result row: failures must be 0 and `failing` empty. (Remove the filter to see every check.)
