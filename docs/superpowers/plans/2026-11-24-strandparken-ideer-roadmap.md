@@ -12,7 +12,7 @@
 
 ## Plans
 
-> **Progress (2026-11-24):** F and 1–15 are implemented (plan 15 is done on its branch; its migration `20261124150000_strandparken_habits.sql` is not yet applied to production). All decision gates are answered: Q1 = A (iCal feeds), Q2 = ADR-06 (Oura for Camilla, Garmin Personal API for Jonas, manual cycle log), Q9 = commit everything. Q4 and Q5 (habits) use the defaults. Outstanding manual checks, secrets and setup steps are in `docs/strandparken-manual-checks.md`; health and calendar collect nothing until those secrets are set.
+> **Progress (2026-11-24):** F and 1–15 are implemented and pushed to `main`; the habits migrations are applied to production and `health-sync` and `feature-chat` are redeployed. Browser checks on both phones are still outstanding. All decision gates are answered: Q1 = A (iCal feeds), Q2 = ADR-06 (Oura for Camilla, Garmin Personal API for Jonas, manual cycle log), Q9 = commit everything. Q4 and Q5 (habits) use the defaults. Outstanding manual checks, secrets and setup steps are in `docs/strandparken-manual-checks.md`; health and calendar collect nothing until those secrets are set.
 
 | Status | # | Plan | Size | Depends on | Gate |
 |---|---|---|---|---|---|
