@@ -75,3 +75,21 @@ for (const k of [1, 2, 3, 4, 5, 6]) {
       assert.ok(r >= 3, `${r.toFixed(2)}:1`);
     });
 }
+
+// Idé 15: habit colours. -ink text sits on the -tint tile (4.5:1); the white check sits on the fill (4.5:1); the fill is a
+// non-text outline, dot and ring on surface and bg (WCAG 1.4.11, 3:1).
+for (const k of ['sage', 'moss', 'sky', 'lavender', 'plum', 'rose', 'clay', 'sand']) {
+  test(`habit ${k}: ink on tint is at least 4.5:1`, () => {
+    const r = ratio(c(`habit-${k}-ink`), c(`habit-${k}-tint`));
+    assert.ok(r >= 4.5, `${r.toFixed(2)}:1`);
+  });
+  test(`habit ${k}: white check on the fill is at least 4.5:1`, () => {
+    const r = ratio(c('on-primary'), c(`habit-${k}`));
+    assert.ok(r >= 4.5, `${r.toFixed(2)}:1`);
+  });
+  for (const bg of ['surface', 'bg'])
+    test(`habit ${k}: fill on ${bg} is at least 3:1`, () => {
+      const r = ratio(c(`habit-${k}`), c(bg));
+      assert.ok(r >= 3, `${r.toFixed(2)}:1`);
+    });
+}
