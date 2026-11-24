@@ -2,7 +2,7 @@ import { ChevronRight } from 'lucide-react';
 import { useEffect, useState, type ReactNode } from 'react';
 import { dateLine, greetingFor } from '../lib/greeting';
 import { people, type Person } from '../lib/people';
-import { labels, type View } from '../lib/routes';
+import type { View } from '../lib/routes';
 import { ForslagView } from '../forslag/ForslagView';
 import { CalendarSheet } from '../settings/CalendarSettings';
 import { ConnectSheet } from '../settings/ConnectSheet';
@@ -17,6 +17,7 @@ import { Tonight } from '../home/Tonight';
 import { ListerView } from '../lister/ListerView';
 import { MadplanView } from '../madplan/MadplanView';
 import { RecipesView } from '../recipes/RecipesView';
+import { SundhedView } from '../sundhed/SundhedView';
 import { Avatar, AvatarButton } from '../ui/avatar';
 import { Card } from '../ui/card';
 import { Icon } from '../ui/icon';
@@ -30,8 +31,6 @@ function Title({ children }: { children: ReactNode }) {
     </h1>
   );
 }
-
-const Empty = ({ children }: { children: ReactNode }) => <p className="sp-body text-sp-muted">{children}</p>;
 
 const otherPerson = (person: Person): Person => (person === 'jonas' ? 'camilla' : 'jonas');
 
@@ -145,22 +144,13 @@ function HomeView({ person, householdId }: { person: Person; householdId: string
   );
 }
 
-const placeholders: Record<Exclude<View, 'hjem' | 'opskrifter' | 'madplan' | 'lister'>, string> = {
-  sundhed: 'Sundhed er ikke sat op endnu.',
-};
-
-/** The five views. Placeholders only: a title and one sentence, no sample data (U6 brings the fixtures). */
+/** The five views. */
 export function ViewFor({ view, path, person, householdId }: { view: View; path: string[]; person: Person; householdId: string | null }) {
   useHealthSyncOnOpen(householdId);
   if (view === 'hjem' && path[0] === 'forslag') return <ForslagView householdId={householdId} />;
   if (view === 'hjem') return <HomeView person={person} householdId={householdId} />;
   if (view === 'madplan') return <MadplanView path={path} householdId={householdId} />;
   if (view === 'lister') return <ListerView path={path} householdId={householdId} />;
-  if (view === 'opskrifter') return <RecipesView path={path} householdId={householdId} />;
-  return (
-    <div className="flex flex-col gap-sp-gap">
-      <Title>{labels[view]}</Title>
-      <Empty>{placeholders[view]}</Empty>
-    </div>
-  );
+  if (view === 'sundhed') return <SundhedView path={path} person={person} householdId={householdId} />;
+  return <RecipesView path={path} householdId={householdId} />;
 }

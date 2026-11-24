@@ -1,3 +1,4 @@
+import type { Person } from './people.ts';
 import { isIsoDate, type IsoDate } from './madplan/dates.ts';
 
 /** The five views, in bottom-bar order. The current view lives in the URL hash so a refresh or a shared link opens the same screen. */
@@ -83,3 +84,20 @@ export const madplanDayHref = (date: IsoDate) => `#madplan/${date}/dag`;
 
 /** The date whose sheet the Madplan sub-path asks to open (`['2026-11-19', 'dag']` gives `2026-11-19`), or null. */
 export const madplanDay = (path: readonly string[]): IsoDate | null => (path[1] === 'dag' && isIsoDate(path[0] ?? '') ? path[0] : null);
+
+/** The panels of Sundhed, in segmented-control order. Idea 15 adds "vaner" to the control; the route already exists. */
+export const sundhedTabs = ['data', 'vaner'] as const;
+export type SundhedTab = (typeof sundhedTabs)[number];
+
+/** `#sundhed/data/camilla` gives `{ tab: 'data', person: 'camilla' }`. `person: null` means the signed-in person; unknown tabs open Data. */
+export function parseSundhedPath(path: readonly string[]): { tab: SundhedTab; person: Person | null } {
+  const tab: SundhedTab = path[0] === 'vaner' ? 'vaner' : 'data';
+  const person = tab === 'data' && (path[1] === 'camilla' || path[1] === 'jonas') ? path[1] : null;
+  return { tab, person };
+}
+
+/** Deep link to a person's health data (idea 12 links here from Jeres dag). Without a person it opens the signed-in person's. */
+export const sundhedHref = (person?: Person | null) => (person ? `#sundhed/data/${person}` : '#sundhed');
+
+/** Idea 15's panel. */
+export const sundhedVanerHref = () => '#sundhed/vaner';

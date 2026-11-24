@@ -12,6 +12,9 @@ import { Icon } from '../../components/strandparken/ui/icon';
 import { SegmentedControl, SegmentedPanel } from '../../components/strandparken/ui/segmented-control';
 import { Sheet, SheetContent, SheetHeader, SheetTrigger } from '../../components/strandparken/ui/sheet';
 import { Stepper } from '../../components/strandparken/ui/stepper';
+import { Switch } from '../../components/strandparken/ui/switch';
+import { MetricTile } from '../../components/strandparken/sundhed/MetricTile';
+import { TrendBars } from '../../components/strandparken/sundhed/TrendBars';
 import { notify, Toaster } from '../../components/strandparken/ui/toast';
 import { placeholderFor, type PlaceholderIcon, type Tone } from '../../components/strandparken/lib/recipes/placeholder';
 
@@ -21,6 +24,13 @@ const placeholderSamples: [Tone, PlaceholderIcon][] = [
 ];
 
 const samplePhoto = '/ferie/avatars/camilla.jpg';
+
+const sampleTrend = {
+  average: 80,
+  entries: [78, 84, null, 76, 88, 71, 82].map((value, i) => ({
+    date: `2026-11-${18 + i}`, letter: 'OTFLSMT'[i], label: `Dag ${i + 1}`, value, isToday: i === 6,
+  })),
+};
 
 function Section({ id, title, children }: { id: string; title: string; children: ReactNode }) {
   return (
@@ -42,6 +52,7 @@ function Row({ label, children }: { label: string; children: ReactNode }) {
 
 export default function Gallery() {
   const [chips, setChips] = useState<string[]>(['Aftensmad']);
+  const [shared, setShared] = useState(false);
   const [persons, setPersons] = useState(2);
   const [view, setView] = useState('alle');
   const [item, setItem] = useState('');
@@ -149,6 +160,27 @@ export default function Gallery() {
           <Checkbox shape="square" aria-label="Vane" />
           <Checkbox shape="square" aria-label="Vane udført" defaultChecked />
           <Checkbox shape="square" aria-label="Vane deaktiveret" disabled />
+        </Row>
+      </Section>
+
+      <Section id="sundhed" title="Sundhed">
+        <Row label="Kontakt: fra, til, deaktiveret">
+          <div className="w-full">
+            <Switch label="Vis min søvn for Jonas" checked={shared} onCheckedChange={setShared} />
+            <Switch label="Vis min cyklus for Jonas" hint="Privat som standard" defaultChecked />
+            <Switch label="Deaktiveret" disabled />
+          </div>
+        </Row>
+        <Row label="Flise: med tal, uden data">
+          <div className="grid w-full grid-cols-2 gap-sp-gap">
+            <MetricTile tile={{ key: 'sleep', metric: 'sleep_score', label: 'Søvn', value: '82', empty: 'Ingen data i nat' }} />
+            <MetricTile tile={{ key: 'steps', metric: 'steps', label: 'Skridt', value: null, empty: 'Ingen data i dag' }} />
+          </div>
+        </Row>
+        <Row label="Trend: syv dage, en dag mangler">
+          <div className="w-full">
+            <TrendBars title="Søvn, 7 dage" trend={sampleTrend} />
+          </div>
         </Row>
       </Section>
 
