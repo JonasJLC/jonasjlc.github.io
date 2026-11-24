@@ -166,6 +166,12 @@ export function todayCount(habits: Habit[], cs: Completion[], today: IsoDate, fi
  * future day, gives `null`: an empty ring, never red.
  */
 export function dayRing(habits: Habit[], cs: Completion[], date: IsoDate, today: IsoDate): number | null {
+  const c = dayCounts(habits, cs, date, today);
+  return c === null ? null : c.done / c.total;
+}
+
+/** The numbers behind `dayRing` ("2 af 4 vaner" for screen readers); `null` when nothing was due or the day is in the future. */
+export function dayCounts(habits: Habit[], cs: Completion[], date: IsoDate, today: IsoDate): { done: number; total: number } | null {
   if (date > today) return null;
   const marks = doneSet(cs);
   let done = 0;
@@ -177,7 +183,7 @@ export function dayRing(habits: Habit[], cs: Completion[], date: IsoDate, today:
     total++;
     if (completed) done++;
   }
-  return total === 0 ? null : done / total;
+  return total === 0 ? null : { done, total };
 }
 
 /**

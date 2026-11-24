@@ -13,6 +13,10 @@ import { SegmentedControl, SegmentedPanel } from '../../components/strandparken/
 import { Sheet, SheetContent, SheetHeader, SheetTrigger } from '../../components/strandparken/ui/sheet';
 import { Stepper } from '../../components/strandparken/ui/stepper';
 import { Switch } from '../../components/strandparken/ui/switch';
+import { HabitCard } from '../../components/strandparken/sundhed/HabitCard';
+import { HabitSheet } from '../../components/strandparken/sundhed/HabitSheet';
+import { WeekRings } from '../../components/strandparken/sundhed/WeekRings';
+import type { Completion, Habit } from '../../components/strandparken/lib/habits/model';
 import { MetricTile } from '../../components/strandparken/sundhed/MetricTile';
 import { TrendBars } from '../../components/strandparken/sundhed/TrendBars';
 import { notify, Toaster } from '../../components/strandparken/ui/toast';
@@ -31,6 +35,21 @@ const sampleTrend = {
     date: `2026-11-${18 + i}`, letter: 'OTFLSMT'[i], label: `Dag ${i + 1}`, value, isToday: i === 6,
   })),
 };
+
+const sampleHabit = (h: Partial<Habit> & Pick<Habit, 'id' | 'title'>): Habit => ({
+  owner: 'b', tracking: 'manual', frequency: { kind: 'daily' }, rule: null, color: 'sage', icon: null, reminderTime: null,
+  archivedAt: null, createdAt: '2026-11-01T10:00:00Z', ...h,
+});
+const sampleHabits: Habit[] = [
+  sampleHabit({ id: 'h1', title: 'Drik vand', icon: '💧', color: 'sky' }),
+  sampleHabit({ id: 'h2', title: 'Gå 8.000 skridt', icon: '🚶', color: 'moss', tracking: 'automatic', rule: { metric: 'steps', op: '>=', threshold: 8000 } }),
+  sampleHabit({ id: 'h3', title: 'Stræk ud', icon: '🧘', color: 'lavender', frequency: { kind: 'per_week', count: 3 } }),
+];
+const sampleDone = (habitId: string, date: string): Completion => ({ habitId, date, completedBy: 'b', source: 'manual' });
+const sampleCompletions: Completion[] = [
+  ...['2026-11-23', '2026-11-24', '2026-11-25'].map((d) => sampleDone('h1', d)),
+  sampleDone('h3', '2026-11-24'),
+];
 
 function Section({ id, title, children }: { id: string; title: string; children: ReactNode }) {
   return (
@@ -51,6 +70,7 @@ function Row({ label, children }: { label: string; children: ReactNode }) {
 }
 
 export default function Gallery() {
+  const [habitSheet, setHabitSheet] = useState(false);
   const [chips, setChips] = useState<string[]>(['Aftensmad']);
   const [shared, setShared] = useState(false);
   const [persons, setPersons] = useState(2);
@@ -181,6 +201,25 @@ export default function Gallery() {
           <div className="w-full">
             <TrendBars title="Søvn, 7 dage" trend={sampleTrend} />
           </div>
+        </Row>
+      </Section>
+
+      <Section id="vaner" title="Vaner">
+        <Row label="Ugen: ringe fyldt efter dagens vaner (onsdag 26.)">
+          <div className="w-full">
+            <WeekRings habits={sampleHabits} completions={sampleCompletions} today="2026-11-25" />
+          </div>
+        </Row>
+        <Row label="Kort: udført i dag, automatisk med mål, per uge">
+          <ul className="flex w-full flex-col gap-sp-gap-row">
+            <HabitCard habit={sampleHabits[0]} detail="Hver dag · 3 af 7 denne uge" dots={[true, true, true, false, false, false, false]} doneToday doneByName={null} weeks={3} goal={null} goalText={null} onToggle={() => {}} onOpen={() => {}} />
+            <HabitCard habit={sampleHabits[1]} detail="6.420 i dag · 2 af 5 denne uge" dots={[true, true, false, false, false]} doneToday={false} doneByName={null} weeks={0} goal={0.8} goalText="6.420 af 8.000" onToggle={() => {}} onOpen={() => {}} />
+            <HabitCard habit={sampleHabits[2]} detail="3 gange om ugen · 1 af 3 denne uge" dots={[true, false, false]} doneToday={false} doneByName={null} weeks={0} goal={null} goalText={null} onToggle={() => {}} onOpen={() => {}} />
+          </ul>
+        </Row>
+        <Row label="Ark: Ny vane">
+          <Button variant="outline" onClick={() => setHabitSheet(true)}>Ny vane</Button>
+          <HabitSheet open={habitSheet} me="b" available={['steps', 'sleep_score', 'activity_progress']} hasSource onClose={() => setHabitSheet(false)} onSave={async () => { notify('Vane gemt (kun et eksempel)'); return true; }} />
         </Row>
       </Section>
 

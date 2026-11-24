@@ -1,16 +1,27 @@
+import { Plus } from 'lucide-react';
 import { useEffect, useState, type ReactNode } from 'react';
-import { people, type Person } from '../lib/people';
+import { useHabits } from '../lib/habits/use-habits';
+import type { Habit } from '../lib/habits/model';
+import { availableMetrics } from '../lib/habits/view';
+import { useHealth } from '../lib/health/use-health';
+import { keyFromPerson, people, type Person } from '../lib/people';
 import { parseSundhedPath, sundhedHref, sundhedTabs, type SundhedTab } from '../lib/routes';
+import { Button } from '../ui/button';
+import { Icon } from '../ui/icon';
 import { SegmentedControl, SegmentedPanel } from '../ui/segmented-control';
 import { DataPanel } from './DataPanel';
+import { HabitSheet } from './HabitSheet';
+import { VanerPanel, type VanerPanelProps } from './VanerPanel';
 
 type Props = { path: string[]; person: Person; householdId: string | null };
 
+type PanelProps = Props & { viewed: Person; onPerson: (p: Person) => void; vaner: VanerPanelProps };
+
 /**
- * One entry per Sundhed panel, in `sundhedTabs` order. Idea 15 adds "Vaner" here (and its `+` as `headerAction`), then the
- * segmented control appears on its own because it has two options. Until then only Data exists and the control is not drawn.
+ * One entry per Sundhed panel, in `sundhedTabs` order. The segmented control is drawn when there are two or more. "Vaner"
+ * (idea 15) brings its `+` as the `headerAction`, which opens the habit sheet.
  */
-const panels: Partial<Record<SundhedTab, { label: string; panel: (p: Props & { viewed: Person; onPerson: (p: Person) => void }) => ReactNode; headerAction?: (p: Props) => ReactNode }>> = {
+const panels: Partial<Record<SundhedTab, { label: string; panel: (p: PanelProps) => ReactNode; headerAction?: (p: { onNew: () => void }) => ReactNode }>> = {
   data: {
     label: 'Data',
     panel: ({ householdId, person, viewed, onPerson }) => (
@@ -23,6 +34,15 @@ const panels: Partial<Record<SundhedTab, { label: string; panel: (p: Props & { v
         />
         <DataPanel householdId={householdId} person={viewed} me={person} />
       </div>
+    ),
+  },
+  vaner: {
+    label: 'Vaner',
+    panel: ({ vaner }) => <VanerPanel {...vaner} />,
+    headerAction: ({ onNew }) => (
+      <Button variant="icon" tone="add" aria-label="Ny vane" onClick={onNew}>
+        <Icon icon={Plus} />
+      </Button>
     ),
   },
 };
@@ -39,6 +59,11 @@ export function SundhedView(props: Props) {
   const requested: SundhedTab = available.includes(route.tab) ? route.tab : 'data';
   const [tab, setTab] = useState<SundhedTab>(requested);
   const [viewed, setViewed] = useState<Person>(route.person ?? props.person);
+  // The habits live here, not in the panel, so the header `+` and the edit button in the history can open the one sheet.
+  const me = keyFromPerson(props.person);
+  const habits = useHabits(props.householdId, me);
+  const health = useHealth(props.householdId, props.person);
+  const [editor, setEditor] = useState<{ habit: Habit | null } | null>(null);
 
   useEffect(() => setTab(requested), [requested]);
   useEffect(() => setViewed(route.person ?? props.person), [route.person, props.person]);
@@ -53,7 +78,19 @@ export function SundhedView(props: Props) {
     setTab(next);
   };
 
-  const body = (value: SundhedTab) => panels[value]!.panel({ ...props, viewed, onPerson: selectPerson });
+  const openEditor = (habit: Habit | null) => {
+    if (tab !== 'vaner') selectTab('vaner');
+    setEditor({ habit });
+  };
+
+  const vaner: VanerPanelProps = {
+    state: habits.state, today: habits.today, offline: habits.offline, me,
+    health: { today: health.today, hidden: health.hidden, sources: health.sources },
+    setDone: habits.setDone, archive: habits.archive, restore: habits.restore, retry: habits.retry,
+    onNew: () => openEditor(null), onEdit: (h) => openEditor(h),
+  };
+
+  const body = (value: SundhedTab) => panels[value]!.panel({ ...props, viewed, onPerson: selectPerson, vaner });
 
   return (
     <div className="flex flex-col gap-sp-gap">
@@ -61,8 +98,8 @@ export function SundhedView(props: Props) {
         <h1 id="view-title" tabIndex={-1} className="sp-title-page">
           Sundhed
         </h1>
-        {/* Header action slot: the active panel's action, such as idea 15's `+` for a new habit. */}
-        {panels[tab]?.headerAction?.(props)}
+        {/* Header action slot: the active panel's action, such as the `+` for a new habit. */}
+        {panels[tab]?.headerAction?.({ onNew: () => openEditor(null) })}
       </header>
       {options.length > 1 ? (
         <SegmentedControl aria-label="Visning" options={options} value={tab} onValueChange={selectTab} className="flex flex-col gap-sp-gap">
@@ -75,6 +112,15 @@ export function SundhedView(props: Props) {
       ) : (
         body('data')
       )}
+      <HabitSheet
+        open={editor !== null}
+        habit={editor?.habit}
+        me={me}
+        available={availableMetrics(health.sources.length > 0, health.days)}
+        hasSource={health.sources.length > 0}
+        onClose={() => setEditor(null)}
+        onSave={habits.save}
+      />
     </div>
   );
 }
