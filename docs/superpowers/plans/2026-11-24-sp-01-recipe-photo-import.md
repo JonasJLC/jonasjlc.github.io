@@ -128,7 +128,7 @@ export function pickImage(html: string, pageUrl: string): string | null
 ### Task 9: Specs, backlog, verify, commit
 - [x] Main spec §4.6 "Images" and §5.3.1 note the 1200 px imported photo and the thumbnail; §4.4 lists `recipe-image`; UI spec §5.4 notes the "Henter billede…" state.
 - [x] Backlog: remove nothing; add "Photo jobs run only while the app is open; an interrupted job is retried by the backfill on the next visit to Opskrifter."
-- [ ] Verify (below), deploy `supabase functions deploy recipe-import recipe-image`, commit `feat(strandparken): fetch the dish photo when importing a recipe from a link`. _(Tests, check and build pass. Deploy of the two functions and the phone checks are pending.)_
+- [ ] Verify (below), deploy `supabase functions deploy recipe-import recipe-image`, commit `feat(strandparken): fetch the dish photo when importing a recipe from a link`. _(Tests, check and build pass. `recipe-import` v2 and `recipe-image` v1 deployed via MCP on 2026-11-24; the phone checks are pending.)_
 
 ## Verification
 
