@@ -136,7 +136,7 @@ Acceptance criteria:
 | D11 | Google Calendar | Write the madplan into the calendar (one-way). Details in D37. **ADR-03** |
 | D12 | AI suggestions | Suggest per empty day (no whole-week generation, no automatic drafts). |
 | D13 | Oura | Camilla's readiness and cycle day, with an explanation aimed at Jonas. Lives in the Sundhed tab only. Tightened by D38–D40. |
-| D14 | Training data (Garmin) | **Amended.** No automated Garmin integration in v1: the official programme is closed to new applicants and the community libraries stopped working in 2026 (R4). Path in D52. **ADR-06** |
+| D14 | Training data (Garmin) | **Amended 2026-11-24.** Jonas's sleep score, steps and step-goal progress come from Garmin's free Personal API (opened 21 October 2026), pulled by an edge function with a personal key Jonas creates (R4). Community login libraries are not used. **ADR-06** |
 | D15 | Portions with a goal | Per-person portion shown on the recipe. Defined in D42. |
 | D16 | Nutrition data | Hybrid: Danish food database (Frida) first, AI estimate as fallback. **ADR-04** |
 | D17 | Habits | Personal and shared habits, with a per-person view. |
@@ -168,7 +168,7 @@ Each of these replaces a "TBD" in the draft. All are reversible; veto any of the
 | D36 | Shopping list model | One continuous list. Items are stored one row per source (plan entry, recipe or manual) and merged on display. Generating from the plan is repeatable. **ADR-08** | See §5.3.4. |
 | D37 | Google Calendar details | A dedicated secondary calendar "Madplan", created by the app in Jonas's Google account and shared with Camilla. One timed event per dinner, default 18:00–19:00 (configurable), marked as free time. Title = dish name; description = link to the recipe. Scope limited to calendars the app created; the OAuth consent screen is published to production. | A dedicated calendar keeps private calendars untouched, and deleting it removes every event. A testing-status consent screen expires refresh tokens after seven days (R6). |
 | D38 | Oura explanation | Curated Danish text per cycle phase and readiness band, written once and reviewed by Camilla. No Oura data is sent to an AI model. | Predictable, free, private, and avoids Oura's restrictions on AI processing of API data (R3). |
-| D39 | Cycle day source | From the Oura API if Camilla's account exposes it; otherwise Camilla logs the first day of her period in the app (one tap) and the app counts from there. Confirmed by Camilla. | Public endpoint lists show no cycle endpoint (R3). The fallback keeps the feature. |
+| D39 | Cycle day source | Camilla logs the first day of her period in the app (one tap) and the app counts from there. Confirmed by Camilla. | Oura API v2 has no cycle data, and Oura does not write cycle data to Apple Health (R3, checked 2026-11-24). |
 | D40 | Health sharing | Each person has a `Del med …` switch per integration, off by default, revocable at any time. Camilla has agreed to share readiness and cycle day. | Consent is a recorded choice, not an assumption. |
 | D41 | Goals | Three types: `Tag på (muskelmasse)`, `Tab dig`, `Hold vægten`. Body data: weight, height, birth year, sex, activity level (four steps). Weight is logged manually. | "Hold vægten" gives a personal portion without a weight change. A separate "gain weight" type adds nothing. |
 | D42 | Portion model | Each person's portion is a share of the cooked dish, shown as grams and percent (§5.4.3). | The only definition that stays correct when two portions do not add up to the pot. |
@@ -181,7 +181,7 @@ Each of these replaces a "TBD" in the draft. All are reversible; veto any of the
 | D49 | Forslag | Reuse the `/ferie` Forslag backend (`feature_requests` with an `app` column, `feature-chat`, `create-issue`) and client module (`src/lib/forslag/`); Strandparken UI from its own primitives; opened from Indstillinger at `#hjem/forslag`. Issues carry the labels `forslag` and `strandparken`. | Gives Camilla a way to ask for changes without GitHub. Supersedes "reuse the component": the `/ferie` components carry `/ferie` tokens that are not loaded here. |
 | D50 | UI copy | `Læg på indkøbslisten` (was `Lav denne`); `Nyt forslag` (was `Ny forslag`). | Clarity and grammar. |
 | D51 | Offers source | Weekly offers from the Tjek / eTilbudsavis platform, which carries all four chains, subject to a terms check. Fallback: each list line links to an eTilbudsavis search, and nothing is stored. **ADR-05** | The only source found that covers Rema 1000 and Lidl as well (R1). |
-| D52 | Training data path | In order: (1) reuse the existing `garmin-dashboard/` export if it still produces JSON; (2) Strava activities, visible to Jonas only; (3) manual weekly entry. Revisit when Garmin reopens its developer programme. | Keeps the Sundhed tab useful without depending on a closed API. |
+| D52 | Training data path | **Amended 2026-11-24.** Garmin Personal API (ADR-06). The `garmin-dashboard/` export is not reused: it depends on the community login libraries and its newest data is from October 2025. Fallback if the Personal API lacks a metric: a step goal set in Strandparken; manual entry. | Official, free, server-side; no phone automation to keep alive. |
 | D53 | Time | All dates are computed in `Europe/Copenhagen`. Weeks are ISO weeks, Monday first. | "Today" and "this week" must agree on both phones and on the server. |
 | D54 | Deleting recipes | Recipes are archived, not deleted. Past madplan entries keep their dish. | History and "cooked often" stay intact. |
 | D55 | Allergies | Out of scope. The profile holds dislikes and preferences only; there are no allergen tags and no allergen filter. | Neither person has allergies. If that changes, add allergen tags per ingredient and a code-level filter before any AI suggestion. |
@@ -704,8 +704,8 @@ Sources are listed in §12. Each finding should be re-checked on the day its fea
 |---|---|---|
 | R1 | Salling Group's public developer APIs cover food waste, product suggestions (Bilka ToGo only), stores and jobs. None serves weekly offers or shelf prices for Netto or Føtex. The Tjek / eTilbudsavis platform carries current leaflet offers for Netto, Føtex, Rema 1000 and Lidl, searchable by keyword and location. Offers are campaign prices only: no shelf price, usually no "before" price, free-text headings without EAN. Tjek's documented API needs a key issued through its business CMS; whether private reuse of the offer data is permitted is unverified. | D7 amended to rank on offers. D51 chooses Tjek subject to a terms check. Basket totals and savings are out of v1. |
 | R2 | Meta's oEmbed now requires app review and business verification, and since 3 November 2025 no longer returns author or thumbnail fields. There is no realistic server-side way for a two-person app to read Instagram captions. | D4 amended. The spike and the separate "post link" slice are dropped; the link sheet asks for text or a screenshot at once. |
-| R3 | Oura's API is v2 with OAuth2 only; personal access tokens are gone. Refresh tokens are single-use. Apps may serve up to 10 users without Oura's approval. Gen3 and newer rings need an active membership for API access. Public endpoint lists show readiness, sleep, activity, stress, tags and more, but no cycle or period endpoint. A third-party analysis reports that Oura's API agreement effective 8 June 2026 restricts AI processing of API data. | Readiness is feasible. Cycle day needs the fallback in D39. D38 keeps Oura data away from AI entirely. Token handling per §4.5. |
-| R4 | Garmin stopped accepting new applications to its Connect Developer Programme in spring 2026, with no reopening date; the programme was already limited to businesses. The community login libraries broke in March 2026 after Garmin changed its sign-in and added bot protection. | D14 amended; path in D52. Whether the existing `garmin-dashboard/` export still runs is the first thing to check. |
+| R3 | *Re-checked 2026-11-24 against primary sources (ADR-06).* Oura API v2 (OpenAPI 1.43) is OAuth2 only; personal access tokens were withdrawn in December 2025. Refresh tokens are single-use. Apps may serve up to 10 users without approval. Gen3 and newer rings need an active membership. `daily_sleep.score`, `daily_activity.steps`, `active_calories` and `target_calories` are available; there is no cycle, period or menstrual data. Webhooks exist. The Oura API and MCP Agreement (effective 8 June 2026) forbids prompting or training AI with API data, requires revocable consent before another person sees a user's data, and deletion within 72 hours of a request. | Sleep score, steps and goal progress via the `oura` adapter. Cycle day from the in-app log (D39). D38 holds. Token handling per §4.5. |
+| R4 | *Re-checked 2026-11-24 (ADR-06).* Garmin reopened the Connect Developer Programme on 21 October 2026 with a free **Personal** tier: a key created in Garmin Connect web, exchanged for 24-hour access tokens, pull only, "for personal use", Activity, Health and Women's Health JSON. Keys expire after at most a year. The exact Health endpoints are in Swagger docs that need a signed-in browser. The community login libraries remain unsupported. | D14 and D52 amended: `garmin` adapter on the Personal API. Jonas confirms the daily summary and sleep score endpoints in the Swagger docs before the adapter is coded. |
 | R5 | DTU publishes the Frida food data for download as a spreadsheet with a readme on copyright and citation, and a separate publication with standard weights and portion sizes. | Bundling looks feasible; the readme's terms and the match rate still need the spike. |
 | R6 | Google expires refresh tokens after seven days while an OAuth consent screen is in "Testing"; publishing to "In production" removes the limit and does not by itself require verification. | D37: publish the consent screen; request only the narrow scope for app-created calendars (confirm the exact scope name in the spike). |
 
@@ -716,8 +716,8 @@ Each spike is time-boxed and has a fallback, so no spike can block a phase.
 | # | Question | Time-box | Fallback if the answer is no | Needed before |
 |---|---|---|---|---|
 | R1 | Do Tjek's terms allow a private app to fetch and cache offers, and can a key be obtained? What match rate do 30 real list lines get against a week of offers? | ½ day | Per-item links to eTilbudsavis search; nothing stored. | 2.4 |
-| R3 | With Camilla's account: does the API return cycle day or phase? Read Oura's current API agreement on showing data to another person. | 2 hours | In-app period log (D39). | 3.4 |
-| R4 | Does the `garmin-dashboard/` export still produce data? If not: do Strava's API terms allow what the card needs (check their rules on showing a member's data to another person and on AI use)? Which three insights does Jonas want? | ½ day | Manual weekly entry of two numbers. | 3.5 |
+| R3 | **Done 2026-11-24 (ADR-06).** No cycle data in the API; showing data to Jonas needs Camilla's revocable consent. | – | In-app period log (D39). | 3.4 |
+| R4 | **Done 2026-11-24 (ADR-06).** Garmin Personal API instead of the export or Strava. Open: Jonas confirms the endpoints in the Personal Swagger docs; which training insights he wants beyond sleep, steps and goal. | – | Manual weekly entry of two numbers. | 3.5 |
 | R5 | Frida readme terms; match rate of 200 imported ingredient names; piece-weight coverage. | ½ day | AI estimates for everything, all labelled as estimates. | 3.1 |
 | R6 | Incremental consent for the calendar scope from the installed PWA on both phones; exact scope; token storage. | ½ day | Jonas subscribes to a read-only calendar feed generated by an edge function. | 2.3 |
 | R7 | Cost and quality per function on 20 real imports (10 pages, 5 captions, 5 screenshots). | ½ day | Stronger model for all imports, tighter daily limits. | 1.2 |
@@ -859,7 +859,7 @@ Suggested location: `docs/adr/`, unless the repository already has a convention.
 | ADR-03 | Dedicated Madplan calendar, narrow scope, server-side token | D11, D37 | 2.3 |
 | ADR-04 | Frida first, AI estimate as labelled fallback | D16, D43 | 3.1 |
 | ADR-05 | Offer data source and what "cheapest" means | D7, D51 | 2.4 |
-| ADR-06 | Health integrations, consent and what never goes to a model | D13, D14, D38–D40, D52 | 3.4 |
+| ADR-06 | Health integrations, consent and what never goes to a model (accepted 2026-11-24) | D13, D14, D38–D40, D52 | 3.4 |
 | ADR-07 | AI usage: model tiers, budget cap, untrusted input | D48, §4.7 | 0.6 |
 | ADR-08 | Shopping items stored per source, merged on display | D36 | 1.4 |
 | ADR-09 | Offline scope and conflict rule | D47 | 1.8 |
@@ -876,7 +876,7 @@ Answered on 2026-11-12:
 
 Still open:
 
-4. **Where this document lives.** The app's data is in Supabase behind Google sign-in, so no data is exposed by the repository. The remaining point in C6 is the text of this spec and the health ADRs: if the repository is public, anyone can read that the app handles Camilla's cycle data. Default until decided: commit them only if the repository is private, or once Camilla is fine with that being readable.
+4. **Where this document lives.** Answered 2026-11-24: the repository stays public and the spec, plans and health ADRs are committed with their cycle-data text (Jonas's decision, roadmap Q9). No real health data, tokens or keys are ever committed.
 
 ---
 
@@ -887,6 +887,7 @@ Still open:
 - Descriptions of the Tjek offers feed and its limits (third-party tools) — https://apify.com/studio-amba/netto-dk-offers-scraper , https://apify.com/gratifying_graph/nordic-grocery-offers
 - Meta oEmbed updates — https://developers.facebook.com/blog/post/2025/04/08/oembed-updates/
 - Oura API v2 notes (OAuth only, user limit, membership) — https://www.nuget.org/packages/OuraToolkit.Api , https://jsr.io/@pinta365/oura-api
+- Re-check of R3 and R4 on 2026-11-24 with primary sources (Oura OpenAPI 1.43, authentication docs, API and MCP Agreement; Garmin programme overview and Personal API FAQ; Apple HealthKit docs) — see ADR-06 "Findings"
 - Oura API agreement and AI processing (third-party analysis) — https://tryterra.co/blog/oura-api-ai-apps-access-permissions-commercial-restrictions
 - Garmin developer programme pause — https://the5krunner.com/2026/09/14/garmin-developer-api-access-paused/ , https://tryterra.co/blog/garmin-connect-developer-program-pause
 - Garmin community library breakage — https://github.com/cyberjunky/python-garminconnect/issues/332

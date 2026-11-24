@@ -82,6 +82,8 @@ Default in the plan: **A**, with option B noted as a later upgrade for Google ca
 
 ### Q2. Where health data comes from (ideas 9, 10, 11, 12, 15) — answered by idea 9
 
+**Answered 2026-11-24 ([ADR-06](../../adr/ADR-06-health-integrations.md)):** adapters `oura` (Camilla, OAuth2 server side), `garmin` (Jonas, Garmin's new Personal API) and `manual` (cycle day, D39). No HealthKit bridge. Jonas chose to build on this without a separate go-ahead.
+
 The spec's desk research already found (R3, R4, 2026-11-11): Oura API v2 is OAuth2-only and usable for up to 10 users; Garmin's developer programme stopped taking applications in spring 2026; the community Garmin libraries broke in March 2026. Apple HealthKit is native-only, so a PWA cannot read it directly, but an iOS Shortcuts automation (or an app such as Health Auto Export) can post HealthKit data to an edge function. Idea 9 re-checks all of this against current official docs and ends with one recommendation and a wait for Jonas's go-ahead. Ideas 10 to 12 and automatic habits are planned against a provider-agnostic `HealthSource` interface, so the plans hold whichever source is chosen; only the adapter task changes.
 
 ### Q3. To-do replaces "Opgaver" for now (idea 5)
