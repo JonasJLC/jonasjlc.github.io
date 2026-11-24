@@ -56,6 +56,21 @@ export type Database = {
         Update: { created_at?: string; id?: string; name?: string };
         Relationships: [];
       };
+      sp_calendar_sources: {
+        Row: {
+          color: string; created_at: string; created_by: string | null; enabled: boolean; household_id: string; id: string;
+          label: string; last_error: string | null; last_fetched_at: string | null; person: string; position: number; shared: boolean; updated_at: string;
+        };
+        Insert: {
+          color: string; created_at?: string; created_by?: string | null; enabled?: boolean; household_id: string; id?: string;
+          label: string; last_error?: string | null; last_fetched_at?: string | null; person: string; position?: number; shared?: boolean; updated_at?: string;
+        };
+        Update: {
+          color?: string; created_at?: string; created_by?: string | null; enabled?: boolean; household_id?: string; id?: string;
+          label?: string; last_error?: string | null; last_fetched_at?: string | null; person?: string; position?: number; shared?: boolean; updated_at?: string;
+        };
+        Relationships: Rel[];
+      };
       sp_cycle_log: {
         Row: { created_at: string; household_id: string; id: string; period_start: string; person: string };
         Insert: { created_at?: string; household_id: string; id?: string; period_start: string; person: string };

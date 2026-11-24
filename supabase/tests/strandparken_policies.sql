@@ -155,6 +155,52 @@ insert into r select 'both people read both profiles', '1', count(*)::text from 
 select pg_temp.try('the other person cannot change it', 'ok', $$update public.sp_profiles set dislikes = '{}' where person = 'b'$$);
 insert into r select 'the other person''s update changed nothing', '{koriander}', dislikes::text from public.sp_profiles where person = 'b';
 
+-- Calendars (Idé 7): U1 is 'b' and U4 is 'a' in household 1. Rows are made by the calendar function's service-role helper.
+reset role;
+select public.sp_calendar_add('00000000-0000-0000-0000-0000000000a1', 'b', '00000000-0000-0000-0000-0000000000b1', 'Jonas privat', 'cal-1', false, 'cipher-private');
+select public.sp_calendar_add('00000000-0000-0000-0000-0000000000a1', 'b', '00000000-0000-0000-0000-0000000000b1', 'Fælles', 'cal-2', true, 'cipher-shared');
+insert into r select 'calendar: add stores a feed with each calendar', '2', count(*)::text
+  from private.sp_calendar_feeds f join public.sp_calendar_sources s on s.id = f.source_id where s.household_id = '00000000-0000-0000-0000-0000000000a1';
+insert into r select 'calendar: add sets created_by and positions', '{0,1}', array_agg(position order by position)::text
+  from public.sp_calendar_sources where household_id = '00000000-0000-0000-0000-0000000000a1' and created_by = '00000000-0000-0000-0000-0000000000b1';
+select pg_temp.try('calendar: add refuses a person key that is not the caller''s', '42501',
+  $$select public.sp_calendar_add('00000000-0000-0000-0000-0000000000a1', 'a', '00000000-0000-0000-0000-0000000000b1', 'Snyd', 'cal-1', false, 'c')$$);
+insert into r select 'calendar: feeds for the owner lists both', '2', count(*)::text from public.sp_calendar_feeds_for('00000000-0000-0000-0000-0000000000a1', 'b');
+insert into r select 'calendar: feeds for the other person lists only the shared one', 'cipher-shared', string_agg(url_cipher, ',')
+  from public.sp_calendar_feeds_for('00000000-0000-0000-0000-0000000000a1', 'a');
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000b1","role":"authenticated"}', true);
+set local role authenticated;
+insert into r select 'calendar: owner reads own private and shared calendars', '2', count(*)::text from public.sp_calendar_sources;
+select pg_temp.try('calendar: the browser cannot add a calendar', '42501',
+  $$insert into public.sp_calendar_sources (household_id, person, label, color) values ('00000000-0000-0000-0000-0000000000a1', 'b', 'X', 'cal-1')$$);
+select pg_temp.try('calendar: owner renames and hides a calendar', 'ok',
+  $$update public.sp_calendar_sources set label = 'Arbejde', enabled = false where label = 'Jonas privat'$$);
+insert into r select 'calendar: hidden calendars are not fetched', '1', count(*)::text from public.sp_calendar_sources where enabled;
+select pg_temp.try('calendar: owner cannot set the fetch state', '42501', $$update public.sp_calendar_sources set last_error = 'blocked'$$);
+select pg_temp.try('calendar: owner cannot hand a calendar to the other person', '42501', $$update public.sp_calendar_sources set person = 'a'$$);
+select pg_temp.try('calendar: authenticated cannot read the feeds', '42501', $$select * from private.sp_calendar_feeds$$);
+select pg_temp.try('calendar: authenticated cannot call feeds_for', '42501', $$select * from public.sp_calendar_feeds_for('00000000-0000-0000-0000-0000000000a1', 'b')$$);
+select pg_temp.try('calendar: authenticated cannot call add', '42501',
+  $$select public.sp_calendar_add('00000000-0000-0000-0000-0000000000a1', 'b', '00000000-0000-0000-0000-0000000000b1', 'X', 'cal-1', false, 'c')$$);
+select pg_temp.try('calendar: authenticated cannot call save_cache', '42501',
+  $$select public.sp_calendar_save_cache(gen_random_uuid(), null, null, 'blocked')$$);
+reset role;
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000b4","role":"authenticated"}', true);
+set local role authenticated;
+insert into r select 'calendar: the other person reads only the shared calendar', 'Fælles', string_agg(label, ',') from public.sp_calendar_sources;
+with d as (update public.sp_calendar_sources set label = 'Hacked' returning 1)
+  insert into r select 'calendar: the other person cannot update a shared calendar', '0', count(*)::text from d;
+with d as (delete from public.sp_calendar_sources returning 1)
+  insert into r select 'calendar: the other person cannot delete a shared calendar', '0', count(*)::text from d;
+reset role;
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000b1","role":"authenticated"}', true);
+set local role authenticated;
+with d as (delete from public.sp_calendar_sources where label = 'Arbejde' returning 1)
+  insert into r select 'calendar: owner deletes a calendar', '1', count(*)::text from d;
+reset role;
+insert into r select 'calendar: deleting a calendar deletes its feed', '1', count(*)::text
+  from private.sp_calendar_feeds f join public.sp_calendar_sources s on s.id = f.source_id where s.household_id = '00000000-0000-0000-0000-0000000000a1';
+
 reset role;
 select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000b2","role":"authenticated"}', true);
 set local role authenticated;
@@ -163,6 +209,7 @@ insert into r select 'other household sees none of the recipes', '0', count(*)::
 insert into r select 'other household sees none of the plan', '0', count(*)::text from public.sp_meal_plan_entries;
 insert into r select 'other household sees none of the shopping list', '0', count(*)::text from public.sp_shopping_items;
 insert into r select 'other household sees none of the to-dos', '0', count(*)::text from public.sp_todos;
+insert into r select 'other household sees none of the calendars', '0', count(*)::text from public.sp_calendar_sources;
 with d as (update public.sp_todos set title = 'Hacked' where id = '00000000-0000-0000-0000-0000000000f1' returning 1)
   insert into r select 'cannot update another household to-do', '0', count(*)::text from d;
 with d as (delete from public.sp_todos where id = '00000000-0000-0000-0000-0000000000f1' returning 1)
@@ -292,6 +339,7 @@ insert into r select 'non-member sees no ingredients', '0', count(*)::text from 
 insert into r select 'non-member sees no plan', '0', count(*)::text from public.sp_meal_plan_entries;
 insert into r select 'non-member sees no shopping list', '0', count(*)::text from public.sp_shopping_items;
 insert into r select 'non-member sees no to-dos', '0', count(*)::text from public.sp_todos;
+insert into r select 'non-member sees no calendars', '0', count(*)::text from public.sp_calendar_sources;
 insert into r select 'non-member sees no unit preferences', '0', count(*)::text from public.sp_unit_preferences;
 insert into r select 'non-member sees no storage objects', '0', count(*)::text from storage.objects where bucket_id in ('sp-recipes', 'sp-documents');
 insert into r select 'non-member sees no households', '0', count(*)::text from public.households;
@@ -304,6 +352,7 @@ set local role anon;
 select pg_temp.try('anon cannot read recipes', '42501', $$select * from public.sp_recipes$$);
 select pg_temp.try('anon cannot read the shopping list', '42501', $$select * from public.sp_shopping_items$$);
 select pg_temp.try('anon cannot read the to-dos', '42501', $$select * from public.sp_todos$$);
+select pg_temp.try('anon cannot read calendars', '42501', $$select * from public.sp_calendar_sources$$);
 select pg_temp.try('anon cannot read unit preferences', '42501', $$select * from public.sp_unit_preferences$$);
 select pg_temp.try('anon cannot call sp_health_for', '42501', $$select * from public.sp_health_for('a', current_date, current_date)$$);
 

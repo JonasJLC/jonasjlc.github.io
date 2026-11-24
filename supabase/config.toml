@@ -79,3 +79,9 @@ verify_jwt = false
 # The Oura redirect URI is this function's URL: https://kmytekaexgfqhwxapwbw.supabase.co/functions/v1/health-oauth
 [functions.health-oauth]
 verify_jwt = false
+
+# Calendar on Hjem (Idé 7): reads the private iCal addresses people add in Indstillinger › Kalendere. Outbound network.
+# The addresses are stored encrypted with a key that is a secret, never committed:
+#   supabase secrets set SP_FEED_KEY=$(openssl rand -base64 32)
+[functions.calendar]
+verify_jwt = false
