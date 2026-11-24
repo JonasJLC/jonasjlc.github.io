@@ -1,14 +1,13 @@
 import { useState } from 'react';
 import { toast } from 'sonner';
 import {
-  AREA_LABEL, STATUS_LABEL, effectiveStatus, triage,
+  AREA_LABEL, STATUS_LABEL, effectiveStatus, sortRequests, triage,
   type Board, type FeatureRequest, type IssueStates, type RequestStatus,
 } from '../lib/forslag';
 import { Badge } from '../ui/badge';
 import { Button } from '../ui/button';
 import { Textarea } from '../ui/textarea';
 
-const OPEN: RequestStatus[] = ['new', 'approved', 'building'];
 const VARIANT: Record<RequestStatus, 'caution' | 'secondary' | 'ok' | 'outline' | 'default'> = {
   new: 'caution', approved: 'secondary', building: 'default', done: 'ok', declined: 'outline',
 };
@@ -20,10 +19,7 @@ export function RequestList({ board, issues, onChanged }: { board: Board | null;
   if (board.requests.length === 0) {
     return <p className="rounded-panel bg-panel p-5 text-sm text-muted-foreground">Ingen forslag endnu. Det første kan blive dit.</p>;
   }
-  // Open requests first; within each group the newest stays on top.
-  const sorted = [...board.requests].sort(
-    (a, b) => Number(OPEN.includes(effectiveStatus(b, issues))) - Number(OPEN.includes(effectiveStatus(a, issues))),
-  );
+  const sorted = sortRequests(board.requests, issues);
   return (
     <ul className="flex flex-col gap-3">
       {sorted.map((r) => (

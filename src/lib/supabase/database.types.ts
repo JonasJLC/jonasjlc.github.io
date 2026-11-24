@@ -19,16 +19,19 @@ export type Database = {
       };
       feature_requests: {
         Row: {
+          app: string
           created_at: string; created_by: string | null; created_by_name: string; details: Json;
           github_issue_number: number | null; github_issue_url: string | null; household_id: string; id: string;
           owner_note: string | null; status: string; summary: string; title: string; transcript: Json; updated_at: string;
         };
         Insert: {
+          app?: string
           created_at?: string; created_by?: string | null; created_by_name?: string; details?: Json;
           github_issue_number?: number | null; github_issue_url?: string | null; household_id: string; id?: string;
           owner_note?: string | null; status?: string; summary: string; title: string; transcript?: Json; updated_at?: string;
         };
         Update: {
+          app?: string
           created_at?: string; created_by?: string | null; created_by_name?: string; details?: Json;
           github_issue_number?: number | null; github_issue_url?: string | null; household_id?: string; id?: string;
           owner_note?: string | null; status?: string; summary?: string; title?: string; transcript?: Json; updated_at?: string;

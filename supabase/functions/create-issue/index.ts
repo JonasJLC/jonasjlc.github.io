@@ -1,4 +1,4 @@
-// Mirrors a saved Ferieplan feature request to a GitHub issue so it can be triaged and built from
+// Mirrors a saved feature request (Ferieplan or Strandparken) to a GitHub issue so it can be triaged and built from
 // GitHub. The repo is public: only the structured request is published (title, summary, why, area,
 // acceptance). The chat transcript, email addresses and surnames never leave the database.
 //
@@ -6,18 +6,10 @@
 //   A fine-grained personal access token limited to this repository with "Issues: read and write".
 // SUPABASE_URL, SUPABASE_ANON_KEY and SUPABASE_SERVICE_ROLE_KEY are injected by the platform.
 import { createClient } from 'npm:@supabase/supabase-js@2';
+import { LABEL_DEFS, issueBody, labelsFor, plain, type Row } from './logic.ts';
 
 const REPO = 'JonasJLC/jonasjlc.github.io';
-const LABEL = 'forslag';
 const ALLOWED_ORIGINS = new Set(['https://jonasjlc.github.io', 'http://localhost:4321']);
-const AREA_LABEL: Record<string, string> = {
-  feriedage: 'Feriedage',
-  rejsekassen: 'Rejsekassen',
-  rejseplan: 'Rejseplan',
-  indstillinger: 'Indstillinger',
-  andet: 'Andet',
-};
-
 function cors(origin: string | null): Record<string, string> {
   const allow = origin && ALLOWED_ORIGINS.has(origin) ? origin : 'https://jonasjlc.github.io';
   return {
@@ -33,41 +25,6 @@ function json(body: unknown, status: number, origin: string | null): Response {
     status,
     headers: { ...cors(origin), 'Content-Type': 'application/json' },
   });
-}
-
-/** Text is typed by a person and published on a public repo: stop @mentions from pinging anyone. */
-const plain = (s: string) => s.replace(/@/g, '@​').replace(/\r/g, '').trim();
-
-/** First name only, and never an email address. */
-function firstName(name: string): string {
-  if (!name || name.includes('@')) return '';
-  return name.trim().split(/\s+/)[0] ?? '';
-}
-
-interface Row {
-  id: string;
-  title: string;
-  summary: string;
-  details: { why?: string; area?: string; acceptance?: string[] } | null;
-  created_by_name: string;
-  github_issue_number: number | null;
-}
-
-function issueBody(r: Row): string {
-  const d = r.details ?? {};
-  const who = firstName(r.created_by_name);
-  const lines = [
-    `Forslag til Ferieplan${who ? ` fra ${plain(who)}` : ''}, indsamlet via Forslag-chatten i appen.`,
-    '',
-    '## Ønske',
-    plain(r.summary),
-  ];
-  if (d.why) lines.push('', '## Hvorfor', plain(d.why));
-  if (d.area && AREA_LABEL[d.area]) lines.push('', '## Område', AREA_LABEL[d.area]);
-  const acceptance = (d.acceptance ?? []).filter((a) => typeof a === 'string' && a.trim());
-  if (acceptance.length) lines.push('', '## Sådan ser man, at det virker', ...acceptance.map((a) => `- ${plain(a)}`));
-  lines.push('', '---', '_Oprettet automatisk. Bygges fra GitHub efter triage; appens Forslag-liste linker hertil._');
-  return lines.join('\n');
 }
 
 const gh = (path: string, token: string, init: RequestInit = {}) =>
@@ -107,7 +64,7 @@ Deno.serve(async (req) => {
   // Read through row-level security as the caller: only a household member can reach the row.
   const { data: row } = await asUser
     .from('feature_requests')
-    .select('id,title,summary,details,created_by_name,github_issue_number')
+    .select('id,app,title,summary,details,created_by_name,github_issue_number')
     .eq('id', body.id)
     .maybeSingle();
   if (!row) return json({ error: 'not_found' }, 404, origin);
@@ -119,14 +76,14 @@ Deno.serve(async (req) => {
   if (!ghToken) return json({ error: 'not_configured' }, 503, origin);
 
   try {
-    // Make sure the label exists (422 means it already does).
-    await gh('/labels', ghToken, {
-      method: 'POST',
-      body: JSON.stringify({ name: LABEL, color: 'c2410c', description: 'Wish from the Ferieplan Forslag chat' }),
-    });
+    // Make sure the issue's labels exist (422 means one already does).
+    const labels = labelsFor(r.app);
+    for (const label of LABEL_DEFS.filter((d) => labels.includes(d.name))) {
+      await gh('/labels', ghToken, { method: 'POST', body: JSON.stringify(label) });
+    }
     const res = await gh('/issues', ghToken, {
       method: 'POST',
-      body: JSON.stringify({ title: plain(r.title).slice(0, 120), body: issueBody(r), labels: [LABEL] }),
+      body: JSON.stringify({ title: plain(r.title).slice(0, 120), body: issueBody(r), labels }),
     });
     if (!res.ok) return json({ error: 'upstream' }, 502, origin);
     const issue = await res.json();
