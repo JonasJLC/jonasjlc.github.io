@@ -1,6 +1,6 @@
 // Run: deno test --node-modules-dir=none --no-lock --allow-env supabase/functions
 import assert from 'node:assert/strict';
-import { HttpError } from '../_shared/http.ts';
+import { HttpError } from './http.ts';
 import { checkUrl, fetchPage, fetchPublic, isPrivateAddress, MAX_BYTES } from './fetch.ts';
 
 const code = async (p: Promise<unknown>) => {

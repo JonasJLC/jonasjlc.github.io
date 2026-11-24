@@ -1,8 +1,10 @@
-// Fetching a recipe page, or a recipe photo, for `recipe-import` and `recipe-image` (design §4.5): HTTPS only, public addresses only (checked again after every
-// redirect), at most three redirects, 8 seconds in total, 2 MB of body, no cookies or credentials.
+// Hardened outbound fetch shared by the edge functions (design §4.5): recipe pages (`recipe-import`), recipe photos
+// (`recipe-image`) and, later, calendar feeds. HTTPS only, public addresses only (checked again after every redirect), at
+// most three redirects, 8 seconds in total, no cookies or credentials. `fetchPublic` takes the allowed content types and
+// the size limit as options; `fetchPage` reads HTML with a 2 MB limit.
 // Known limit: the address is checked by resolving the name first and fetch() resolves it again, so a name that changes
 // its answer between the two lookups is not caught. The function holds no secrets the page could reach by that route.
-import { HttpError } from '../_shared/http.ts';
+import { HttpError } from './http.ts';
 
 export const MAX_BYTES = 2_000_000;
 export const MAX_REDIRECTS = 3;

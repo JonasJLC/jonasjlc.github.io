@@ -5,7 +5,7 @@
 import type { Caller } from '../_shared/guard.ts';
 import { HttpError } from '../_shared/http.ts';
 import { z } from '../_shared/schema.ts';
-import { fetchPage, fetchPublic, type FetchDeps } from '../recipe-import/fetch.ts';
+import { fetchPage, fetchPublic, type FetchDeps } from '../_shared/fetch.ts';
 import { pickImage } from '../recipe-import/page.ts';
 
 export const MAX_IMAGE_BYTES = 5_000_000;

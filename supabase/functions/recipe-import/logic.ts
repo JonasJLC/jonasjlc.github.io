@@ -5,7 +5,7 @@ import type { Caller } from '../_shared/guard.ts';
 import { HttpError } from '../_shared/http.ts';
 import { z } from '../_shared/schema.ts';
 import { assertWithinLimits, limitsFromEnv } from '../_shared/usage.ts';
-import { fetchPage, type FetchDeps } from './fetch.ts';
+import { fetchPage, type FetchDeps } from '../_shared/fetch.ts';
 import { pageText, pickImage } from './page.ts';
 
 export const GROCERY_CATEGORIES = [
