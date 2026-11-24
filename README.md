@@ -71,15 +71,15 @@ The app asks for Google sign-in and shows content only to invited accounts. The 
 
 ## Strandparken (`/strandparken/`)
 
-A household app with five views, kept in the URL hash so a refresh or shared link opens the same screen: `#hjem`, `#madplan` (meal plan), `#indkob` (shopping list), `#sundhed` (not built yet) and `#opskrifter` (recipes). Recipes can be imported from pasted text, a screenshot or a link, and the meal plan can ask for an AI dinner suggestion.
+A household app with five views, kept in the URL hash so a refresh or shared link opens the same screen: `#hjem`, `#madplan` (meal plan), `#indkob` (shopping list), `#sundhed` (not built yet) and `#opskrifter` (recipes). Recipes can be imported from pasted text, a screenshot or a link, and the meal plan can ask for an AI dinner suggestion. Forslag (wishes for the app, sent to GitHub as issues) opens from the Indstillinger sheet at `#hjem/forslag`.
 
 | What | Where |
 |---|---|
 | Page | `src/pages/strandparken/index.astro` |
 | UI primitives | `src/components/strandparken/ui/` |
 | App shell, sign-in gate, bottom bar | `src/components/strandparken/shell/` |
-| Views | `home/`, `madplan/`, `shopping/`, `recipes/`, `settings/` in the same folder |
-| Logic without UI (tested in `tests/`) | `src/components/strandparken/lib/` |
+| Views | `home/`, `madplan/`, `shopping/`, `recipes/`, `settings/`, `forslag/` in the same folder |
+| Logic without UI (tested in `tests/`) | `src/components/strandparken/lib/`; Forslag logic shared with `/ferie/` is in `src/lib/forslag/` |
 | Styles and all design tokens | `src/styles/strandparken.css` |
 | Icons and web manifest | `public/strandparken/` |
 
@@ -104,8 +104,8 @@ A household app with five views, kept in the URL hash so a refresh or shared lin
 
 | Function | Used by | What it does |
 |---|---|---|
-| `feature-chat` | Ferieplan | Turns a feature wish into a structured request, asking one follow-up question if needed. Saves nothing. |
-| `create-issue` | Ferieplan | Posts a saved request to a GitHub issue. Only the structured request is published, never the chat, emails or surnames. |
+| `feature-chat` | Ferieplan, Strandparken | Turns a feature wish into a structured request, asking one follow-up question if needed. Saves nothing. |
+| `create-issue` | Ferieplan, Strandparken | Posts a saved request to a GitHub issue, labelled `forslag` (and `strandparken` for Strandparken requests). Only the structured request is published, never the chat, emails or surnames. |
 | `destination-tips` | Ferieplan | Reads the Danish foreign ministry's travel advice (um.dk) for a destination and summarises entry, health and local rules. Saves nothing. |
 | `sp-status` | Strandparken | Returns who the caller is and how much of the AI budget is left. Makes no model call; used as the deploy smoke test. |
 | `recipe-import` | Strandparken | Turns pasted text, a screenshot or a link into a recipe. For links it reads schema.org recipe data first and falls back to the page text. |

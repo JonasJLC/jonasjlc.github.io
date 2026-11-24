@@ -1,14 +1,18 @@
+import { ChevronRight } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { dateLine, greetingFor } from '../lib/greeting';
 import { people, type Person } from '../lib/people';
 import { labels, type View } from '../lib/routes';
+import { ForslagView } from '../forslag/ForslagView';
 import { ProfileSection } from '../settings/ProfileSection';
 import { Tonight } from '../home/Tonight';
 import { IndkobView } from '../shopping/IndkobView';
 import { MadplanView } from '../madplan/MadplanView';
 import { RecipesView } from '../recipes/RecipesView';
 import { AvatarButton } from '../ui/avatar';
-import { Sheet, SheetContent, SheetHeader, SheetTrigger } from '../ui/sheet';
+import { Card } from '../ui/card';
+import { Icon } from '../ui/icon';
+import { Sheet, SheetClose, SheetContent, SheetHeader, SheetTrigger } from '../ui/sheet';
 
 /** Every view's heading. Focus moves here when the view changes, so keyboard and screen reader users land on the new screen. */
 function Title({ children }: { children: ReactNode }) {
@@ -38,7 +42,23 @@ function HomeView({ person, householdId }: { person: Person; householdId: string
           </SheetTrigger>
           <SheetContent>
             <SheetHeader title="Indstillinger" />
-            <ProfileSection householdId={householdId} person={person} />
+            <div className="flex flex-col gap-sp-gap">
+              <ProfileSection householdId={householdId} person={person} />
+              <section aria-labelledby="forslag-title" className="flex flex-col gap-2">
+                <h3 id="forslag-title" className="sp-title-group">Forslag</h3>
+                <SheetClose asChild>
+                  <a href="#hjem/forslag" className="block">
+                    <Card className="flex min-h-sp-row items-center justify-between gap-3 active:bg-sp-track">
+                      <span className="flex min-w-0 flex-col">
+                        <span className="sp-body-strong">Ønsker til appen</span>
+                        <span className="sp-small text-sp-muted">Fortæl hvad der mangler</span>
+                      </span>
+                      <Icon icon={ChevronRight} className="shrink-0 text-sp-muted" />
+                    </Card>
+                  </a>
+                </SheetClose>
+              </section>
+            </div>
           </SheetContent>
         </Sheet>
       </header>
@@ -53,6 +73,7 @@ const placeholders: Record<Exclude<View, 'hjem' | 'opskrifter' | 'madplan' | 'in
 
 /** The five views. Placeholders only: a title and one sentence, no sample data (U6 brings the fixtures). */
 export function ViewFor({ view, path, person, householdId }: { view: View; path: string[]; person: Person; householdId: string | null }) {
+  if (view === 'hjem' && path[0] === 'forslag') return <ForslagView householdId={householdId} />;
   if (view === 'hjem') return <HomeView person={person} householdId={householdId} />;
   if (view === 'madplan') return <MadplanView path={path} householdId={householdId} />;
   if (view === 'indkob') return <IndkobView householdId={householdId} />;

@@ -178,7 +178,7 @@ Each of these replaces a "TBD" in the draft. All are reversible; veto any of the
 | D46 | Task recurrence | Every N days, weeks or months. The next due date counts from completion by default; `Fast dato` keeps a fixed schedule. | Chores done late should not be due again two days later; bills should. |
 | D47 | Offline | Indkøb works fully offline (read, tick, add); changes sync when the connection returns. Other tabs show the last loaded data read-only with an offline note. **ADR-09** | Supermarkets have poor signal. Everything else can wait. |
 | D48 | AI models and budget | Small model by default (the repo default `claude-haiku-5-5`); a stronger model only for screenshot reading and nutrition recommendations. Every call is logged; a hard cap of 50 kr./month stops AI features with a clear message. **ADR-07** | Cost stays bounded without anyone watching it. |
-| D49 | Forslag | Reuse the `/ferie` Forslag component, opened from settings. | Gives Camilla a way to ask for changes without GitHub. |
+| D49 | Forslag | Reuse the `/ferie` Forslag backend (`feature_requests` with an `app` column, `feature-chat`, `create-issue`) and client module (`src/lib/forslag/`); Strandparken UI from its own primitives; opened from Indstillinger at `#hjem/forslag`. Issues carry the labels `forslag` and `strandparken`. | Gives Camilla a way to ask for changes without GitHub. Supersedes "reuse the component": the `/ferie` components carry `/ferie` tokens that are not loaded here. |
 | D50 | UI copy | `Læg på indkøbslisten` (was `Lav denne`); `Nyt forslag` (was `Ny forslag`). | Clarity and grammar. |
 | D51 | Offers source | Weekly offers from the Tjek / eTilbudsavis platform, which carries all four chains, subject to a terms check. Fallback: each list line links to an eTilbudsavis search, and nothing is stored. **ADR-05** | The only source found that covers Rema 1000 and Lidl as well (R1). |
 | D52 | Training data path | In order: (1) reuse the existing `garmin-dashboard/` export if it still produces JSON; (2) Strava activities, visible to Jonas only; (3) manual weekly entry. Revisit when Garmin reopens its developer programme. | Keeps the Sundhed tab useful without depending on a closed API. |
@@ -557,7 +557,7 @@ Dislikes, dietary preferences, body data for goals (§5.4.3), integrations and t
 
 #### 5.5.2 Household settings
 
-Recipe categories, grocery categories and their order, active supermarkets, home area for offers, dinner time for calendar events, dinner share for portions, export, Forslag.
+Recipe categories, grocery categories and their order, active supermarkets, home area for offers, dinner time for calendar events, dinner share for portions, export. Forslag (built, 24 Nov) is a link in the Indstillinger sheet to `#hjem/forslag`.
 
 Acceptance criteria:
 - [ ] Each person can edit only their own profile and goal.
@@ -785,7 +785,7 @@ Exit: §5.4 criteria pass; Camilla has approved the explanation texts and the sh
 | 4.1 | Tasks: one-off, recurring, due dates, claim with avatar, badges. | M |
 | 4.2 | Habits: personal/shared, weekly targets, check-off on Hjem, history. | M |
 | 4.3 | Hjem v2: today's tasks and habits, links with badges. | S |
-| 4.4 | Wishlist for the home; Forslag in settings. | S |
+| 4.4 | Wishlist for the home. (Forslag in settings: done 24 Nov, see D49.) | S |
 
 ### Phase 5 — Økonomi
 

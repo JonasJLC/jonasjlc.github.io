@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { hrefFor, labels, parseHash, views } from '../src/components/strandparken/lib/routes.ts';
+import { hrefFor, labels, parseHash, subPath, views } from '../src/components/strandparken/lib/routes.ts';
 
 test('the five views, in bottom-bar order', () => {
   assert.deepEqual([...views], ['hjem', 'madplan', 'indkob', 'sundhed', 'opskrifter']);
@@ -38,4 +38,11 @@ test('Indkøb is also reachable by its Danish spelling, and case does not matter
 
 test('a malformed percent escape falls back to Hjem instead of throwing', () => {
   assert.equal(parseHash('#%E0%A4%A'), 'hjem');
+});
+
+test('#hjem/forslag is Hjem with the sub-path forslag', () => {
+  assert.equal(parseHash('#hjem/forslag'), 'hjem');
+  assert.deepEqual(subPath('#hjem/forslag'), ['forslag']);
+  assert.deepEqual(subPath('#hjem'), []);
+  assert.deepEqual(subPath('#hjem/forslag?x=1'), ['forslag']);
 });

@@ -4,6 +4,7 @@ Things found or deferred while building, outside the delivery plan in the design
 
 ## Before first real use
 
+- **Try Forslag in Strandparken on both phones:** a real chat, the GitHub issue (labels `forslag` and `strandparken`, first name only), the other phone seeing it live, Jonas changing status and replying, and `/ferie/` Forslag still listing only Ferieplan requests.
 - **Try `recipe-import` on more pages.** It has been used in production: 4 recipes saved (3 from links), 4 model calls (2 screenshot or vision calls on `claude-sonnet-5-5`, 2 on `claude-haiku-5-5`), no errors, 0.44 kr. in total as of 24 Nov. Still untested: a page without schema.org data, and a pasted social caption. Spike R7 (cost and quality on 20 real imports) is still open.
 - **Try `meal-suggest` (2.2):** `Foreslå ret` on an empty day with a few recipes saved. It had never been called in production as of 24 Nov; the structured-output schema (an enum of candidate ids) has only run against test doubles. Neither person has filled in a profile (dislikes, preferences) yet.
 - **Set a spend limit in the Anthropic console** as the backstop that ADR-07 recommends.
@@ -11,11 +12,14 @@ Things found or deferred while building, outside the delivery plan in the design
 
 ## Done
 
+- **Forslag in Strandparken (24 Nov).** `feature_requests.app` migration applied (`20261124093354`), `feature-chat` and `create-issue` serve both apps, UI at `#hjem/forslag`. `supabase/tests/feature_requests_app.sql` 15/15 against production (rolled back, no rows left).
 - **Migration history repaired (24 Nov).** Production had recorded the migrations under the versions the dashboard tool gave them, and `claim_only_verified_emails` was applied but never recorded. Each recorded migration was compared with its file (identical apart from comments). The files were then renamed to the production versions, and the missing history row was added. `supabase db push` now sees nothing to apply. `apply_migration` (dashboard or MCP) gives a migration its own version: rename the file to that version afterwards, or apply new migrations with `supabase db push` instead.
 - **Policy tests run against production (24 Nov):** `strandparken_policies.sql` 55/55, `strandparken_ai_usage.sql` 14/14, `claim_only_verified_emails.sql` 4/4. Every test ran inside a transaction that was rolled back, and no test rows remained afterwards. The database advisor reports only two items: `feature_chat_calls` has RLS on and no policies, which is intended because only the service role uses it; and leaked-password protection is off, which matters only if email sign-up is enabled (`supabase/config.toml` disables it).
 
 ## Known gaps in shipped slices
 
+- **Forslag chat prompt lists the tabs.** `supabase/functions/feature-chat/logic.ts` (`STRANDPARKEN_SYSTEM`) names the five tabs. When navigation changes (idea 4 renames Indkøb to Lister), update it and `LISTER_LABEL` in `src/lib/forslag/model.ts` and the matching label in `create-issue/logic.ts`, then redeploy both functions.
+- **Forslag AI use is not in `sp_ai_usage` (D48).** It keeps its own per-user limit (40 an hour, 150 a day) and a small model. Revisit only if the cost shows up.
 - **Link import (1.2).** Pages that build their recipe in the browser (no schema.org data, no text in the HTML) come back as `not_a_recipe` and the sheet falls back to pasted text. The fetch resolves the host name and then lets `fetch` resolve it again, so a name that changes its answer between the two lookups is not caught (see `supabase/functions/recipe-import/fetch.ts`).
 - **`Til madplan` (recipe page)** only fills free days in the next 14 days; it does not replace a planned dinner.
 - **Idea photos.** A photo removed from a promoted idea's recipe also removes the file the idea still points at; the idea is hidden after promotion, so nothing shows a broken image.

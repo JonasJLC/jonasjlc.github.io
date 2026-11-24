@@ -7,9 +7,8 @@ import { Badge } from '../ui/badge';
 import { Button } from '../ui/button';
 import { Chip } from '../ui/chip';
 import { Field } from '../ui/field';
+import { Textarea } from '../ui/textarea';
 import { notify } from '../ui/toast';
-
-const area = 'sp-input sp-body min-h-24 w-full resize-y rounded-sp-row bg-sp-surface px-4 py-3 text-sp-ink placeholder:text-sp-muted';
 
 /** Profile (design §5.5.1): your own dislikes and preferences, editable; the other person's, readable. Everything that suggests food uses them. */
 export function ProfileSection({ householdId, person }: { householdId: string | null; person: Person }) {
@@ -71,7 +70,7 @@ export function ProfileSection({ householdId, person }: { householdId: string | 
           </div>
           <label className="flex flex-col gap-1">
             <span className="sp-small text-sp-muted">Ønsker til maden (valgfri)</span>
-            <textarea className={area} maxLength={1000} value={preferences} onChange={(e) => setPreferences(e.target.value)} placeholder="F.eks. meget grønt, gerne let og hurtigt" />
+            <Textarea maxLength={1000} value={preferences} onChange={(e) => setPreferences(e.target.value)} placeholder="F.eks. meget grønt, gerne let og hurtigt" />
           </label>
           <Button type="submit" disabled={busy || !loaded}>Gem profil</Button>
         </form>
