@@ -9,7 +9,7 @@
 **Source:** `docs/app_ideer_-_strandparken_rettet.docx`, Idé 3 (no mockup).
 **Depends on:** nothing.
 **Supersedes:** main spec §5.3.3 "Per day: … move or swap with another day" gains drag and drop and cross-week moves; UI spec §5.6 (day rows) and §8 (motion) gain the lifted state.
-**Status:** Draft 2026-11-24. See the [roadmap](2026-11-24-strandparken-ideer-roadmap.md).
+**Status:** ✅ Implemented 2026-11-24 (commits ba33f1d). Manual checks: `docs/strandparken-manual-checks.md`. See the [roadmap](2026-11-24-strandparken-ideer-roadmap.md).
 
 ---
 

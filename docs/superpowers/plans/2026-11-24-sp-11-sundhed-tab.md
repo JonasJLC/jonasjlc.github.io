@@ -14,6 +14,8 @@
 
 **Status:** Draft, 2026-11-24. Index: [roadmap](2026-11-24-strandparken-ideer-roadmap.md).
 
+> **⬜ Next up (as of 2026-11-24).** Plan 10 already built pieces this plan expected to create: `ui/switch.tsx`, `lib/health/{model,repo,use-health}.ts` (`useHealth`, `setSharing`, `toHealthView`), `useHealthSettings` and `settings/SharingConfirm.tsx`. Reuse them instead of rebuilding. Plan 14 added a generic `ui/progress-bar.tsx`, which plans 12 and 15 can reuse.
+
 **Privacy (roadmap Q9):** mentions cycle-data sharing. Do not commit until Jonas decides.
 
 ---

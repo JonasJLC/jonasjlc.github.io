@@ -12,7 +12,7 @@
 
 **Supersedes:** adds item 5 of the new Hjem order (roadmap Q7); UI spec §5.8 gets the day tag.
 
-**Status:** Draft, 2026-11-24. Part of the [roadmap](2026-11-24-strandparken-ideer-roadmap.md).
+**Status:** ✅ Implemented 2026-11-24 (commits ff63e16). Manual checks: `docs/strandparken-manual-checks.md`. Part of the [roadmap](2026-11-24-strandparken-ideer-roadmap.md).
 
 ---
 

@@ -12,7 +12,7 @@
 
 **Supersedes:** main spec §5.6 items 1–3 and D23 (roadmap Q7); UI spec §5.5 (Tonight card) and the week-strip half of §5.6.
 
-**Status:** Draft, 2026-11-24. Part of the [roadmap](2026-11-24-strandparken-ideer-roadmap.md).
+**Status:** ✅ Implemented 2026-11-24 (commits afd9718). Manual checks: `docs/strandparken-manual-checks.md`. Part of the [roadmap](2026-11-24-strandparken-ideer-roadmap.md).
 
 ---
 

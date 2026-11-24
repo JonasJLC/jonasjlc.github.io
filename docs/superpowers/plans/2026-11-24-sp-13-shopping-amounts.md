@@ -12,7 +12,7 @@
 
 **Supersedes:** main spec §5.3.4 "Storage and merging" (lines merge by ingredient, not by name and unit) and D32's unit list is unchanged for recipes. ADR-08 gains a "Display conversion" section. D8 (no pantry) holds: "Tjek at I har" is a reminder, not an inventory.
 
-**Status:** Draft, 2026-11-24. Part of the [roadmap](2026-11-24-strandparken-ideer-roadmap.md).
+**Status:** ✅ Implemented 2026-11-24 (commits dae4163, a68ed21). Manual checks: `docs/strandparken-manual-checks.md`. Part of the [roadmap](2026-11-24-strandparken-ideer-roadmap.md).
 
 ---
 

@@ -12,7 +12,7 @@
 
 **Supersedes:** Nothing yet. Its findings update main spec §7.1 (R3, R4), §7.2 (R3, R4 spikes), D14, D39, D52 and become ADR-06 (main spec §10).
 
-**Status:** Draft, 2026-11-24. Index: [roadmap](2026-11-24-strandparken-ideer-roadmap.md) (see Q2, Q6, Q9).
+**Status:** ✅ Implemented 2026-11-24 (commits 65ba107 (ADR-06)). Manual checks: `docs/strandparken-manual-checks.md`. Index: [roadmap](2026-11-24-strandparken-ideer-roadmap.md) (see Q2, Q6, Q9).
 
 **Privacy (roadmap Q9):** this plan and the report discuss how Camilla's cycle data would be handled. Do not commit them, or ADR-06, until Jonas decides what may be public.
 

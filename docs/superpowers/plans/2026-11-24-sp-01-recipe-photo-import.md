@@ -9,7 +9,7 @@
 **Source:** `docs/app_ideer_-_strandparken_rettet.docx`, Idé 1 (no mockup).
 **Depends on:** nothing. Idé 2 (placeholder) builds on the same `DishImage` component.
 **Supersedes:** main spec §4.6 "Images" for imported photos only (1200 px instead of 1600 px; camera photos keep 1600 px, per the roadmap's Q10). Main spec §5.3.1 acceptance "imports with title, photo, …" becomes true for link imports.
-**Status:** Draft 2026-11-24. See the [roadmap](2026-11-24-strandparken-ideer-roadmap.md).
+**Status:** ✅ Implemented 2026-11-24 (commits bbb2e6c, d1e3153). Manual checks: `docs/strandparken-manual-checks.md`. See the [roadmap](2026-11-24-strandparken-ideer-roadmap.md).
 
 ---
 

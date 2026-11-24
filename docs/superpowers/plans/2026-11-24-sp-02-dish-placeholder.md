@@ -9,7 +9,7 @@
 **Source:** `docs/app_ideer_-_strandparken_rettet.docx`, Idé 2. Mockup: the first image in the document ("Idé 3 · Pladsholder uden billede"; the mockup labels use older numbers): a 2×3 Opskrifter grid in peach, green, honey, rose, mint and pink, captioned "Én dæmpet farve og ét ikon pr. kategori".
 **Depends on:** nothing required. If Idé 1 is built first, the "Henter billede…" state sits on top of this tile.
 **Supersedes:** UI spec §5.4 (dish image fallback: "`--sp-track` tile with the first letter") and §5.10 for ideas without a photo. Main spec §5.2 acceptance "Items without a photo look intentional, not broken" now has a concrete form.
-**Status:** Draft 2026-11-24. See the [roadmap](2026-11-24-strandparken-ideer-roadmap.md).
+**Status:** ✅ Implemented 2026-11-24 (commits 9d79650). Manual checks: `docs/strandparken-manual-checks.md`. See the [roadmap](2026-11-24-strandparken-ideer-roadmap.md).
 
 ---
 

@@ -12,7 +12,7 @@
 
 **Supersedes:** main spec D13 (readiness → sleep score; data is no longer Sundhed-only, see idea 12), D40 (sharing per metric instead of per integration), §4.4 rows `oura-oauth` / `oura-sync` / `training-sync` (replaced by `health-oauth`, `health-sync`, `health-ingest`), §6 rows `sp_health_daily` and `sp_health_sharing`.
 
-**Status:** Draft, 2026-11-24. Index: [roadmap](2026-11-24-strandparken-ideer-roadmap.md).
+**Status:** ✅ Implemented 2026-11-24 (commits 8df2245..4796d77). Manual checks: `docs/strandparken-manual-checks.md`. Index: [roadmap](2026-11-24-strandparken-ideer-roadmap.md).
 
 **Privacy (roadmap Q9):** this plan describes how cycle data is stored and shared. Do not commit it until Jonas decides.
 

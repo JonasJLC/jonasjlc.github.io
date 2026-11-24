@@ -9,7 +9,7 @@
 **Source:** `docs/app_ideer_-_strandparken_rettet.docx`, Idé 4. Mockups showing the Lister header: the To-do mockup and "Idé 5 · Lister med Indkøb" (older numbering in the mockup labels).
 **Depends on:** nothing. Idé 5 fills the To-do segment; Idé 8 links to `#lister/indkob` with a filter; Idé 14 restyles the header.
 **Supersedes:** main spec D24 and §5.1 (tab names and order), §5.3.4 heading ("Indkøb (tab)" → a segment of Lister); UI spec §5.1 (bottom bar items) and §6 (screens).
-**Status:** Draft 2026-11-24. See the [roadmap](2026-11-24-strandparken-ideer-roadmap.md) (Q8).
+**Status:** ✅ Implemented 2026-11-24 (commits b983f57). Manual checks: `docs/strandparken-manual-checks.md`. See the [roadmap](2026-11-24-strandparken-ideer-roadmap.md) (Q8).
 
 ---
 

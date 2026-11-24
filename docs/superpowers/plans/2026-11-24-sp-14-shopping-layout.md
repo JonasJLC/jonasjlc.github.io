@@ -12,7 +12,7 @@
 
 **Supersedes:** UI spec §5.8 (shopping row and add field) and the Indkøb screen in UI spec §6.
 
-**Status:** Draft, 2026-11-24. Part of the [roadmap](2026-11-24-strandparken-ideer-roadmap.md).
+**Status:** ✅ Implemented 2026-11-24 (commits ade17c7, 9dec56b). Manual checks: `docs/strandparken-manual-checks.md`. Part of the [roadmap](2026-11-24-strandparken-ideer-roadmap.md).
 
 ---
 

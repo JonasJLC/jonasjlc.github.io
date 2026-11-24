@@ -12,24 +12,26 @@
 
 ## Plans
 
-| # | Plan | Size | Depends on | Gate |
-|---|---|---|---|---|
-| F | [Forslag i Strandparken](2026-11-24-strandparken-forslag.md) | S | – | None. Can go first; it gives Camilla a way to send wishes while the rest is built. |
-| 1 | [Billede af retten ved import fra link](2026-11-24-sp-01-recipe-photo-import.md) | M | – | – |
-| 2 | [Pænere pladsholder uden billede](2026-11-24-sp-02-dish-placeholder.md) | S | (1) | – |
-| 3 | [Flyt retter i Madplan med træk og slip](2026-11-24-sp-03-madplan-drag.md) | M | – | – |
-| 4 | [Ny fane "Lister" med Indkøb](2026-11-24-sp-04-lister-tab.md) | S | – | – |
-| 5 | [To-do-liste under Lister](2026-11-24-sp-05-todo.md) | M | 4 | Q3 |
-| 6 | [Nyt Hjem, del 1: header og I aften](2026-11-24-sp-06-hjem-header-tonight.md) | S | 2 | – |
-| 7 | [Kalender på Hjem](2026-11-24-sp-07-hjem-calendar.md) | L | 6 | **Q1: Jonas must choose the calendar approach before build** (the source document asks for this). |
-| 8 | [Mangler at handle på Hjem](2026-11-24-sp-08-hjem-shopping.md) | S | 4, 6 | – |
-| 9 | [Undersøg Oura og Garmin (research only)](2026-11-24-sp-09-health-research.md) | S | – | Ends by waiting for Jonas's go-ahead (Q2). |
-| 10 | [Forbind sundhedsdata](2026-11-24-sp-10-health-integration.md) | L | 9 | Q2, Q6 |
-| 11 | [Sundhed-fanen](2026-11-24-sp-11-sundhed-tab.md) | M | 10 | Q6 |
-| 12 | [Jeres dag på Hjem](2026-11-24-sp-12-hjem-jeres-dag.md) | S | 6, 11 | – |
-| 13 | [Realistiske mængder på indkøbslisten](2026-11-24-sp-13-shopping-amounts.md) | L | 4 | – |
-| 14 | [Nyt layout på indkøbslisten](2026-11-24-sp-14-shopping-layout.md) | M | 4, 8, 13 | – |
-| 15 | [Vaner i Sundhed](2026-11-24-sp-15-habits.md) | L | 11 (manual habits need only the Sundhed segment) | Q4, Q5; automatic habits need 10 |
+> **Progress (2026-11-24):** F and 1–10, 13 and 14 are implemented and pushed to `main`. **Start the next coding block with plan 11 (Sundhed-fanen)**, then 12 (Jeres dag) and 15 (Vaner); 12 and 15 can run in parallel once 11 is done. All decision gates are answered: Q1 = A (iCal feeds), Q2 = ADR-06 (Oura for Camilla, Garmin Personal API for Jonas, manual cycle log), Q9 = commit everything. Q4 and Q5 (habits) use the defaults. Outstanding manual checks, secrets and setup steps are in `docs/strandparken-manual-checks.md`; health and calendar collect nothing until those secrets are set.
+
+| Status | # | Plan | Size | Depends on | Gate |
+|---|---|---|---|---|---|
+| ✅ Done | F | [Forslag i Strandparken](2026-11-24-strandparken-forslag.md) | S | – | None. Can go first; it gives Camilla a way to send wishes while the rest is built. |
+| ✅ Done | 1 | [Billede af retten ved import fra link](2026-11-24-sp-01-recipe-photo-import.md) | M | – | – |
+| ✅ Done | 2 | [Pænere pladsholder uden billede](2026-11-24-sp-02-dish-placeholder.md) | S | (1) | – |
+| ✅ Done | 3 | [Flyt retter i Madplan med træk og slip](2026-11-24-sp-03-madplan-drag.md) | M | – | – |
+| ✅ Done | 4 | [Ny fane "Lister" med Indkøb](2026-11-24-sp-04-lister-tab.md) | S | – | – |
+| ✅ Done | 5 | [To-do-liste under Lister](2026-11-24-sp-05-todo.md) | M | 4 | Q3 |
+| ✅ Done | 6 | [Nyt Hjem, del 1: header og I aften](2026-11-24-sp-06-hjem-header-tonight.md) | S | 2 | – |
+| ✅ Done | 7 | [Kalender på Hjem](2026-11-24-sp-07-hjem-calendar.md) | L | 6 | **Q1: Jonas must choose the calendar approach before build** (the source document asks for this). |
+| ✅ Done | 8 | [Mangler at handle på Hjem](2026-11-24-sp-08-hjem-shopping.md) | S | 4, 6 | – |
+| ✅ Done | 9 | [Undersøg Oura og Garmin (research only)](2026-11-24-sp-09-health-research.md) | S | – | Ends by waiting for Jonas's go-ahead (Q2). |
+| ✅ Done | 10 | [Forbind sundhedsdata](2026-11-24-sp-10-health-integration.md) | L | 9 | Q2, Q6 |
+| ⬜ **Next** | 11 | [Sundhed-fanen](2026-11-24-sp-11-sundhed-tab.md) | M | 10 | Q6 |
+| ⬜ To do | 12 | [Jeres dag på Hjem](2026-11-24-sp-12-hjem-jeres-dag.md) | S | 6, 11 | – |
+| ✅ Done | 13 | [Realistiske mængder på indkøbslisten](2026-11-24-sp-13-shopping-amounts.md) | L | 4 | – |
+| ✅ Done | 14 | [Nyt layout på indkøbslisten](2026-11-24-sp-14-shopping-layout.md) | M | 4, 8, 13 | – |
+| ⬜ To do | 15 | [Vaner i Sundhed](2026-11-24-sp-15-habits.md) | L | 11 (manual habits need only the Sundhed segment) | Q4, Q5; automatic habits need 10 |
 
 ```mermaid
 flowchart LR

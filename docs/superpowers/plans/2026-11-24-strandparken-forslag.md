@@ -12,7 +12,7 @@
 
 **Supersedes:** D49's "reuse the component" becomes "reuse the backend and logic; Strandparken-styled UI". Slice 4.4 loses its Forslag half (the wishlist stays).
 
-**Status:** Draft, 2026-11-24. Part of the [Strandparken idéer roadmap](2026-11-24-strandparken-ideer-roadmap.md). No gate; it can be built first.
+**Status:** ✅ Implemented 2026-11-24 (commits 90d7707, a852794). Part of the [Strandparken idéer roadmap](2026-11-24-strandparken-ideer-roadmap.md). No gate; it can be built first.
 
 ---
 
