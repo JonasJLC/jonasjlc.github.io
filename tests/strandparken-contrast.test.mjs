@@ -61,3 +61,17 @@ for (const k of tones) {
     assert.ok(r >= 4.5, `${r.toFixed(2)}:1`);
   });
 }
+
+// Idé 7: calendar colours. Event title and time sit on the tint (text, 4.5:1); the bar is a graphical marker on the tint
+// and the colour dot sits on the surface (WCAG 1.4.11, 3:1).
+for (const k of [1, 2, 3, 4, 5, 6]) {
+  test(`calendar ${k}: ink on tint is at least 4.5:1`, () => {
+    const r = ratio(c(`cal-${k}-ink`), c(`cal-${k}-tint`));
+    assert.ok(r >= 4.5, `${r.toFixed(2)}:1`);
+  });
+  for (const bg of [`cal-${k}-tint`, 'surface'])
+    test(`calendar ${k}: bar on ${bg} is at least 3:1`, () => {
+      const r = ratio(c(`cal-${k}`), c(bg));
+      assert.ok(r >= 3, `${r.toFixed(2)}:1`);
+    });
+}

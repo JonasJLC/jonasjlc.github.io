@@ -186,6 +186,7 @@ Each of these replaces a "TBD" in the draft. All are reversible; veto any of the
 | D54 | Deleting recipes | Recipes are archived, not deleted. Past madplan entries keep their dish. | History and "cooked often" stay intact. |
 | D55 | Allergies | Out of scope. The profile holds dislikes and preferences only; there are no allergen tags and no allergen filter. | Neither person has allergies. If that changes, add allergen tags per ingredient and a code-level filter before any AI suggestion. |
 | D56 | Visual direction | Mockup A (Fotoforrest): photo-led white cards on warm off-white, Fraunces titles, Figtree body, deep green actions. The bottom bar is the flat bar from mockup B: five equal items, no raised or emphasised item. Details in the UI spec. | Chosen by Jonas after testing the three mockups. |
+| D57 | Calendar on Hjem (roadmap Q1, 2026-11-24) | Read-only private iCal feeds (option A). Each person pastes the secret iCal address of each calendar once; the `calendar` function stores it encrypted and returns only today's and tomorrow's events. Google Calendar API read access (option B) is a possible later upgrade. | Strandparken is a PWA and cannot read the phone's calendars. Feeds cover Google, Outlook and iCloud without an OAuth app. |
 
 ---
 
@@ -255,6 +256,7 @@ Every function verifies the caller's JWT and household membership, validates its
 | `meal-suggest` | User | One dinner for a given empty day, chosen from candidates that the function has already filtered in code (§5.3.5). |
 | `nutrition` | On recipe save | Resolves ingredients to Frida, AI estimate for misses; stores macros and micros per serving with a source flag; produces recommendations. |
 | `offers-sync` | Daily schedule | Pulls current offers for the active chains near the household into `sp_offers`; matches them to list lines on request. |
+| `calendar` | User | Idé 7, read only (D57). `add`: test-fetches a secret iCal address through the hardened fetch (`webcal://` becomes https, iCal types, 5 MB), encrypts it with AES-GCM (`SP_FEED_KEY`) and stores it with its `sp_calendar_sources` row. `events`: today's and tomorrow's events (Copenhagen) from the caller's enabled calendars and the other person's shared ones, parsed with `ical.js` and cached per feed for 15 minutes; a failing feed answers from its last cache, marked stale. Never returns an address, a location or a description. |
 | `calendar-oauth` | User | Handles the Google authorisation code flow for the calendar scope and stores the refresh token. |
 | `calendar-write` | Madplan change | Creates, updates and deletes events in the Madplan calendar. Failed writes are queued and retried. |
 | `health-oauth` | User | Oura authorisation code flow with PKCE (start and callback), Garmin personal API key, disconnect (idea 10, ADR-06). |
@@ -266,6 +268,7 @@ Every function verifies the caller's JWT and household membership, validates its
 - **Untrusted content.** Web pages, captions and screenshots are data, never instructions. Model calls that read them have no tools, must return JSON matching a schema, and produce only a draft that a person reviews before it is saved.
 - **Allergies.** Out of scope (D55).
 - **Health data.** Body data and targets are computed in code. Cycle and readiness data are never sent to a model (D38). Dislikes and preferences may be sent to `meal-suggest`.
+- **Calendar addresses (D57).** A secret iCal address lets anyone read that calendar, so it is sent once, encrypted with AES-GCM under the function secret `SP_FEED_KEY` and stored in `private.sp_calendar_feeds`. It is never returned to a browser and never logged; the logs carry the outcome and the duration only. Without `SP_FEED_KEY` the function answers `not_configured`.
 - **Tokens.** Stored encrypted in `private.sp_integration_tokens`. Oura refresh tokens are single-use: a refresh first takes a lease under an advisory lock, and the new pair is stored only if the lease's version is still current, so two runs cannot invalidate each other (idea 10).
 - **Images.** Recipe photos are copied into Storage for private use; they are never served publicly.
 - **Logs.** No health data, tokens or page bodies in function logs.
@@ -591,7 +594,7 @@ Acceptance criteria:
 
 Hjem is the household dashboard (roadmap Q7, amends D23). Top to bottom:
 1. **Header:** the date ("Torsdag 19. november"), a greeting by time of day (Godmorgen 04–10, Goddag 11–17, Godaften 18–03, Copenhagen time) with the signed-in person's first name, and both members' avatars at the right. The signed-in person's avatar opens Indstillinger; the other is decorative (idea 6).
-2. **Kalender** (idea 7).
+2. **Kalender** (idea 7, read only, private iCal feeds, D57): one white card. Left: the weekday in red caps, the date in large numbers, then the next event today that has not ended (else today's first all-day event, else "Ingen flere i dag"). Right: "I morgen" with up to two events (all-day first) as small cards with the calendar's colour as a left bar, then "+ N mere". Events of a calendar marked Fælles read "· fælles". The whole card opens the Calendar app at today on iOS (`calshow:`) and Google Calendar's day view elsewhere. With no calendar yet it says why calendars are added by address and offers `Tilføj kalender`. Each person adds, hides, shares and removes their own calendars in Indstillinger › Kalendere; the other person's private calendars are never fetched for them. Feeds from Google can lag by hours.
 3. **I aften:** a compact card with today's dinner (thumbnail, name, time, persons). The whole card is a link: a recipe opens the recipe, an idea or free text opens today's Madplan sheet (`#madplan/<date>/dag`). Nothing planned: "Hvad skal I have i aften?" with `Planlæg i aften` (today's Madplan sheet) and `Vælg fra opskrifter` (idea 6).
 4. **Jeres dag** (idea 12).
 5. **Mangler at handle** (idea 8): only what is still unbought for today's and tomorrow's planned recipes, never the whole list. "Til i aften" shows the count of unbought lines ("2 varer") and up to three names, then "+ N mere"; "Til i morgen · <recipe>" shows the count. Only rows generated from the plan count (linked through `plan_entry_id`, so a moved meal keeps its items); manual items, `Læg på indkøbslisten` items and pantry basics do not. When everything for tonight is ticked or marked as at home, the line reads "Klar til i aften". A planned recipe whose items are not on the list reads "Ikke på listen endnu". A day without a planned recipe has no line, and with neither line the section is left out. The card links to Indkøb filtered to those meals (`#lister/indkob?for=<entry>,<entry>`). It updates live when the other phone ticks an item, and works from the cached list offline.
@@ -682,6 +685,7 @@ All tables carry `household_id` with row-level security. "Household" policy: mem
 | `sp_cycle_log` | person, period_start | Owner only |
 | `sp_health_sharing` | person, metric, shared (bool), changed_at | Owner writes; household reads |
 | `sp_habits` / `sp_habit_logs` | scope (personal/shared), owner, title, weekly_target, archived_at / habit_id, date, done_by | Household; personal habits written by owner |
+| `sp_calendar_sources` | person, label, color (`cal-1`…`cal-6`), shared, enabled, position, last_fetched_at, last_error | Owner reads all of theirs and updates label, colour, Fælles, Vis and order, and deletes; the other person reads shared rows only; created only by the `calendar` function |
 | `sp_todos` | title, owner (`a`/`b`/`both`), due_date, note, completed_at, completed_by (set by the database) | Household |
 | `sp_wishlist_items` | name, note, url, price_estimate, priority, bought_at | Household |
 | `sp_subscriptions` | name, price, cycle, next_renewal, payer | Household |
@@ -689,6 +693,7 @@ All tables carry `household_id` with row-level security. "Household" policy: mem
 | `sp_offers` | chain, heading, canonical_name, price, quantity, unit_price, unit, valid_from, valid_to, fetched_at | Household read; function writes |
 | `sp_food_ref` | Frida id, Danish name, nutrients per 100 g, piece weight | Read-only reference |
 | `sp_ai_usage` | function, model, input/output tokens, estimated cost, person, created_at | Function writes; owner reads |
+| `private.sp_calendar_feeds` | source_id, url_cipher (AES-GCM), cached_events, cached_for, cached_at | `calendar` function only, through service-role functions |
 | `private.sp_integration_tokens` | household, person, provider, encrypted access/refresh tokens or API key, scopes, expires_at, version, refresh lease | Edge functions only (service-role RPCs) |
 
 Derived, not stored: times cooked and last cooked (from past `sp_meal_plan_entries`), the merged shopping view, subscription totals, badge counts.

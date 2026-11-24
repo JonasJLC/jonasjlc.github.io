@@ -50,6 +50,25 @@
   --sp-tone-oat: #ECE5D4;
   --sp-tone-oat-ink: #5A503C;
   --sp-warn: #8A5A00; /* idea 5: overdue dates; red stays reserved for destructive actions. The CJ avatar reuses the honey tone pair. */
+  /* Idé 7: calendar colours, picked per calendar. The bar marks the event; the small event card is the tint with ink text. */
+  --sp-cal-1: #2F7A4F;
+  --sp-cal-1-tint: #E3F0E6;
+  --sp-cal-1-ink: #1F5236;
+  --sp-cal-2: #2F6690;
+  --sp-cal-2-tint: #E3ECF4;
+  --sp-cal-2-ink: #24506F;
+  --sp-cal-3: #B4532A;
+  --sp-cal-3-tint: #F8E5DC;
+  --sp-cal-3-ink: #7A3418;
+  --sp-cal-4: #96486A;
+  --sp-cal-4-tint: #F4E4EB;
+  --sp-cal-4-ink: #6F2F4C;
+  --sp-cal-5: #9A6B00;
+  --sp-cal-5-tint: #F6ECCD;
+  --sp-cal-5-ink: #5E4207;
+  --sp-cal-6: #2B7676;
+  --sp-cal-6-tint: #DCEFEE;
+  --sp-cal-6-ink: #1B4D4D;
   --sp-scrim: rgba(27, 38, 32, 0.45);
   --sp-primary-pressed: color-mix(in oklab, var(--sp-primary) 96%, black); /* UI spec §5.2: pressed is 4% darker */
 
@@ -147,6 +166,24 @@
   --color-sp-tone-oat: var(--sp-tone-oat);
   --color-sp-tone-oat-ink: var(--sp-tone-oat-ink);
   --color-sp-warn: var(--sp-warn);
+  --color-sp-cal-1: var(--sp-cal-1);
+  --color-sp-cal-1-tint: var(--sp-cal-1-tint);
+  --color-sp-cal-1-ink: var(--sp-cal-1-ink);
+  --color-sp-cal-2: var(--sp-cal-2);
+  --color-sp-cal-2-tint: var(--sp-cal-2-tint);
+  --color-sp-cal-2-ink: var(--sp-cal-2-ink);
+  --color-sp-cal-3: var(--sp-cal-3);
+  --color-sp-cal-3-tint: var(--sp-cal-3-tint);
+  --color-sp-cal-3-ink: var(--sp-cal-3-ink);
+  --color-sp-cal-4: var(--sp-cal-4);
+  --color-sp-cal-4-tint: var(--sp-cal-4-tint);
+  --color-sp-cal-4-ink: var(--sp-cal-4-ink);
+  --color-sp-cal-5: var(--sp-cal-5);
+  --color-sp-cal-5-tint: var(--sp-cal-5-tint);
+  --color-sp-cal-5-ink: var(--sp-cal-5-ink);
+  --color-sp-cal-6: var(--sp-cal-6);
+  --color-sp-cal-6-tint: var(--sp-cal-6-tint);
+  --color-sp-cal-6-ink: var(--sp-cal-6-ink);
   --color-sp-scrim: var(--sp-scrim);
   --color-sp-primary-pressed: var(--sp-primary-pressed);
 

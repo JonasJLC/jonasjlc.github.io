@@ -12,7 +12,7 @@
 
 **Supersedes:** main spec §1.3 ("No two-way Google Calendar sync") is unchanged; this adds a read path the spec did not have. Adds a `calendar` row to §4.4. Interacts with D37 / slice 2.3 (Madplan written to a Google calendar; not built). If 2.3 is built later, its "Madplan" calendar can be added here as a shared feed like any other.
 
-**Status:** Draft, 2026-11-24. **Blocked on the decision gate below.** Part of the [roadmap](2026-11-24-strandparken-ideer-roadmap.md) (Q1).
+**Status:** Implemented 2026-11-24 with Q1 = A (private iCal feeds). Part of the [roadmap](2026-11-24-strandparken-ideer-roadmap.md) (Q1).
 
 ---
 
