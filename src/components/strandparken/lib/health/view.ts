@@ -100,3 +100,54 @@ export function sourceLine(sources: readonly SourceStatus[], now: Date = new Dat
 
 /** False when the owner hides every metric from the viewer: the panel then shows a calm note instead of empty tiles. */
 export const viewerCanSee = (hidden: readonly Metric[]): boolean => !METRICS.every((m) => hidden.includes(m));
+
+export interface DayCardRow {
+  metric: Metric;
+  label: string;
+  /** The value, or the "Ingen data" copy when `missing`. */
+  text: string;
+  missing: boolean;
+  /** Bar fill from 0 to 1 (Aktivitet with a value only). Clamped; `text` keeps the real percentage. */
+  bar?: number;
+}
+
+export interface DayCard {
+  rows: DayCardRow[];
+  /** "Oura · synk. 19.45", or null when nothing is connected. Keeps the real sync time even when today's numbers are missing. */
+  sync: string | null;
+  /** Set instead of rows: `not-connected` when the person has no source, `not-shared` when the viewer may see no metric. */
+  empty?: 'not-connected' | 'not-shared';
+}
+
+/**
+ * One person's "Jeres dag" card on Hjem (idea 12). Rows are Søvn, Cyklus, Aktivitet in that order; steps are left out on Hjem.
+ * A metric hidden from the viewer has no row. Data from an earlier day is never shown as today (`freshness`), so those rows
+ * read "Ingen data". Cyklus is shown to the owner when there is any cycle data, and to the other person only when shared.
+ */
+export function dayCard(input: {
+  days: readonly DayView[];
+  today: string;
+  hidden: readonly Metric[];
+  sources: readonly SourceStatus[];
+  /** True when the card is the signed-in person's own. */
+  isOwner: boolean;
+  now?: Date;
+}): DayCard {
+  const { days, today, hidden, sources, isOwner, now = new Date() } = input;
+  if (sources.length === 0) return { rows: [], sync: null, empty: 'not-connected' };
+  const visible = METRICS.filter((m) => m !== 'steps' && !hidden.includes(m));
+  if (visible.length === 0) return { rows: [], sync: sourceLine(sources, now), empty: 'not-shared' };
+
+  const { day } = freshness(days, today);
+  const hasCycleLog = days.some((d) => d.cycle_day != null);
+  const cardOrder: TileKey[] = ['sleep', 'cycle', 'activity'];
+  const rows = todayTiles(day, hidden, isOwner, hasCycleLog)
+    .filter((t) => cardOrder.includes(t.key))
+    .sort((a, b) => cardOrder.indexOf(a.key) - cardOrder.indexOf(b.key))
+    .map((t): DayCardRow => {
+      const row: DayCardRow = { metric: t.metric, label: t.label, text: t.value ?? t.empty, missing: t.value === null };
+      if (t.key === 'activity' && day?.activity) row.bar = barHeight(Math.round(day.activity.progress * 100)) / 100;
+      return row;
+    });
+  return { rows, sync: sourceLine(sources, now) };
+}

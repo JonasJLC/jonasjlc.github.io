@@ -13,6 +13,7 @@ import { useHealthSyncOnOpen } from '../lib/health/use-health';
 import { notify } from '../ui/toast';
 import { CalendarCard } from '../home/CalendarCard';
 import { MissingCard } from '../home/MissingCard';
+import { JeresDag } from '../home/JeresDag';
 import { Tonight } from '../home/Tonight';
 import { ListerView } from '../lister/ListerView';
 import { MadplanView } from '../madplan/MadplanView';
@@ -138,7 +139,7 @@ function HomeView({ person, householdId }: { person: Person; householdId: string
       <CalendarCard householdId={householdId} onAdd={() => setCalendarsOpen(true)} />
       <CalendarSheet open={calendarsOpen} onOpenChange={setCalendarsOpen} householdId={householdId} person={person} />
       <Tonight householdId={householdId} />
-      {/* Idé 12: Jeres dag */}
+      <JeresDag householdId={householdId} person={person} />
       <MissingCard householdId={householdId} />
     </div>
   );
