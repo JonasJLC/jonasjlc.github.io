@@ -56,6 +56,12 @@ export type Database = {
         Update: { created_at?: string; id?: string; name?: string };
         Relationships: [];
       };
+      sp_cycle_log: {
+        Row: { created_at: string; household_id: string; id: string; period_start: string; person: string };
+        Insert: { created_at?: string; household_id: string; id?: string; period_start: string; person: string };
+        Update: { created_at?: string; household_id?: string; id?: string; period_start?: string; person?: string };
+        Relationships: Rel[];
+      };
       sp_dinner_ideas: {
         Row: {
           created_at: string; created_by: string | null; household_id: string; id: string; image_path: string | null;
@@ -75,6 +81,45 @@ export type Database = {
         Row: { created_at: string; created_by: string | null; household_id: string; id: string; name: string; position: number; updated_at: string };
         Insert: { created_at?: string; created_by?: string | null; household_id: string; id?: string; name: string; position?: number; updated_at?: string };
         Update: { created_at?: string; created_by?: string | null; household_id?: string; id?: string; name?: string; position?: number; updated_at?: string };
+        Relationships: Rel[];
+      };
+      sp_health_connections: {
+        Row: {
+          connected_at: string; household_id: string; last_error: string | null; last_synced_at: string | null; person: string;
+          source: string; step_goal: number | null;
+        };
+        Insert: {
+          connected_at?: string; household_id: string; last_error?: string | null; last_synced_at?: string | null; person: string;
+          source: string; step_goal?: number | null;
+        };
+        Update: {
+          connected_at?: string; household_id?: string; last_error?: string | null; last_synced_at?: string | null; person?: string;
+          source?: string; step_goal?: number | null;
+        };
+        Relationships: Rel[];
+      };
+      sp_health_daily: {
+        Row: {
+          activity_goal: number | null; activity_goal_unit: string | null; activity_progress: number | null; cycle_day: number | null;
+          date: string; household_id: string; id: string; person: string; sleep_score: number | null; source: string;
+          steps: number | null; synced_at: string;
+        };
+        Insert: {
+          activity_goal?: number | null; activity_goal_unit?: string | null; activity_progress?: number | null; cycle_day?: number | null;
+          date: string; household_id: string; id?: string; person: string; sleep_score?: number | null; source: string;
+          steps?: number | null; synced_at?: string;
+        };
+        Update: {
+          activity_goal?: number | null; activity_goal_unit?: string | null; activity_progress?: number | null; cycle_day?: number | null;
+          date?: string; household_id?: string; id?: string; person?: string; sleep_score?: number | null; source?: string;
+          steps?: number | null; synced_at?: string;
+        };
+        Relationships: Rel[];
+      };
+      sp_health_sharing: {
+        Row: { changed_at: string; household_id: string; metric: string; person: string; shared: boolean };
+        Insert: { changed_at?: string; household_id: string; metric: string; person: string; shared: boolean };
+        Update: { changed_at?: string; household_id?: string; metric?: string; person?: string; shared?: boolean };
         Relationships: Rel[];
       };
       sp_meal_plan_entries: {
@@ -190,7 +235,23 @@ export type Database = {
       };
     };
     Views: { [_ in never]: never };
-    Functions: { [_ in never]: never };
+    // Only the functions the browser calls. Return columns are nullable here although the generator says otherwise.
+    Functions: {
+      sp_health_for: {
+        Args: { p_from: string; p_person: string; p_to: string };
+        Returns: {
+          activity_goal: number | null; activity_goal_unit: string | null; activity_progress: number | null; cycle_day: number | null;
+          date: string; hidden: string[]; sleep_score: number | null; source: string; steps: number | null; synced_at: string;
+        }[];
+      };
+      sp_health_sources: {
+        Args: never;
+        Returns: {
+          connected_at: string; last_error: string | null; last_synced_at: string | null; person: string; source: string;
+          step_goal: number | null;
+        }[];
+      };
+    };
     Enums: { [_ in never]: never };
     CompositeTypes: { [_ in never]: never };
   };

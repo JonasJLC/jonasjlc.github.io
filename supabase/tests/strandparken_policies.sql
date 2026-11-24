@@ -185,10 +185,104 @@ with d as (delete from public.sp_recipes where id = '00000000-0000-0000-0000-000
 with d as (update public.sp_recipes set image_fetch_attempted_at = now() where id = '00000000-0000-0000-0000-0000000000c1' returning 1)
   insert into r select 'cannot update another household recipe photo fetch state', '0', count(*)::text from d;
 
+-- Health (idea 10): in household 1, U4 is Camilla ('a') and U1 is Jonas ('b'). Rows written as the superuser, as the
+-- edge functions do with the service role.
+reset role;
+insert into public.sp_health_daily (household_id, person, date, source, sleep_score, activity_progress, activity_goal, activity_goal_unit, steps) values
+  ('00000000-0000-0000-0000-0000000000a1', 'a', current_date, 'oura', 81, 0.5, 500, 'kcal', 8000),
+  ('00000000-0000-0000-0000-0000000000a1', 'b', current_date, 'garmin', 70, 0.7, 10000, 'steps', 7000);
+insert into private.sp_integration_tokens (household_id, person, provider, access_ciphertext) values
+  ('00000000-0000-0000-0000-0000000000a1', 'a', 'oura', 'iv.ct');
+insert into public.sp_health_connections (household_id, person, source, last_error, step_goal) values
+  ('00000000-0000-0000-0000-0000000000a1', 'a', 'oura', 'upstream', 9000);
+insert into public.sp_cycle_log (household_id, person, period_start) values
+  ('00000000-0000-0000-0000-0000000000a1', 'a', current_date - 4);
+-- The single-use refresh lease (run as the superuser, standing in for the service role).
+insert into r select 'health: a claim takes the refresh lease', 'true,1', claimed::text || ',' || version
+  from public.sp_health_token_claim_refresh('00000000-0000-0000-0000-0000000000a1', 'a', 'oura', 30);
+insert into r select 'health: a second claim is refused while the lease runs', 'false', claimed::text
+  from public.sp_health_token_claim_refresh('00000000-0000-0000-0000-0000000000a1', 'a', 'oura', 30);
+insert into r select 'health: an overtaken refresh is not stored', 'false',
+  public.sp_health_token_store_refresh('00000000-0000-0000-0000-0000000000a1', 'a', 'oura', 7, 'x', 'y', now())::text;
+insert into r select 'health: the claimed refresh is stored once', 'true',
+  public.sp_health_token_store_refresh('00000000-0000-0000-0000-0000000000a1', 'a', 'oura', 1, 'x', 'y', now())::text;
+insert into r select 'health: storing frees the lease', 'true,2', claimed::text || ',' || version
+  from public.sp_health_token_claim_refresh('00000000-0000-0000-0000-0000000000a1', 'a', 'oura', 30);
+
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000b4","role":"authenticated"}', true);
+set local role authenticated;
+insert into r select 'health: owner reads own rows only', '1', count(*)::text from public.sp_health_daily;
+insert into r select 'health: owner gets every own metric', '81,8000,0.500', concat_ws(',', sleep_score, steps, activity_progress)
+  from public.sp_health_for('a', current_date, current_date) where source = 'oura';
+insert into r select 'health: nothing hidden from the owner', '{}', hidden::text from public.sp_health_for('a', current_date, current_date) where source = 'oura';
+insert into r select 'health: cycle day counts from the period start', '5', cycle_day::text
+  from public.sp_health_for('a', current_date, current_date) where source = 'manual';
+insert into r select 'health: owner reads own cycle log', '1', count(*)::text from public.sp_cycle_log;
+insert into r select 'health: owner sees own error and goal', 'upstream,9000', concat_ws(',', last_error, step_goal)
+  from public.sp_health_sources() where person = 'a';
+insert into r select 'health: no sharing rows hides every metric', '{sleep_score,activity,steps,cycle_day}', hidden::text
+  from public.sp_health_for('b', current_date, current_date) limit 1;
+select pg_temp.try('health: authenticated cannot insert health rows', '42501',
+  $$insert into public.sp_health_daily (household_id, person, date, source, steps) values ('00000000-0000-0000-0000-0000000000a1', 'a', current_date - 1, 'oura', 1)$$);
+select pg_temp.try('health: authenticated cannot update health rows', '42501', $$update public.sp_health_daily set steps = 1$$);
+select pg_temp.try('health: tokens are not readable', '42501', $$select * from private.sp_integration_tokens$$);
+select pg_temp.try('health: token functions are service role only', '42501',
+  $$select * from public.sp_health_token_get('00000000-0000-0000-0000-0000000000a1', 'a', 'oura')$$);
+select pg_temp.try('health: connections are written by functions only', '42501',
+  $$insert into public.sp_health_connections (household_id, person, source) values ('00000000-0000-0000-0000-0000000000a1', 'a', 'garmin')$$);
+select pg_temp.try('health: owner shares sleep', 'ok',
+  $$insert into public.sp_health_sharing (household_id, person, metric, shared) values ('00000000-0000-0000-0000-0000000000a1', 'a', 'sleep_score', true), ('00000000-0000-0000-0000-0000000000a1', 'a', 'steps', false)$$);
+select pg_temp.try('health: cannot write sharing for the other person', '42501',
+  $$insert into public.sp_health_sharing (household_id, person, metric, shared) values ('00000000-0000-0000-0000-0000000000a1', 'b', 'steps', true)$$);
+select pg_temp.try('health: owner logs a period start', 'ok',
+  $$insert into public.sp_cycle_log (household_id, person, period_start) values ('00000000-0000-0000-0000-0000000000a1', 'a', current_date - 40)$$);
+select pg_temp.try('health: cannot log a period for the other person', '42501',
+  $$insert into public.sp_cycle_log (household_id, person, period_start) values ('00000000-0000-0000-0000-0000000000a1', 'b', current_date)$$);
+
+reset role;
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000b1","role":"authenticated"}', true);
+set local role authenticated;
+insert into r select 'health: other member reads none of her rows directly', '0', count(*)::text from public.sp_health_daily where person = 'a';
+insert into r select 'health: a shared metric comes through', '81', sleep_score::text
+  from public.sp_health_for('a', current_date, current_date) where source = 'oura';
+insert into r select 'health: an unshared metric is null', 'null,null', concat_ws(',', coalesce(steps::text, 'null'), coalesce(activity_goal::text, 'null'))
+  from public.sp_health_for('a', current_date, current_date) where source = 'oura';
+insert into r select 'health: hidden lists the unshared metrics', '{activity,steps,cycle_day}', hidden::text
+  from public.sp_health_for('a', current_date, current_date) where source = 'oura';
+insert into r select 'health: hidden cycle day leaves no manual rows', '0', count(*)::text
+  from public.sp_health_for('a', current_date - 10, current_date) where source = 'manual';
+insert into r select 'health: other member cannot read her cycle log', '0', count(*)::text from public.sp_cycle_log;
+with d as (delete from public.sp_cycle_log where person = 'a' returning 1)
+  insert into r select 'health: other member cannot delete her cycle log', '0', count(*)::text from d;
+insert into r select 'health: other member sees her source and last sync, not the error', 'oura,null,null', concat_ws(',', source, coalesce(last_error, 'null'), coalesce(step_goal::text, 'null'))
+  from public.sp_health_sources() where person = 'a';
+insert into r select 'health: other member reads her sharing rows', '2', count(*)::text from public.sp_health_sharing where person = 'a';
+with d as (update public.sp_health_sharing set shared = true where person = 'a' returning 1)
+  insert into r select 'health: other member cannot change her sharing', '0', count(*)::text from d;
+
+reset role;
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000b4","role":"authenticated"}', true);
+set local role authenticated;
+select pg_temp.try('health: owner switches sleep off', 'ok', $$update public.sp_health_sharing set shared = false where person = 'a' and metric = 'sleep_score'$$);
+reset role;
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000b1","role":"authenticated"}', true);
+set local role authenticated;
+insert into r select 'health: switching off takes effect at once', 'null', coalesce(sleep_score::text, 'null')
+  from public.sp_health_for('a', current_date, current_date) where source = 'oura';
+
+reset role;
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000b2","role":"authenticated"}', true);
+set local role authenticated;
+insert into r select 'health: another household gets zero rows', '0', count(*)::text from public.sp_health_for('a', current_date - 10, current_date);
+insert into r select 'health: another household sees no sources', '0', count(*)::text from public.sp_health_sources();
+insert into r select 'health: another household sees no sharing rows', '0', count(*)::text from public.sp_health_sharing;
+
 -- Signed in, but a member of nothing (U3) --------------------------------------------------------------------
 reset role;
 select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000b3","role":"authenticated"}', true);
 set local role authenticated;
+insert into r select 'health: non-member gets zero rows', '0', count(*)::text from public.sp_health_for('a', current_date - 10, current_date);
+insert into r select 'health: non-member sees no health rows', '0', count(*)::text from public.sp_health_daily;
 
 insert into r select 'non-member sees no recipes', '0', count(*)::text from public.sp_recipes;
 insert into r select 'non-member sees no categories', '0', count(*)::text from public.sp_recipe_categories;
@@ -211,6 +305,7 @@ select pg_temp.try('anon cannot read recipes', '42501', $$select * from public.s
 select pg_temp.try('anon cannot read the shopping list', '42501', $$select * from public.sp_shopping_items$$);
 select pg_temp.try('anon cannot read the to-dos', '42501', $$select * from public.sp_todos$$);
 select pg_temp.try('anon cannot read unit preferences', '42501', $$select * from public.sp_unit_preferences$$);
+select pg_temp.try('anon cannot call sp_health_for', '42501', $$select * from public.sp_health_for('a', current_date, current_date)$$);
 
 reset role;
 -- One result row: failures must be 0 and `failing` empty. (Remove the filter to see every check.)
