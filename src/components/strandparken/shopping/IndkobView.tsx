@@ -1,14 +1,15 @@
-import { Plus } from 'lucide-react';
+import { ChevronDown, ChevronRight, Plus } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { useRecipes } from '../lib/recipes/use-recipes';
-import { formatQuantity } from '../lib/recipes/scale';
-import { counts, groupLines, guessCategoryId, mergeRows, type Line } from '../lib/shopping/model';
+import { counts, groupLines, guessCategoryId, mergeRows, pantryGroupId, type Line } from '../lib/shopping/model';
+import { purchaseText } from '../lib/shopping/purchase';
 import { removeRows, restoreDeleted } from '../lib/shopping/repo';
 import { useShopping } from '../lib/shopping/use-shopping';
 import { Button } from '../ui/button';
 import { Card } from '../ui/card';
 import { Checkbox } from '../ui/checkbox';
 import { Field } from '../ui/field';
+import { Icon } from '../ui/icon';
 import { notify } from '../ui/toast';
 import { ItemSheet } from './ItemSheet';
 
@@ -27,13 +28,16 @@ export function IndkobView({ householdId, showTitle = true }: { householdId: str
   const recipesState = useRecipes();
   const [text, setText] = useState('');
   const [open, setOpen] = useState<Line | null>(null);
+  /** "Tjek at I har" starts collapsed: it is a reminder, not part of the shop. */
+  const [pantryOpen, setPantryOpen] = useState(false);
 
   const recipes = recipesState.state.status === 'ready' ? recipesState.state.recipes : [];
   const rows = state.status === 'ready' ? state.rows : [];
   const categories = state.status === 'ready' ? state.categories : [];
+  const dates = state.status === 'ready' ? state.dates : null;
   const lines = useMemo(
-    () => mergeRows(rows, (id) => recipes.find((r) => r.id === id)?.title ?? null),
-    [rows, recipes],
+    () => mergeRows(rows, (id) => recipes.find((r) => r.id === id)?.title ?? null, { entryDate: (id) => dates?.[id] ?? null }),
+    [rows, recipes, dates],
   );
   const groups = useMemo(() => groupLines(lines, categories), [lines, categories]);
   const { total, done } = counts(lines);
@@ -118,27 +122,49 @@ export function IndkobView({ householdId, showTitle = true }: { householdId: str
         <p className="sp-body text-sp-muted">Indkøbslisten er tom. Skriv en vare ovenfor, eller lav en liste fra madplanen.</p>
       )}
 
-      {groups.map((g) => (
-        <section key={g.categoryId ?? 'none'} aria-labelledby={`group-${g.categoryId ?? 'none'}`} className="flex flex-col gap-2">
-          <h2 id={`group-${g.categoryId ?? 'none'}`} className="sp-title-group">{g.name}</h2>
-          <ul className="overflow-hidden rounded-sp-row bg-sp-surface">
-            {[...g.open, ...g.done].map((line) => (
-              <li key={line.key} className="flex min-h-13.5 items-center gap-1 border-t border-sp-line-soft pr-4 pl-1 first:border-t-0">
-                <Checkbox aria-labelledby={`line-${line.key}`} checked={line.checked} onCheckedChange={(c) => tick(line, c === true)} />
-                <button type="button" onClick={() => setOpen(line)} className="flex min-h-13.5 min-w-0 flex-1 items-center gap-3 text-left">
-                  <span className="min-w-0 flex-1">
-                    <span id={`line-${line.key}`} className={'sp-body block font-medium ' + (line.checked ? 'text-sp-muted line-through' : '')}>{line.name}</span>
-                    {line.dishes.length > 0 && <span className="sp-caption block text-sp-muted">{line.dishes.join(', ')}</span>}
-                  </span>
-                  <span className="sp-small shrink-0 text-sp-muted">{formatQuantity(line.amount, line.unit)}</span>
+      {groups.map((g) => {
+        const id = `group-${g.categoryId ?? 'none'}`;
+        const isPantry = g.categoryId === pantryGroupId;
+        const items = [...g.open, ...g.done];
+        return (
+          <section key={g.categoryId ?? 'none'} aria-labelledby={id} className="flex flex-col gap-2">
+            {isPantry ? (
+              <h2 id={id} className="sp-title-group">
+                <button
+                  type="button"
+                  aria-expanded={pantryOpen}
+                  aria-controls={`${id}-list`}
+                  onClick={() => setPantryOpen((o) => !o)}
+                  className="flex min-h-sp-target items-center gap-2 text-left"
+                >
+                  <Icon icon={pantryOpen ? ChevronDown : ChevronRight} size={18} />
+                  {g.name} · {items.length}
                 </button>
-              </li>
-            ))}
-          </ul>
-        </section>
-      ))}
+              </h2>
+            ) : (
+              <h2 id={id} className="sp-title-group">{g.name}</h2>
+            )}
+            {(!isPantry || pantryOpen) && (
+              <ul id={`${id}-list`} className="overflow-hidden rounded-sp-row bg-sp-surface">
+                {items.map((line) => (
+                  <li key={line.key} className="flex min-h-13.5 items-center gap-1 border-t border-sp-line-soft pr-4 pl-1 first:border-t-0">
+                    <Checkbox aria-labelledby={`line-${line.key}`} checked={line.checked} onCheckedChange={(c) => tick(line, c === true)} />
+                    <button type="button" onClick={() => setOpen(line)} className="flex min-h-13.5 min-w-0 flex-1 items-center gap-3 text-left">
+                      <span className="min-w-0 flex-1">
+                        <span id={`line-${line.key}`} className={'sp-body block font-medium ' + (line.checked ? 'text-sp-muted line-through' : '')}>{line.name}</span>
+                        {!isPantry && line.dishes.length > 0 && <span className="sp-caption block text-sp-muted">{line.dishes.join(', ')}</span>}
+                      </span>
+                      {!isPantry && <span className="sp-small shrink-0 text-sp-muted">{purchaseText(line.purchase)}</span>}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
+        );
+      })}
 
-      {done > 0 && (
+      {lines.some((l) => l.checked) && (
         <Button variant="quiet" className="self-center" onClick={() => void clearDone()}>Ryd afkrydsede</Button>
       )}
 

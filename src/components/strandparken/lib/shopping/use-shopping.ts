@@ -3,12 +3,12 @@ import { getClient } from '../auth';
 import { subscribeHousehold } from '../realtime';
 import type { GroceryCategory, ShoppingRow, Status } from './model';
 import { applyOps, compact, loadCache, loadQueue, newOpId, saveCache, saveQueue, type NewOp, type Op } from './queue';
-import { isNetworkError, loadGroceryCategories, loadRows, sendOp } from './repo';
+import { isNetworkError, loadEntryDates, loadGroceryCategories, loadRows, sendOp } from './repo';
 
 export type ShoppingState =
   | { status: 'loading' }
   | { status: 'error' }
-  | { status: 'ready'; rows: ShoppingRow[]; categories: GroceryCategory[] };
+  | { status: 'ready'; rows: ShoppingRow[]; categories: GroceryCategory[]; dates: Record<string, string> };
 
 /**
  * The household's shopping rows and categories (ADR-09). Opens at once from the last copy on the phone, refetches, and
@@ -32,9 +32,11 @@ export function useShopping(householdId: string | null) {
     if (!householdId) return;
     try {
       const [rows, categories] = await Promise.all([loadRows(), loadGroceryCategories()]);
-      setServer({ status: 'ready', rows, categories });
+      // Dates only label the item sheet: a failure there must not hide the list.
+      const dates = await loadEntryDates(rows).catch((): Record<string, string> => ({}));
+      setServer({ status: 'ready', rows, categories, dates });
       setOffline(false);
-      saveCache(householdId, { rows, categories });
+      saveCache(householdId, { rows, categories, dates });
     } catch {
       setOffline(true);
       setServer((s) => (s.status === 'ready' ? s : { status: 'error' }));

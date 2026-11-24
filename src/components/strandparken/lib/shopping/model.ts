@@ -2,6 +2,7 @@ import type { Tables } from '../../../../lib/supabase/database.types.ts';
 import type { PlanEntry } from '../madplan/model.ts';
 import { scaleIngredient } from '../recipes/scale.ts';
 import type { Recipe } from '../recipes/model.ts';
+import { ingredientFor, purchaseFor, type Ingredient, type Purchase } from './purchase.ts';
 
 export type ShoppingRow = Tables<'sp_shopping_items'>;
 export type GroceryCategory = Tables<'sp_grocery_categories'>;
@@ -17,8 +18,8 @@ export const canonicalName = (name: string) =>
   name.replace(/\(.*?\)/g, ' ').trim().replace(/\s+/g, ' ').toLocaleLowerCase('da');
 
 const unitAliases: Record<string, string> = { gr: 'g', gram: 'g', kilo: 'kg', liter: 'l', stk: 'stk', styk: 'stk', 'tsk.': 'tsk', 'spsk.': 'spsk' };
-const mass = { g: 1, kg: 1000 } as const;
-const volume = { ml: 1, cl: 10, dl: 100, l: 1000 } as const;
+export const mass = { g: 1, kg: 1000 } as const;
+export const volume = { ml: 1, cl: 10, dl: 100, l: 1000 } as const;
 
 export const canonicalUnit = (unit: string | null) => {
   const u = (unit ?? '').trim().toLocaleLowerCase('da').replace(/\.$/, '');
@@ -88,10 +89,23 @@ export function guessCategoryId(name: string, categories: readonly GroceryCatego
 // ---------------------------------------------------------------------------------------------------------------
 // Merged display (D36)
 
+export type Source = {
+  rowId: string;
+  /** Title of the dish, or null for a manual item. */
+  dish: string | null;
+  /** Date of the plan entry the row came from, when known. */
+  date: string | null;
+  /** The name, amount and unit as the recipe (or person) wrote them, never converted. */
+  name: string;
+  amount: number | null;
+  unit: string | null;
+};
+
 export type Line = {
   /** Stable across merges: category-free, so a re-categorised line keeps its place in lists. */
   key: string;
   name: string;
+  /** What to buy (idea 13), copied from `purchase` so older callers keep working. */
   amount: number | null;
   unit: string | null;
   categoryId: string | null;
@@ -99,57 +113,100 @@ export type Line = {
   checked: boolean;
   /** Titles of the dishes the amounts come from, in the order they first appear. */
   dishes: string[];
+  /** The `sp_unit_preferences` key: the ingredient table's key, or "?<canonical name>" for an unknown ingredient. */
+  ingredientKey: string;
+  purchase: Purchase;
+  /** A basic such as salt or oil: shown under "Tjek at I har", without an amount, and not counted. */
+  pantry: boolean;
+  /** Every row behind the line with its original amount, for the item sheet. */
+  sources: Source[];
 };
 
-const lineKey = (row: Pick<ShoppingRow, 'canonical_name' | 'name' | 'amount' | 'unit'>) => {
+const familyOf = (row: Pick<ShoppingRow, 'amount' | 'unit'>) => {
   const n = normalised(row.amount, row.unit);
-  return `${row.canonical_name || canonicalName(row.name)}|${n.family === 'other' ? n.unit : n.family}`;
+  return n.family === 'other' ? n.unit : n.family;
 };
 
-/** Rows with the same name and a compatible unit become one line with a summed amount. Hidden statuses never appear. */
-export function mergeRows(rows: readonly ShoppingRow[], dishTitle: (recipeId: string) => string | null = () => null): Line[] {
-  const lines = new Map<string, Line & { sum: number | null; family: Family; unitName: string }>();
+export type MergeOptions = {
+  /** Remembered units per ingredient key (`sp_unit_preferences`). */
+  prefs?: Readonly<Record<string, string>>;
+  /** The date of a plan entry, for the item sheet. */
+  entryDate?: (planEntryId: string) => string | null;
+};
+
+/**
+ * Rows of the same ingredient become one line (idea 13): known ingredients merge across name variants and units and show
+ * what to buy, summed before rounding (`purchaseFor`). Unknown ingredients merge by name and unit family, as before.
+ * Hidden statuses never appear. Stored amounts are never changed.
+ */
+export function mergeRows(
+  rows: readonly ShoppingRow[],
+  dishTitle: (recipeId: string) => string | null = () => null,
+  { prefs = {}, entryDate = () => null }: MergeOptions = {},
+): Line[] {
+  type Draft = Omit<Line, 'amount' | 'unit' | 'purchase' | 'pantry' | 'checked'> & { ing: Ingredient | null };
+  const lines = new Map<string, Draft>();
   for (const row of rows) {
     if (row.status !== 'active' && row.status !== 'checked') continue;
-    const key = lineKey(row);
-    const n = normalised(row.amount, row.unit);
+    const ing = ingredientFor(row.name);
+    const canonical = row.canonical_name || canonicalName(row.name);
+    const key = ing ? ing.key : `?${canonical}|${familyOf(row)}`;
     const dish = row.recipe_id ? dishTitle(row.recipe_id) : null;
+    const source: Source = {
+      rowId: row.id, dish, date: row.plan_entry_id ? entryDate(row.plan_entry_id) : null, name: row.name, amount: row.amount, unit: row.unit,
+    };
     const line = lines.get(key);
     if (!line) {
       lines.set(key, {
-        key, name: row.name, amount: null, unit: null, categoryId: row.grocery_category_id, rows: [row], checked: false,
-        dishes: dish ? [dish] : [], sum: n.amount, family: n.family, unitName: n.unit,
+        key, name: ing?.name ?? row.name, categoryId: row.grocery_category_id, rows: [row], dishes: dish ? [dish] : [],
+        ingredientKey: ing ? ing.key : `?${canonical}`, sources: [source], ing,
       });
       continue;
     }
     line.rows.push(row);
-    if (n.amount !== null) line.sum = (line.sum ?? 0) + n.amount;
+    line.sources.push(source);
     line.categoryId ??= row.grocery_category_id;
     if (dish && !line.dishes.includes(dish)) line.dishes.push(dish);
   }
-  return [...lines.values()].map(({ sum, family, unitName, ...line }) => {
-    const shown = sum === null ? { amount: null, unit: null } : readable(Math.round(sum * 100) / 100, family, unitName);
-    return { ...line, amount: shown.amount, unit: shown.unit || null, checked: line.rows.every((r) => r.status === 'checked') };
+  return [...lines.values()].map(({ ing, ...line }) => {
+    const purchase = purchaseFor(ing, line.rows, prefs[line.ingredientKey]);
+    // A manual item typed without an amount stays without one ("Mælk", not "ca. 1 karton").
+    const bare = line.rows.every((r) => r.amount === null && r.source === 'manual');
+    const shown = bare && !purchase.pantry ? { ...purchase, amount: null, unit: null, approx: false } : purchase;
+    return {
+      ...line, purchase: shown, pantry: shown.pantry, amount: shown.amount, unit: shown.unit,
+      checked: line.rows.every((r) => r.status === 'checked'),
+    };
   });
 }
 
 export type Group = { categoryId: string | null; name: string; open: Line[]; done: Line[] };
 
-/** Lines grouped in store-walk order (the categories' `position`); lines without a category go last as "Andet". Ticked lines collapse to the bottom of their group. */
+export const pantryGroupId = 'pantry';
+
+/**
+ * Lines grouped in store-walk order (the categories' `position`); lines without a category go last as "Andet". Ticked
+ * lines collapse to the bottom of their group. Pantry lines form a trailing group "Tjek at I har" (idea 13).
+ */
 export function groupLines(lines: readonly Line[], categories: readonly GroceryCategory[]): Group[] {
   const ordered = [...categories].sort((a, b) => a.position - b.position || a.name.localeCompare(b.name, 'da'));
   const known = new Set(ordered.map((c) => c.id));
   const groups: Group[] = ordered.map((c) => ({ categoryId: c.id, name: c.name, open: [], done: [] }));
   const loose: Group = { categoryId: null, name: 'Andet', open: [], done: [] };
+  const pantry: Group = { categoryId: pantryGroupId, name: 'Tjek at I har', open: [], done: [] };
   for (const line of [...lines].sort((a, b) => a.name.localeCompare(b.name, 'da'))) {
-    const target = line.categoryId && known.has(line.categoryId) ? groups.find((g) => g.categoryId === line.categoryId)! : loose;
+    const target = line.pantry
+      ? pantry
+      : line.categoryId && known.has(line.categoryId) ? groups.find((g) => g.categoryId === line.categoryId)! : loose;
     (line.checked ? target.done : target.open).push(line);
   }
-  return [...groups, loose].filter((g) => g.open.length + g.done.length > 0);
+  return [...groups, loose, pantry].filter((g) => g.open.length + g.done.length > 0);
 }
 
+/** "x af y købt". Pantry lines are reminders, not purchases, so they count in neither number. */
 export function counts(lines: readonly Line[]) {
-  return { total: lines.length, done: lines.filter((l) => l.checked).length };
+  const buy = lines.filter((l) => !l.pantry);
+  return { total: buy.length, done: buy.filter((l) => l.checked).length };
 }
 
 // ---------------------------------------------------------------------------------------------------------------

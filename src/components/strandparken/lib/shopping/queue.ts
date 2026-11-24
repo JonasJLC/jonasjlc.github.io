@@ -66,8 +66,18 @@ function write(k: string, value: unknown) {
 export const loadQueue = (householdId: string) => read<Op[]>(key(householdId, 'queue'), []);
 export const saveQueue = (householdId: string, ops: Op[]) => write(key(householdId, 'queue'), ops);
 
-export type Cache = { rows: ShoppingRow[]; categories: GroceryCategory[] };
-export const loadCache = (householdId: string) => read<Cache | null>(key(householdId, 'cache'), null);
+export type Cache = {
+  rows: ShoppingRow[];
+  categories: GroceryCategory[];
+  /** Plan entry id → date (idea 13). Missing in caches written before it. */
+  dates: Record<string, string>;
+};
+/** The last copy on the phone. Older caches lack the newer fields, which get empty defaults. */
+export function loadCache(householdId: string): Cache | null {
+  const c = read<Partial<Cache> | null>(key(householdId, 'cache'), null);
+  if (!c || !Array.isArray(c.rows) || !Array.isArray(c.categories)) return null;
+  return { rows: c.rows, categories: c.categories, dates: c.dates ?? {} };
+}
 export const saveCache = (householdId: string, cache: Cache) => write(key(householdId, 'cache'), cache);
 
 /** An op before it is stamped with its id and time. */

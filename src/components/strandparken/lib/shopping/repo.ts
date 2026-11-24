@@ -17,6 +17,16 @@ export async function loadGroceryCategories(): Promise<GroceryCategory[]> {
   return data;
 }
 
+/** The dates of the plan entries behind visible rows, for "Quesadillas · Tor" in the item sheet. */
+export async function loadEntryDates(rows: readonly ShoppingRow[]): Promise<Record<string, string>> {
+  const ids = [...new Set(rows.filter((r) => r.status === 'active' || r.status === 'checked').flatMap((r) => (r.plan_entry_id ? [r.plan_entry_id] : [])))];
+  if (!ids.length) return {};
+  const c = await getClient();
+  const { data, error } = await c.from('sp_meal_plan_entries').select('id, date').in('id', ids);
+  if (error) throw error;
+  return Object.fromEntries(data.map((e) => [e.id, e.date]));
+}
+
 async function setStatus(ids: string[], status: Status, extra: { checked_by?: string | null; checked_at?: string | null } = {}) {
   if (!ids.length) return;
   const c = await getClient();

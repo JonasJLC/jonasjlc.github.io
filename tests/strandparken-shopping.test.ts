@@ -3,7 +3,7 @@ import { test } from 'node:test';
 import type { PlanEntry } from '../src/components/strandparken/lib/madplan/model.ts';
 import type { Recipe } from '../src/components/strandparken/lib/recipes/model.ts';
 import {
-  groupLines, guessCategoryId, guessCategoryName, isEmptyPlan, mergeRows, planGeneration, rowFor,
+  counts, groupLines, guessCategoryId, guessCategoryName, isEmptyPlan, mergeRows, planGeneration, rowFor,
   type GroceryCategory, type ShoppingRow,
 } from '../src/components/strandparken/lib/shopping/model.ts';
 
@@ -50,16 +50,66 @@ test('the same ingredient from two dishes is one line with a summed amount and b
   ];
   const lines = mergeRows(rows, (id) => (id === 'p' ? 'Pasta' : 'Chili'));
   assert.equal(lines.length, 1);
-  assert.equal(lines[0].amount, 3);
+  assert.deepEqual([lines[0].amount, lines[0].unit], [3, 'stk']);
   assert.deepEqual(lines[0].dishes, ['Pasta', 'Chili']);
 });
 
-test('compatible units merge (g + kg), incompatible units stay separate', () => {
-  const merged = mergeRows([stored({ name: 'Mel', amount: 500, unit: 'g' }), stored({ name: 'Mel', amount: 1, unit: 'kg' })]);
+test('unknown ingredients: compatible units merge (g + kg), incompatible units stay separate', () => {
+  const merged = mergeRows([stored({ name: 'Halloumi', amount: 500, unit: 'g' }), stored({ name: 'Halloumi', amount: 1, unit: 'kg' })]);
   assert.equal(merged.length, 1);
   assert.deepEqual([merged[0].amount, merged[0].unit], [1.5, 'kg']);
-  const separate = mergeRows([stored({ name: 'Tomat', amount: 500, unit: 'g' }), stored({ name: 'Tomat', amount: 3, unit: 'stk' })]);
+  assert.equal(merged[0].ingredientKey, '?halloumi');
+  const separate = mergeRows([stored({ name: 'Halloumi', amount: 500, unit: 'g' }), stored({ name: 'Halloumi', amount: 3, unit: 'stk' })]);
   assert.equal(separate.length, 2);
+});
+
+test('name variants of one ingredient merge, summed before rounding, with every source kept', () => {
+  const lines = mergeRows(
+    [
+      stored({ name: 'store tomater', amount: 200, unit: 'g', recipe_id: 'p', plan_entry_id: 'e1', source: 'plan' }),
+      stored({ name: 'Tomater', amount: 2, recipe_id: 'c', plan_entry_id: 'e2', source: 'plan' }),
+    ],
+    (id) => (id === 'p' ? 'Pasta' : 'Chili'),
+    { entryDate: (id) => (id === 'e1' ? '2026-11-26' : null) },
+  );
+  assert.equal(lines.length, 1);
+  assert.equal(lines[0].name, 'Tomater');
+  assert.deepEqual([lines[0].purchase.amount, lines[0].purchase.unit], [1, 'bakke']);
+  assert.deepEqual([lines[0].amount, lines[0].unit], [1, 'bakke']);
+  assert.equal(lines[0].rows.length, 2);
+  assert.deepEqual(lines[0].sources.map((s) => [s.dish, s.date, s.amount, s.unit]), [['Pasta', '2026-11-26', 200, 'g'], ['Chili', null, 2, null]]);
+});
+
+test('rødløg and løg stay two lines', () => {
+  const lines = mergeRows([stored({ name: 'rødløg', amount: 1 }), stored({ name: 'løg', amount: 1 })]);
+  assert.deepEqual(lines.map((l) => l.name).sort(), ['Løg', 'Rødløg']);
+});
+
+test('pantry rows form their own trailing group and are not counted', () => {
+  const lines = mergeRows([
+    stored({ name: 'Salt', amount: 1, unit: 'tsk', source: 'plan' }), stored({ name: 'Lime', amount: 1.5, source: 'plan', grocery_category_id: 'c0' }),
+    stored({ name: 'Olivenolie', amount: 2, unit: 'spsk', status: 'checked', source: 'plan', grocery_category_id: 'c3' }),
+  ]);
+  const salt = lines.find((l) => l.name === 'Salt')!;
+  assert.equal(salt.pantry, true);
+  assert.equal(salt.amount, null);
+  assert.deepEqual(counts(lines), { total: 1, done: 0 });
+  const groups = groupLines(lines, cats);
+  assert.deepEqual(groups.map((g) => g.name), ['Frugt & grønt', 'Tjek at I har']);
+  assert.deepEqual(groups[1].open.map((l) => l.name), ['Salt']);
+  assert.deepEqual(groups[1].done.map((l) => l.name), ['Olivenolie']);
+});
+
+test('a remembered unit changes the line, not the rows', () => {
+  const rows = [stored({ name: 'Tomater', amount: 400, unit: 'g', source: 'plan' })];
+  const [line] = mergeRows(rows, undefined, { prefs: { tomat: 'stk' } });
+  assert.deepEqual([line.amount, line.unit], [4, 'stk']);
+  assert.equal(rows[0].amount, 400);
+});
+
+test('a manual item without an amount shows no amount', () => {
+  const [line] = mergeRows([stored({ name: 'Mælk' })]);
+  assert.deepEqual([line.name, line.amount, line.unit, line.pantry], ['Mælk', null, null, false]);
 });
 
 test('have and cleared rows are not shown; a line is ticked only when all its rows are', () => {
