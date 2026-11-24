@@ -139,7 +139,7 @@ Acceptance criteria:
 | D14 | Training data (Garmin) | **Amended 2026-11-24.** Jonas's sleep score, steps and step-goal progress come from Garmin's free Personal API (opened 21 October 2026), pulled by an edge function with a personal key Jonas creates (R4). Community login libraries are not used. **ADR-06** |
 | D15 | Portions with a goal | Per-person portion shown on the recipe. Defined in D42. |
 | D16 | Nutrition data | Hybrid: Danish food database (Frida) first, AI estimate as fallback. **ADR-04** |
-| D17 | Habits | Personal and shared habits, with a per-person view. |
+| D17 | Habits | Personal and shared habits, with a per-person view. *Refined by idea 15: habits live in Sundhed › Vaner, see §5.7.* |
 | D18 | Household tasks | One-off and recurring, with due dates; reminders as in-app badges only. |
 | D19 | Praktiske indkøb | Wishlist of things to buy for the home; lives in Husholdning (not in Indkøb). |
 | D20 | Subscriptions | Manual list: name, price, billing cycle, renewal date. |
@@ -174,7 +174,7 @@ Each of these replaces a "TBD" in the draft. All are reversible; veto any of the
 | D42 | Portion model | Each person's portion is a share of the cooked dish, shown as grams and percent (§5.4.3). | The only definition that stays correct when two portions do not add up to the pot. |
 | D43 | Micronutrients | Kostfibre, jern, calcium, D-vitamin, C-vitamin, folat, B12. Shown as share of the daily reference value. | Small enough to scan on a phone. Adjust the set once Frida coverage is known (R5). |
 | D44 | Supplements | Suggestions come only from a short curated list that mirrors official Danish recommendations, with the source named. No AI-generated supplement advice, no doses beyond the official text. | Removes the largest health-guidance risk (R8). |
-| D45 | Habits | Frequency is daily or N times per week. The app shows this week's progress and a four-week history. No streak mechanics. | Enough to see the pattern without turning the home into a game. |
+| D45 | Habits | Frequency is daily, N times per week, or specific weekdays, and a habit can be automatic (a rule on health data). The app shows this week's progress and an eight-week history. No streak mechanics in spirit: weeks in a row is an optional small indicator that never shows a reset (roadmap Q4). | Enough to see the pattern without turning the home into a game. |
 | D46 | Task recurrence | Every N days, weeks or months. The next due date counts from completion by default; `Fast dato` keeps a fixed schedule. | Chores done late should not be due again two days later; bills should. |
 | D47 | Offline | Indkøb works fully offline (read, tick, add); changes sync when the connection returns. Other tabs show the last loaded data read-only with an offline note. **ADR-09** | Supermarkets have poor signal. Everything else can wait. |
 | D48 | AI models and budget | Small model by default (the repo default `claude-haiku-5-5`); a stronger model only for screenshot reading and nutrition recommendations. Every call is logged; a hard cap of 50 kr./month stops AI features with a clear message. **ADR-07** | Cost stays bounded without anyone watching it. |
@@ -611,18 +611,22 @@ Acceptance criteria:
 - [ ] Tapping I aften opens the recipe (or, without one, today's Madplan sheet).
 - [ ] A day with nothing planned still looks finished, not empty.
 
-### 5.7 Habits
+### 5.7 Habits (Sundhed › Vaner)
 
-- Personal habits (per person) and shared habits.
-- Frequency: daily or N times per week (D45).
-- Per-person view: each person sees their own and shared habits; a toggle shows the other person's.
-- Check off per day on Hjem. A four-week history is one tap away.
-- Habits are created, edited and archived from the `Rediger` sheet on Hjem.
+Superseded by idea 15 (plan `2026-11-24-sp-15-habits.md`, roadmap Q4 and Q5). Habits live under **Sundhed › Vaner**, next to Data in the segmented control at the top of Sundhed (`#sundhed/vaner`); they are not on Hjem.
+- **Habit:** title, owner (Camilla, Jonas or Fælles), tracking (`Jeg krydser af` or `Automatisk`), frequency (every day, X days a week, or specific weekdays), an optional reminder time, a colour and an emoji, created at, archived at.
+- **Weekly progress is the main view.** A card shows the title, a detail line ("Hver dag · 3 af 7 denne uge"), one dot per target this week and a 44 px check. A missed day is an empty dot: no red, no warning text, no streak that resets. The optional small "N uger" flame shows from two whole weeks in a row and is never shown as lost.
+- **Top of Vaner:** the seven days of the week as rings (date inside, filled by how many of that day's habits were completed), the chips `Mine` and `Fælles`, and today's count ("2 af 6 i dag"). The other person's personal habits are not listed.
+- **Manual habits:** tap the check to complete or undo today. A Fælles habit counts as done when either person completes it and shows "· <Navn>".
+- **Automatic habits:** personal only, with a rule on steps, sleep score or activity (at least or over a number). They show a bolt instead of an empty check, cannot be ticked by hand, and complete themselves when `health-sync` sees the rule met. Today's value ("6.420 i dag") and the thin goal bar show only when the metric is visible to the viewer. The create sheet suggests "8.000 skridt", "Søvnscore over 75" and "Aktivitetsmål nået", and automatic stays off until a health source is connected.
+- **Reminder time** is stored and shown on the card sheet only; the app sends no notifications (roadmap Q5, a follow-up if wanted).
+- **History:** tap a card for the last eight weeks (seven day cells and "x af y" per week), with `Rediger`, `Arkivér` (with `Fortryd`) and, for archived habits, `Gendan`. Archived habits sit behind a collapsed "Arkiverede" link.
+- Created and edited in the `Ny vane` / `Rediger vane` sheet, opened from the `+` in the Sundhed header. The owner of an existing habit cannot be changed. Only today can be ticked.
 
 Acceptance criteria:
-- [ ] A habit can be personal or shared.
-- [ ] Checking off a shared habit records who did it.
-- [ ] Each person can view their own habits separately.
+- [x] A habit can be personal or shared.
+- [x] Checking off a shared habit records who did it.
+- [x] Each person sees their own and Fælles habits; the other person's personal habits are not shown.
 - [ ] A habit with a weekly target shows progress against that target for the current week.
 
 ### 5.8 Husholdning (page)
@@ -688,7 +692,7 @@ All tables carry `household_id` with row-level security. "Household" policy: mem
 | `sp_health_connections` | person, source, connected_at, last_synced_at, last_error, step_goal | Owner reads; `sp_health_sources` gives the other person source and last sync |
 | `sp_cycle_log` | person, period_start | Owner only |
 | `sp_health_sharing` | person, metric, shared (bool), changed_at | Owner writes; household reads |
-| `sp_habits` / `sp_habit_logs` | scope (personal/shared), owner, title, weekly_target, archived_at / habit_id, date, done_by | Household; personal habits written by owner |
+| `sp_habits` / `sp_habit_completions` | owner (`a`/`b`/`both`), title, tracking, frequency (+ per_week_count, weekdays), reminder_time, color, icon, rule (jsonb), archived_at / habit_id, date, completed_by, source | Household reads; personal habits written by the owner, Fælles by either; automatic completions only from the service role (`health-sync`) |
 | `sp_calendar_sources` | person, label, color (`cal-1`…`cal-6`), shared, enabled, position, last_fetched_at, last_error | Owner reads all of theirs and updates label, colour, Fælles, Vis and order, and deletes; the other person reads shared rows only; created only by the `calendar` function |
 | `sp_todos` | title, owner (`a`/`b`/`both`), due_date, note, completed_at, completed_by (set by the database) | Household |
 | `sp_wishlist_items` | name, note, url, price_estimate, priority, bought_at | Household |
@@ -817,7 +821,7 @@ Exit: §5.4 criteria pass; Camilla has approved the explanation texts and the sh
 | Slice | Content | Size |
 |---|---|---|
 | 4.1 | ~~Tasks: one-off, recurring, due dates, claim with avatar, badges.~~ Superseded by idea 5 (To-do under Lister, shipped 24 Nov). | — |
-| 4.2 | Habits: personal/shared, weekly targets, check-off on Hjem, history. | M |
+| 4.2 | ~~Habits on Hjem.~~ Superseded by idea 15 (Vaner in Sundhed, §5.7). | — |
 | 4.3 | Hjem v2: today's habits, links with badges (no tasks, idea 5). | S |
 | 4.4 | Wishlist for the home. (Forslag in settings: done 24 Nov, see D49.) | S |
 

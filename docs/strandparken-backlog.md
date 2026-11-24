@@ -33,7 +33,7 @@ Things found or deferred while building, outside the delivery plan in the design
 
 ## Known gaps in shipped slices
 
-- **Sundhed shows the Data panel only (idea 11).** Deferred: D38 curated cycle-phase explanations for Jonas (roadmap Q10, needs Camilla's approval of each text), goals (§5.4.3), nutrition (§5.4.2) and training (§5.4.4). The Vaner panel arrives with idea 15 (`#sundhed/vaner` already parses; add the panel in `sundhed/SundhedView.tsx`). Not yet tried in a browser: both phones at 360 and 520 px, 130 % text, sharing off as Camilla then reload as Jonas, keyboard and reduced motion.
+- **Sundhed shows the Data panel only (idea 11).** Deferred: D38 curated cycle-phase explanations for Jonas (roadmap Q10, needs Camilla's approval of each text), goals (§5.4.3), nutrition (§5.4.2) and training (§5.4.4). Not yet tried in a browser: both phones at 360 and 520 px, 130 % text, sharing off as Camilla then reload as Jonas, keyboard and reduced motion.
 
 - **To-do has no recurrence (idea 5, roadmap Q3).** Recurring chores are not supported; add a "Gentag" option to a to-do if needed.
 - **Completed to-dos older than 30 days stay in `sp_todos`.** They are hidden, not deleted; add a clean-up if the table grows.
@@ -63,3 +63,7 @@ Things found or deferred while building, outside the delivery plan in the design
 - **Husholdning and Økonomi links** are not placed on Hjem until those pages exist (roadmap Q7).
 - **Garmin data endpoints (idea 10).** The Personal API's Swagger docs could not be read; the adapter assumes the business Health API paths and field names (`steps`, `stepsGoal`, `overallSleepScore.value`). If a sync records `garmin_endpoint` or `garmin_shape`, set `GARMIN_API_BASE`, `GARMIN_DAILIES_PATH` and `GARMIN_SLEEPS_PATH`, or adjust `mapGarmin`. Without a sleep endpoint Jonas's sleep score stays empty.
 - **Health deferred (idea 10).** No Oura webhooks (cron plus app open only); no HealthKit/Shortcuts bridge (`health-ingest` dropped, ADR-06); the Oura activity goal uses `active_calories / target_calories` and has not been compared with the Oura app's ring yet. A refresh that fails after taking the lease holds it for 30 s.
+- **Habit reminders (idea 15, roadmap Q5).** The reminder time is stored and shown only. Delivering a notification needs Web Push (an installed PWA on iPhone, a service worker, VAPID keys and a scheduled sender) and is a separate plan if Jonas wants it.
+- **The other person's personal habits (main spec §2.1).** Vaner shows only your own and Fælles habits; a toggle for the other person's is not built.
+- **Ticking past days (idea 15, open question 2).** Only today can be ticked; yesterday from the history sheet is not offered.
+- **Habits: not yet tried in a browser or against production.** Migration `20261124150000_strandparken_habits.sql` is not applied to production, so Vaner shows its error state until it is. Check on both phones at 360 px, 130 % text, a Fælles habit ticked on one phone and seen on the other, an automatic habit completing after a sync, reduced motion and keyboard.

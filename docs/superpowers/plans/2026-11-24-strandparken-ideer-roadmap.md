@@ -12,7 +12,7 @@
 
 ## Plans
 
-> **Progress (2026-11-24):** F and 1–14 are implemented except 15 (plan 11 is committed on a branch, not yet merged; plan 12 is done on its worktree branch). **Next: 15 (Vaner).** All decision gates are answered: Q1 = A (iCal feeds), Q2 = ADR-06 (Oura for Camilla, Garmin Personal API for Jonas, manual cycle log), Q9 = commit everything. Q4 and Q5 (habits) use the defaults. Outstanding manual checks, secrets and setup steps are in `docs/strandparken-manual-checks.md`; health and calendar collect nothing until those secrets are set.
+> **Progress (2026-11-24):** F and 1–15 are implemented (plan 15 is done on its branch; its migration `20261124150000_strandparken_habits.sql` is not yet applied to production). All decision gates are answered: Q1 = A (iCal feeds), Q2 = ADR-06 (Oura for Camilla, Garmin Personal API for Jonas, manual cycle log), Q9 = commit everything. Q4 and Q5 (habits) use the defaults. Outstanding manual checks, secrets and setup steps are in `docs/strandparken-manual-checks.md`; health and calendar collect nothing until those secrets are set.
 
 | Status | # | Plan | Size | Depends on | Gate |
 |---|---|---|---|---|---|
@@ -31,7 +31,7 @@
 | ✅ Done | 12 | [Jeres dag på Hjem](2026-11-24-sp-12-hjem-jeres-dag.md) | S | 6, 11 | – |
 | ✅ Done | 13 | [Realistiske mængder på indkøbslisten](2026-11-24-sp-13-shopping-amounts.md) | L | 4 | – |
 | ✅ Done | 14 | [Nyt layout på indkøbslisten](2026-11-24-sp-14-shopping-layout.md) | M | 4, 8, 13 | – |
-| ⬜ To do | 15 | [Vaner i Sundhed](2026-11-24-sp-15-habits.md) | L | 11 (manual habits need only the Sundhed segment) | Q4, Q5; automatic habits need 10 |
+| ✅ Done | 15 | [Vaner i Sundhed](2026-11-24-sp-15-habits.md) | L | 11 (manual habits need only the Sundhed segment) | Q4, Q5; automatic habits need 10. Migration not yet applied to production |
 
 ```mermaid
 flowchart LR
