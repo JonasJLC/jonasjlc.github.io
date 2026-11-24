@@ -5,6 +5,7 @@ import { people, type Person } from '../lib/people';
 import { labels, type View } from '../lib/routes';
 import { ForslagView } from '../forslag/ForslagView';
 import { ProfileSection } from '../settings/ProfileSection';
+import { MissingCard } from '../home/MissingCard';
 import { Tonight } from '../home/Tonight';
 import { ListerView } from '../lister/ListerView';
 import { MadplanView } from '../madplan/MadplanView';
@@ -75,7 +76,7 @@ function HomeView({ person, householdId }: { person: Person; householdId: string
       {/* Idé 7: Kalender */}
       <Tonight householdId={householdId} />
       {/* Idé 12: Jeres dag */}
-      {/* Idé 8: Mangler at handle */}
+      <MissingCard householdId={householdId} />
     </div>
   );
 }

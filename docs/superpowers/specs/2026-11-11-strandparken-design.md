@@ -453,6 +453,8 @@ An amount that cannot be converted shows as "ca. 1 <package>" or "ca. 1 stk". "R
 
 **Generating from the plan is repeatable:** running `Lav indkøbsliste` again adds ingredients for new days (through the review), removes unticked ingredients of days that were removed, and updates amounts where persons changed. Ticked items are never touched.
 
+**Day tags and filtered view (idea 8):** a line with an item for a planned meal shows a small tag with the meal's day: "I dag", the short weekday ("Tor") within six days, else "27/11"; the earliest upcoming day wins. Manual items and past days have no tag. `#lister/indkob?for=<entry ids>` (from Hjem's Mangler at handle) shows only the lines for those meals under a banner ("Viser varer til i aften og i morgen") with `Vis alle`, which returns to the whole list. An item added while filtered is manual, so a toast says it shows under Vis alle.
+
 **While shopping:** tick items off; ticked items collapse to the bottom; both people see ticks live. `Ryd afkrydsede` clears bought items and can be undone. The list works offline (D47); when two phones change the same item, the latest change wins.
 
 **Tilbudsoverblik** (offers, D7 amended) — a sheet with three views, all based on this week's offers:
@@ -592,7 +594,7 @@ Hjem is the household dashboard (roadmap Q7, amends D23). Top to bottom:
 2. **Kalender** (idea 7).
 3. **I aften:** a compact card with today's dinner (thumbnail, name, time, persons). The whole card is a link: a recipe opens the recipe, an idea or free text opens today's Madplan sheet (`#madplan/<date>/dag`). Nothing planned: "Hvad skal I have i aften?" with `Planlæg i aften` (today's Madplan sheet) and `Vælg fra opskrifter` (idea 6).
 4. **Jeres dag** (idea 12).
-5. **Mangler at handle** (idea 8).
+5. **Mangler at handle** (idea 8): only what is still unbought for today's and tomorrow's planned recipes, never the whole list. "Til i aften" shows the count of unbought lines ("2 varer") and up to three names, then "+ N mere"; "Til i morgen · <recipe>" shows the count. Only rows generated from the plan count (linked through `plan_entry_id`, so a moved meal keeps its items); manual items, `Læg på indkøbslisten` items and pantry basics do not. When everything for tonight is ticked or marked as at home, the line reads "Klar til i aften". A planned recipe whose items are not on the list reads "Ikke på listen endnu". A day without a planned recipe has no line, and with neither line the section is left out. The card links to Indkøb filtered to those meals (`#lister/indkob?for=<entry>,<entry>`). It updates live when the other phone ticks an item, and works from the cached list offline.
 
 There is no week strip ("Ugen" is gone; the week lives in Madplan). Tasks and habits are no longer on Hjem (roadmap Q3, Q4). The Husholdning and Økonomi links are not placed until those pages exist. The whole dashboard should fit about one phone screen. Oura data appears only as the Jeres dag summary (D13 reversed for that summary, roadmap Q7).
 

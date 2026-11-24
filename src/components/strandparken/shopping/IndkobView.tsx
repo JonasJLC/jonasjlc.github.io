@@ -1,5 +1,10 @@
 import { ChevronDown, ChevronRight, Plus } from 'lucide-react';
 import { useMemo, useState } from 'react';
+import { dayTagFor, filterLabel, forIds, linesFor } from '../lib/home/missing';
+import { addDays, todayIso } from '../lib/madplan/dates';
+import { usePlan } from '../lib/madplan/use-plan';
+import { listerHref } from '../lib/routes';
+import { useRoute } from '../lib/use-route';
 import { useRecipes } from '../lib/recipes/use-recipes';
 import { counts, groupLines, guessCategoryId, mergeRows, pantryGroupId, type Line } from '../lib/shopping/model';
 import { purchaseText } from '../lib/shopping/purchase';
@@ -12,6 +17,11 @@ import { Field } from '../ui/field';
 import { Icon } from '../ui/icon';
 import { notify } from '../ui/toast';
 import { ItemSheet } from './ItemSheet';
+
+/** The day a planned meal's item is for ("Tor"), at the right of the row (idea 8). Its own component so idea 14 can move it. */
+function DayTag({ label }: { label: string }) {
+  return <span className="sp-caption shrink-0 rounded-sp-pill bg-sp-track px-2 py-0.5 text-sp-muted">{label}</span>;
+}
 
 const Title = () => (
   <h1 id="view-title" tabIndex={-1} className="sp-title-page">
@@ -30,20 +40,33 @@ export function IndkobView({ householdId, showTitle = true }: { householdId: str
   const [open, setOpen] = useState<Line | null>(null);
   /** "Tjek at I har" starts collapsed: it is a reminder, not part of the shop. */
   const [pantryOpen, setPantryOpen] = useState(false);
+  // `#lister/indkob?for=<entry>,<entry>` (from Hjem's "Mangler at handle") shows only those meals' items.
+  const { query } = useRoute();
+  const filter = useMemo(() => forIds(new URLSearchParams(query)), [query]);
+  // Two weeks of plan entries label rows with their day, live when a meal moves on the other phone.
+  const today = todayIso();
+  const plan = usePlan(householdId, today, addDays(today, 13));
 
   const recipes = recipesState.state.status === 'ready' ? recipesState.state.recipes : [];
   const rows = state.status === 'ready' ? state.rows : [];
   const categories = state.status === 'ready' ? state.categories : [];
   const dates = state.status === 'ready' ? state.dates : null;
   const prefs = state.status === 'ready' ? state.prefs : undefined;
-  const lines = useMemo(
+  const planDates = useMemo(
+    () => (plan.state.status === 'ready' ? Object.fromEntries(plan.state.entries.map((e) => [e.id, e.date])) : {}),
+    [plan.state],
+  );
+  const dateOf = (id: string): string | null => planDates[id] ?? dates?.[id] ?? null;
+  const allLines = useMemo(
     () => mergeRows(rows, (id) => recipes.find((r) => r.id === id)?.title ?? null, { prefs, entryDate: (id) => dates?.[id] ?? null }),
     [rows, recipes, dates, prefs],
   );
+  const filtered = filter.length > 0;
+  const lines = useMemo(() => (filtered ? linesFor(allLines, filter) : allLines), [allLines, filter, filtered]);
   const groups = useMemo(() => groupLines(lines, categories), [lines, categories]);
   const { total, done } = counts(lines);
   // The sheet follows the live line, so a new unit or a tick from the other phone shows at once.
-  const openLine = open ? lines.find((l) => l.key === open.key) ?? open : null;
+  const openLine = open ? allLines.find((l) => l.key === open.key) ?? open : null;
 
   if (!householdId) {
     return (
@@ -65,6 +88,8 @@ export function IndkobView({ householdId, showTitle = true }: { householdId: str
     if (!name) return;
     setText('');
     await addItem(name, guessCategoryId(name, categories));
+    // A manual item belongs to no meal, so the filtered view would swallow it without a word.
+    if (filtered) notify('Tilføjet – vises under Vis alle');
   };
 
   const clearDone = async () => {
@@ -114,6 +139,13 @@ export function IndkobView({ householdId, showTitle = true }: { householdId: str
         />
       </form>
 
+      {filtered && (
+        <div className="flex items-center justify-between gap-3 rounded-sp-row bg-sp-primary-tint py-1 pr-1 pl-4">
+          <p className="sp-small">{filterLabel(filter, dateOf, today)}</p>
+          <Button variant="quiet" onClick={() => location.replace(listerHref('indkob'))}>Vis alle</Button>
+        </div>
+      )}
+
       {state.status === 'error' && (
         <Card className="flex flex-col gap-sp-gap">
           <p role="alert" className="sp-body">Indkøbslisten kunne ikke hentes.</p>
@@ -121,7 +153,11 @@ export function IndkobView({ householdId, showTitle = true }: { householdId: str
         </Card>
       )}
 
-      {state.status === 'ready' && total === 0 && (
+      {state.status === 'ready' && filtered && lines.length === 0 && (
+        <p className="sp-body text-sp-muted">Der er ingen varer til de valgte måltider på listen.</p>
+      )}
+
+      {state.status === 'ready' && !filtered && total === 0 && (
         <p className="sp-body text-sp-muted">Indkøbslisten er tom. Skriv en vare ovenfor, eller lav en liste fra madplanen.</p>
       )}
 
@@ -149,18 +185,22 @@ export function IndkobView({ householdId, showTitle = true }: { householdId: str
             )}
             {(!isPantry || pantryOpen) && (
               <ul id={`${id}-list`} className="overflow-hidden rounded-sp-row bg-sp-surface">
-                {items.map((line) => (
-                  <li key={line.key} className="flex min-h-13.5 items-center gap-1 border-t border-sp-line-soft pr-4 pl-1 first:border-t-0">
-                    <Checkbox aria-labelledby={`line-${line.key}`} checked={line.checked} onCheckedChange={(c) => tick(line, c === true)} />
-                    <button type="button" onClick={() => setOpen(line)} className="flex min-h-13.5 min-w-0 flex-1 items-center gap-3 text-left">
-                      <span className="min-w-0 flex-1">
-                        <span id={`line-${line.key}`} className={'sp-body block font-medium ' + (line.checked ? 'text-sp-muted line-through' : '')}>{line.name}</span>
-                        {!isPantry && line.dishes.length > 0 && <span className="sp-caption block text-sp-muted">{line.dishes.join(', ')}</span>}
-                      </span>
-                      {!isPantry && <span className="sp-small shrink-0 text-sp-muted">{purchaseText(line.purchase)}</span>}
-                    </button>
-                  </li>
-                ))}
+                {items.map((line) => {
+                  const tag = dayTagFor(line, dateOf, today);
+                  return (
+                    <li key={line.key} className="flex min-h-13.5 items-center gap-1 border-t border-sp-line-soft pr-4 pl-1 first:border-t-0">
+                      <Checkbox aria-labelledby={`line-${line.key}`} checked={line.checked} onCheckedChange={(c) => tick(line, c === true)} />
+                      <button type="button" onClick={() => setOpen(line)} className="flex min-h-13.5 min-w-0 flex-1 items-center gap-3 text-left">
+                        <span className="min-w-0 flex-1">
+                          <span id={`line-${line.key}`} className={'sp-body block font-medium ' + (line.checked ? 'text-sp-muted line-through' : '')}>{line.name}</span>
+                          {!isPantry && line.dishes.length > 0 && <span className="sp-caption block text-sp-muted">{line.dishes.join(', ')}</span>}
+                        </span>
+                        {!isPantry && <span className="sp-small shrink-0 text-sp-muted">{purchaseText(line.purchase)}</span>}
+                        {tag && <DayTag label={tag} />}
+                      </button>
+                    </li>
+                  );
+                })}
               </ul>
             )}
           </section>

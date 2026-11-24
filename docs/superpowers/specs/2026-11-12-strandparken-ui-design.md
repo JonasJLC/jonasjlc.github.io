@@ -170,6 +170,8 @@ All seven rows, the title and the primary button must fit above the bar on a 390
 
 - Group: `title-group` heading, then a white group (`--sp-r-row`) of rows.
 - Row: 26 px round check in a 44 px target, name in `body` 500 with the source dishes in `caption` muted below, amount at the right in 14 px muted. Min height 54 px. Checked rows are struck through.
+- Day tag (idea 8): a row for a planned meal has a small neutral pill at the right, after the amount: `caption` in muted ink on `--sp-track`, `--sp-r-pill`, 8 px by 2 px padding ("Tor", "I dag", "27/11"). It is its own component (`DayTag`) so idea 14 can restyle it.
+- Filter banner (idea 8): above the groups when Indkøb is filtered to meals, a `--sp-primary-tint` strip (`--sp-r-row`) with the `small` text "Viser varer til i aften og i morgen" and a quiet `Vis alle` at the right.
 - Add field: white pill, 50 px tall, placeholder `Tilføj vare`, with a 50 px primary circle button beside it.
 
 ### 5.9 Segmented control, chips, stepper
@@ -210,7 +212,7 @@ Avatar: circle with the person's photo from `public/ferie/avatars/`, or the init
 
 Each list is top to bottom. Behaviour is in the main spec section named in brackets.
 
-- **Hjem** (§5.6, roadmap Q7): header (date line in `small` muted above the greeting in `title-page`; at the right both avatars, 44 px, overlapping by about a third: the other person's decorative avatar behind, the signed-in person's `Indstillinger` button in front, each with a 2 px ground-coloured ring) → Kalender (idea 7) → tonight card (§5.5) → Jeres dag (idea 12) → Mangler at handle (idea 8). Sections are 16 px apart (`--sp-gap`) so the dashboard fits about one screen. No week strip.
+- **Hjem** (§5.6, roadmap Q7): header (date line in `small` muted above the greeting in `title-page`; at the right both avatars, 44 px, overlapping by about a third: the other person's decorative avatar behind, the signed-in person's `Indstillinger` button in front, each with a 2 px ground-coloured ring) → Kalender (idea 7) → tonight card (§5.5) → Jeres dag (idea 12) → Mangler at handle (idea 8): `title-section` heading, then one white card (`--sp-r-card`, no shadow) that is a single link. Row "Til i aften" in `body-strong` with the count at the right in `small` semibold `--sp-warn` ("2 varer"), names below in `small` muted ("Lime, Avocado + 1 mere"); all bought: a check icon and "Klar til i aften" in `--sp-primary`. Row "Til i morgen · Carbonara" in `small` muted with the count at the right in `small` muted. A recipe not on the list reads "Ikke på listen endnu" in muted. Loading is a one-row skeleton; an error hides the section. Sections are 16 px apart (`--sp-gap`) so the dashboard fits about one screen. No week strip.
 - **Madplan** (§5.3.3): title at the left, week switcher pill at the right (‹ `Uge 46` ›) → seven day rows → primary `Lav indkøbsliste`.
 - **Lister** (§5.1, §5.3.4): title `Lister` → segmented control `Indkøb` | `To-do` (§5.9) → the selected segment. `To-do` shows a card "Kommer snart." until idea 5.
 - **Lister › Indkøb** (§5.3.4): the count line ("3 af 12 varer er købt"), a white `Tilbud` pill at the right → add field → category groups in store-walk order, each row with its purchase amount at the right ("2 stk", "1 bakke"; idea 13) → a collapsed disclosure group "Tjek at I har · 4" with pantry basics, names only → quiet `Ryd afkrydsede`.

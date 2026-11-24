@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { hrefFor, labels, legacyAlias, listerHref, listerSegment, madplanDay, madplanDayHref, parseHash, subPath, views } from '../src/components/strandparken/lib/routes.ts';
+import { hrefFor, labels, legacyAlias, listerHref, listerSegment, madplanDay, madplanDayHref, parseHash, queryOf, subPath, views } from '../src/components/strandparken/lib/routes.ts';
 
 test('the five views, in bottom-bar order', () => {
   assert.deepEqual([...views], ['hjem', 'madplan', 'lister', 'sundhed', 'opskrifter']);
@@ -28,6 +28,14 @@ test('a hash without the leading # also parses', () => {
 test('a query string after the view is ignored', () => {
   assert.equal(parseHash('#madplan?code=abc123'), 'madplan');
   assert.equal(parseHash('#?code=abc123'), 'hjem');
+});
+
+test('queryOf reads the query string after the path, and parseHash and subPath ignore it', () => {
+  assert.equal(queryOf('#lister/indkob?for=a,b').get('for'), 'a,b');
+  assert.equal(queryOf('#lister/indkob').toString(), '');
+  assert.equal(queryOf('').toString(), '');
+  assert.equal(parseHash('#lister/indkob?for=a,b'), 'lister');
+  assert.deepEqual(subPath('#lister/indkob?for=a,b'), ['indkob']);
 });
 
 test('the old Indkøb addresses, in either spelling and any case, open Lister', () => {

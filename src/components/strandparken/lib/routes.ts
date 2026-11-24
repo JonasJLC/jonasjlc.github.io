@@ -27,6 +27,12 @@ export function splitHash(hash: string): string[] {
   return hash.replace(/^#/, '').split('?')[0].split('/');
 }
 
+/** The query string after the path: `#lister/indkob?for=a,b` gives `for=a,b`. Empty without a `?`. */
+export function queryOf(hash: string): URLSearchParams {
+  const q = hash.indexOf('?');
+  return new URLSearchParams(q >= 0 ? hash.slice(q + 1) : '');
+}
+
 /** The segments after the view: `#opskrifter/abc/rediger` gives `['abc', 'rediger']`. Empty segments are dropped. */
 export function subPath(hash: string): string[] {
   return splitHash(hash).slice(1).filter(Boolean).map((s) => { try { return decodeURIComponent(s); } catch { return s; } });

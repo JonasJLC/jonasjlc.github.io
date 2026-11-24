@@ -1,9 +1,13 @@
 import { useEffect, useState } from 'react';
 import { hrefFor, legacyAlias, parseHash, subPath, type View } from './routes';
 
-export type Route = { view: View; path: string[] };
+/** `query` is the raw text after `?` (`for=a,b`); read it with `new URLSearchParams(query)` or `queryOf`. */
+export type Route = { view: View; path: string[]; query: string };
 
-const read = (): Route => ({ view: parseHash(location.hash), path: subPath(location.hash) });
+const read = (): Route => {
+  const q = location.hash.indexOf('?');
+  return { view: parseHash(location.hash), path: subPath(location.hash), query: q >= 0 ? location.hash.slice(q + 1) : '' };
+};
 
 /**
  * The current view and any path below it, from `location.hash` (`#opskrifter/<id>/rediger`). An empty or unknown view is
