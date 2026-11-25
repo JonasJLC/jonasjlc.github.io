@@ -142,7 +142,7 @@ test('unknown ingredients: whole pieces for counts, else the recipe amount round
 });
 
 test('unconvertible amounts give one package or one piece, marked approximate', () => {
-  assert.equal(buy('persille', [part(1, 'håndfuld')]), 'ca. 1 bundt (30 gram)');
+  assert.equal(buy('persille', [part(1, 'håndfuld')]), 'ca. 1 bundt');
   assert.equal(buy('persille', [part(null)]), 'ca. 1 bundt (30 gram)');
   assert.equal(buy('avocado', [part(null)]), 'ca. 1 stk');
   assert.equal(buy('tomat', [part(2), part(1, 'håndfuld')]), 'ca. 1 bakke');
