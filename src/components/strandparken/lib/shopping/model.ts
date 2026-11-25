@@ -1,5 +1,5 @@
 import type { Tables } from '../../../../lib/supabase/database.types.ts';
-import type { PlanEntry } from '../madplan/model.ts';
+import { isLeftover, type PlanEntry } from '../madplan/model.ts';
 import { scaleIngredient } from '../recipes/scale.ts';
 import type { Recipe } from '../recipes/model.ts';
 import { ingredientFor, purchaseFor, type Ingredient, type Purchase } from './purchase.ts';
@@ -322,7 +322,8 @@ export function planGeneration(
   const plan: Plan = { review: [], add: [], update: [], remove: [] };
   const planRows = rows.filter((r) => r.source === 'plan');
   const entryIds = new Set(entries.map((e) => e.id));
-  const withRecipe = entries.filter((e) => e.recipe_id);
+  // Leftover dinners (same recipe the day before) are not cooked again: they add no ingredients.
+  const withRecipe = entries.filter((e) => e.recipe_id && !isLeftover(entries, e));
 
   for (const entry of withRecipe) {
     const recipe = recipes.find((r) => r.id === entry.recipe_id);
