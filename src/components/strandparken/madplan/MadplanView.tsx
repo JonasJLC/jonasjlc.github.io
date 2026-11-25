@@ -8,7 +8,7 @@ import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { tapHaptic } from '../lib/haptics';
 import { addDays, dayOfMonth, isIsoDate, isoWeek, longDate, mondayOf, todayIso, weekDays, weekdayLong, weekdayShort, type IsoDate } from '../lib/madplan/dates';
 import { applyOutcome, dayDroppable, dayOfDroppable, dropOutcome, edgeWeek, moveMessage, type DropOutcome } from '../lib/madplan/drag';
-import { type Dish, dishOf, entryOn, type PlanEntry } from '../lib/madplan/model';
+import { type Dish, dishOf, entryOn, isLeftover, type PlanEntry } from '../lib/madplan/model';
 import { loadEntries, persistOutcome } from '../lib/madplan/repo';
 import { usePlan } from '../lib/madplan/use-plan';
 import { madplanDay, subPath } from '../lib/routes';
@@ -286,6 +286,7 @@ export function MadplanView({ path, householdId }: { path: string[]; householdId
                   date={date}
                   isToday={date === today}
                   entry={state.status === 'ready' ? entryOn(entries, date) : null}
+                  leftover={state.status === 'ready' && ((e) => !!e && isLeftover(entries, e))(entryOn(entries, date))}
                   loading={state.status === 'loading'}
                   recipes={recipes}
                   ideas={ideas}
@@ -370,6 +371,8 @@ type RowProps = {
   isToday: boolean;
   entry: PlanEntry | null;
   loading: boolean;
+  /** The same recipe was planned the day before. */
+  leftover: boolean;
   recipes: Parameters<typeof dishOf>[1];
   ideas: Parameters<typeof dishOf>[2];
   categories: Parameters<typeof dishOf>[3];
@@ -377,7 +380,7 @@ type RowProps = {
   onOpen: () => void;
 };
 
-function DayRow({ date, isToday, entry, loading, recipes, ideas, categories, photos, onOpen }: RowProps) {
+function DayRow({ date, isToday, entry, loading, leftover, recipes, ideas, categories, photos, onOpen }: RowProps) {
   const dish = entry ? dishOf(entry, recipes, ideas, categories) : null;
   const photo = dish ? smallPhotoUrl(photos, dish.thumbPath, dish.imagePath) : undefined;
   const drop = useDroppable({ id: dayDroppable(date) });
@@ -402,7 +405,7 @@ function DayRow({ date, isToday, entry, loading, recipes, ideas, categories, pho
         disabled={loading}
         onClick={onOpen}
         {...dragProps}
-        aria-label={dish && entry ? `${longDate(date)}: ${dish.title}, ${personsLabel(entry.servings ?? 2)}. Åbn` : `${longDate(date)}: tilføj ret`}
+        aria-label={dish && entry ? `${longDate(date)}: ${dish.title}, ${personsLabel(entry.servings ?? 2)}${leftover ? ', rester' : ''}. Åbn` : `${longDate(date)}: tilføj ret`}
         className={
           'sp-no-callout flex min-h-sp-row min-w-0 flex-1 touch-manipulation items-center gap-3 rounded-sp-row px-3 py-2 text-left ' +
           (over ? 'sp-row-drop-target ' : entry ? 'bg-sp-surface active:bg-sp-track ' : 'sp-border-strong border-dashed border-sp-dash active:bg-sp-track ') +
@@ -424,6 +427,7 @@ function DayRow({ date, isToday, entry, loading, recipes, ideas, categories, pho
             <span className="sp-body-strong min-w-0 flex-1 text-sp-primary">{loading ? '' : 'Tilføj ret'}</span>
           </>
         )}
+        {leftover && <Badge>Rester</Badge>}
         {isToday && <Badge tone="positive">I dag</Badge>}
       </button>
     </div>

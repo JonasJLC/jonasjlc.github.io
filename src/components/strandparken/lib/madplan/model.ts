@@ -1,6 +1,7 @@
 import type { Tables } from '../../../../lib/supabase/database.types.ts';
 import type { Idea } from '../ideas/model.ts';
 import type { Recipe } from '../recipes/model.ts';
+import { addDays } from './dates.ts';
 import { categoryName, type Placeholder, placeholderFor } from '../recipes/placeholder.ts';
 
 export type PlanEntry = Tables<'sp_meal_plan_entries'>;
@@ -47,3 +48,13 @@ export function dishOf(entry: PlanEntry, recipes: readonly Recipe[], ideas: read
 export const entryOn = (entries: readonly PlanEntry[], date: string) => entries.find((e) => e.date === date) ?? null;
 
 export const cleanFreeText = (text: string) => text.trim().replace(/\s+/g, ' ').slice(0, 120);
+
+/**
+ * True when `entry` is a leftover dinner: the same recipe is planned the day before. Derived, nothing is stored. The later
+ * day is the leftover, so it adds no ingredients to the shopping list.
+ */
+export const isLeftover = (entries: readonly PlanEntry[], entry: PlanEntry): boolean => {
+  if (!entry.recipe_id) return false;
+  const before = entryOn(entries, addDays(entry.date, -1));
+  return before?.recipe_id === entry.recipe_id;
+};
