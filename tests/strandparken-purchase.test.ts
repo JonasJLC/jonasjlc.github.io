@@ -142,8 +142,8 @@ test('unknown ingredients: whole pieces for counts, else the recipe amount round
 });
 
 test('unconvertible amounts give one package or one piece, marked approximate', () => {
-  assert.equal(buy('persille', [part(1, 'håndfuld')]), 'ca. 1 bundt');
-  assert.equal(buy('persille', [part(null)]), 'ca. 1 bundt');
+  assert.equal(buy('persille', [part(1, 'håndfuld')]), 'ca. 1 bundt (30 gram)');
+  assert.equal(buy('persille', [part(null)]), 'ca. 1 bundt (30 gram)');
   assert.equal(buy('avocado', [part(null)]), 'ca. 1 stk');
   assert.equal(buy('tomat', [part(2), part(1, 'håndfuld')]), 'ca. 1 bakke');
 });
@@ -178,8 +178,10 @@ test('package units take the Danish plural after a number above one', () => {
 });
 
 test('purchase text for the list', () => {
-  assert.equal(purchaseText(purchaseFor(ing('tun'), [part(3, 'dåse')])), '3 dåser');
+  assert.equal(purchaseText(purchaseFor(ing('tun'), [part(3, 'dåse')])), '3 dåser (555 gram)');
+  assert.equal(purchaseText(purchaseFor(ing('hakket-svinekød'), [part(1000, 'g')])), '2 bakker (1000 gram)');
+  assert.equal(purchaseText(purchaseFor(ing('lime'), [part(1)])), '1 stk');
   assert.equal(purchaseText(purchaseFor(ing('kartofler'), [part(1150, 'g')])), '1,2 kg');
-  assert.equal(purchaseText(purchaseFor(ing('persille'), [part(null)])), 'ca. 1 bundt');
+  assert.equal(purchaseText(purchaseFor(ing('persille'), [part(null)])), 'ca. 1 bundt (30 gram)');
   assert.equal(purchaseText(purchaseFor(ing('salt'), [part(1, 'tsk')])), '');
 });

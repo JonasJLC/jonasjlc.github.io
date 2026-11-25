@@ -139,7 +139,14 @@ export function toBase(ing: Ingredient, amount: number | null, unit: string | nu
 // Purchase quantity
 
 export type Part = { amount: number | null; unit: string | null };
-export type Purchase = { amount: number | null; unit: string | null; pantry: boolean; approx: boolean };
+export type Purchase = {
+  amount: number | null;
+  unit: string | null;
+  pantry: boolean;
+  approx: boolean;
+  /** What the packages hold in total ("1 bakke" holds 1000 g), so the list shows count and amount together. */
+  contains?: { amount: number; unit: 'g' | 'ml' | 'stk' };
+};
 
 const EPS = 1e-9;
 const ceilTo = (value: number, step: number) => Math.ceil(value / step - EPS) * step;
@@ -267,7 +274,13 @@ export function purchaseFor(ing: Ingredient | null, parts: readonly Part[], pref
     const t = total(ing, parts, ing.pack.measure);
     if (t.converted === 0 || t.value <= ing.pantryBelow) return { ...none, pantry: true };
   }
-  return (pref && byPreference(ing, parts, pref)) || byRule(ing, parts);
+  return withContents(ing, (pref && byPreference(ing, parts, pref)) || byRule(ing, parts));
+}
+
+/** A package count gets the total it holds, from the table's package size (never for pieces: "1 æble" stays "1 æble"). */
+function withContents(ing: Ingredient, p: Purchase): Purchase {
+  if (!ing.pack || p.amount === null || p.unit !== ing.pack.unit) return p;
+  return { ...p, contains: { amount: round2(p.amount * ing.pack.size), unit: ing.pack.measure } };
 }
 
 /** What the unit picker offers: the package unit, "stk" when pieces make sense, g (or ml for liquids), and the recipe amount. */
@@ -290,11 +303,12 @@ const plurals: Record<string, string> = {
 };
 export const unitLabel = (amount: number | null, unit: string | null) => (unit && amount !== null && amount > 1 ? plurals[unit] ?? unit : unit);
 
-/** "2 dåser", "ca. 1 bundt", "1,2 kg"; empty for a pantry line or a line without an amount. */
+/** "2 dåser (800 gram)", "ca. 1 bundt", "1,2 kg"; empty for a pantry line or a line without an amount. */
 export function purchaseText(p: Purchase): string {
   if (p.pantry || p.amount === null) return '';
   const text = formatQuantity(p.amount, unitLabel(p.amount, p.unit));
-  return text && p.approx ? `ca. ${text}` : text;
+  const full = text && p.contains ? `${text} (${formatQuantity(p.contains.amount, p.contains.unit === 'g' ? 'gram' : p.contains.unit)})` : text;
+  return full && p.approx ? `ca. ${full}` : full;
 }
 
 /** Label for a unit-picker chip. */
